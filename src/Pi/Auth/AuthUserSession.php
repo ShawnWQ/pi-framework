@@ -1,0 +1,230 @@
+<?hh
+
+namespace Pi\Auth;
+
+use Pi\Auth\Interfaces\IAuthSession;
+use Pi\Auth\Interfaces\IAuthTokens;
+use Pi\Interfaces\IRequest;
+use Pi\Interfaces\IService;
+
+class AuthUserSession implements IAuthSession {
+
+  protected $referenceUrl;
+
+  protected $id;
+
+  protected $userId;
+
+  protected $userName;
+
+  protected $displayName;
+
+  protected $firstName;
+
+  protected $lastName;
+
+  protected $email;
+
+  protected $providerOAuthAccess;
+
+  protected $createdAt;
+
+  protected $lastModified;
+
+  protected $roles;
+
+  protected $permissions;
+
+  protected $sequence;
+
+  protected $isAuthenticated = false;
+
+  protected string $userAuthName;
+
+  public function __construct()
+  {
+    $this->providerOAuthAccess = array();
+    $this->roles = array();
+    $this->permissions = array();
+  }
+
+  public function getReferenceUrl() : string
+  {
+    return $this->referenceUrl;
+  }
+
+  public function getId() : string
+  {
+    return $this->id;
+  }
+
+  public function setId(string $id) : void
+  {
+    $this->id = $id;
+  }
+
+  public function getUserId() : \MongoId
+  {
+    return $this->userId;
+  }
+
+  public function setUserId(\MongoId $id) : void
+  {
+    $this->userId = $id;
+  }
+
+  public function getUserAuthName() : string
+  {
+    return $this->userAuthName;
+  }
+
+  public function setUserAuthName(string $value)  : void
+  {
+    $this->userAuthName = $value;
+  }
+
+  public function getUserName() : string
+  {
+    return $this->userName;
+  }
+
+  public function setUserName(string $value)  : void
+  {
+    $this->userName = $value;
+  }
+
+  public function getDisplayName() : string
+  {
+    return $this->displayName;
+  }
+
+  public function setDisplayName(string $value)  : void
+  {
+    $this->displayName = $value;
+  }
+
+  public function getFirstName() : string
+  {
+    return $this->firstName;
+  }
+
+  public function getLastName() : string
+  {
+    return $this->lastName;
+  }
+
+  public function getEmail() : string
+  {
+    return $this->email;
+  }
+
+  public function setEmail(string $value)  : void
+  {
+    $this->email = $value;
+  }
+
+  public function getProviderOAuthAccess() : array
+  {
+    return $this->providerOAuthAccess;
+  }
+
+  public function setProviderOAuthAccess(array $values) : void
+  {
+    $this->providerOAuthAccess = $values;
+  }
+
+  public function addProviderOAuthAccess($value) : void
+  {
+    $this->providerOAuthAccess[] = $value;
+  }
+
+  public function getCreatedAt() : \DateTime
+  {
+    return $this->createdAt;
+  }
+
+  public function setCreatedAt(\DateTime $value)
+  {
+    $this->createdAt = $value;
+  }
+
+  public function getLastModified() : \DateTime
+  {
+    return $this->lastModified;
+  }
+
+  public function setLastModified(\DateTime $value)
+  {
+    $this->lastModified = $value;
+  }
+
+  public function getRoles() : array
+  {
+    return $this->roles;
+  }
+
+  public function setRoles(array $values) : void
+  {
+    $this->roles = $values;
+  }
+
+  public function getPermissions() : array
+  {
+    return $this->permissions;
+  }
+
+  public function setPermissions(array $values) : void
+  {
+    $this->permissions = $values;
+  }
+
+  public function getSequence() : string
+  {
+    return $this->sequence;
+  }
+
+  public function isAuthenticated() : bool
+  {
+    return $this->isAuthenticated;
+  }
+
+  public function setIsAuthenticated(bool $value) : void
+  {
+    $this->isAuthenticated = $value;
+  }
+
+  public function hasRole(string $role) : bool
+  {
+    return array_key_exists($role, $this->roles);
+  }
+
+  public function hasPermission(string $permission) : bool
+  {
+    return array_key_exists($permission, $this->permissions);
+  }
+
+  public function isAuthorized(string $provider) : bool
+  {
+
+  }
+
+  public function onRegistered(IRequest $request, IAuthSession $session, IService $service) : void
+  {
+
+  }
+
+  public function onAuthenticated(IService $authService, IAuthSession $session, IAuthTokens $tokens, $authInfo) : void
+  {
+
+  }
+
+  public function onLogout(IService $authService) : void
+  {
+
+  }
+
+  public function onCreated(IRequest $request) : void
+  {
+
+  }
+}

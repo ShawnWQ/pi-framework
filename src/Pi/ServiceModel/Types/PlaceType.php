@@ -1,0 +1,70 @@
+<?hh
+
+namespace Pi\ServiceModel\Types;
+
+enum PlaceType : int {
+	
+	AdministrativeArea = 1;
+	AdministrativeAreaCity = 2;
+	AdministrativeAreaCountry = 3;
+	AdministrativeAreaState = 4;
+	CivicStructure = 5;
+	CivicStructureAirport = 6;
+	CivicStructureAquarium = 7;
+	CivicStructureBeach = 8;
+	CivicStructureBusStation = 9;
+	CivicStructureBusStop = 10;
+	CivicStructureCampground = 11;
+	CivicStructureCemetery = 12;
+	CivicStructureCrematorium = 13;
+	CivicStructureEventVenue = 14;
+	CivicStructureFireStation = 15;
+	CivicStructureGovernmentBuilding = 16;
+	CivicStructureGovernmentBuildingCityHall = 17;
+	CivicStructureGovernmentBuildingCourthouse = 18;
+	CivicStructureGovernmentBuildingDefenceEstablishment = 19;
+	CivicStructureGovernmentBuildingEmbassy = 20;
+	CivicStructureGovernmentBuildingLegislativeBuilding = 21;
+	CivicStructureHospital = 22;
+	CivicStructureMovieTheater = 23;
+	CivicStructureMuseum = 24;
+	CivicStructureMusicVenue = 25;
+	CivicStructurePark = 26;
+	CivicStructureParkingFacility = 27;
+	CivicStructurePerformingArtsTheater = 28;
+	CivicStructurePlaceOfWorship = 29;
+	CivicStructurePlaceOfWorshipBuddhistTemple = 30;
+	CivicStructurePlaceOfWorshipCatholicChurch = 31;
+	CivicStructurePlaceOfWorshipChurch = 32;
+	CivicStructurePlaceOfWorshipHinduTemple = 33;
+	CivicStructurePlaceOfWorshipMosque = 34;
+	CivicStructurePlaceOfWorshipSynagogue = 35;
+	CivicStructurePlayground = 36;
+	CivicStructurePoliceStation = 37;
+	CivicStructureRVPark = 38;
+	CivicStructureStadiumOrArena = 39;
+	CivicStructureSubwayStation = 40;
+	CivicStructureTaxiStand = 41;
+	CivicStructureTrainStation = 42;
+	CivicStructureZoo = 43;
+	Landform = 44;
+	LandformBodyOfWater = 45;
+	LandformBodyOfWaterCanal = 46;
+	LandformBodyOfWaterLakeBodyOfWater = 47;
+	LandformBodyOfWaterOceanBodyOfWater = 48;
+	LandformBodyOfWaterPond = 49;
+	LandformBodyOfWaterReservoir = 50;
+	LandformBodyOfWaterRiverBodyOfWater = 51;
+	LandformBodyOfWaterSeaBodyOfWater = 52;
+	LandformBodyOfWaterWaterfall = 53;
+	LandformContinent = 54;
+	LandformMountain = 55;
+	LandformVolcano = 56;
+	LandformLandmarksOrHistoricalBuildings = 57;
+	LandformLocalBusiness  = 58;
+	LandformResidence = 59;
+	LandformResidenceApartmentComplex = 60;
+	LandformResidenceGatedResidenceCommunity = 61;
+	LandformResidenceSingleFamilyResidence = 62;
+	LandformTouristAttraction = 63;
+}

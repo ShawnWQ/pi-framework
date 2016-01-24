@@ -1,0 +1,40 @@
+{
+    "name": "guilhermegeek/pi-framework",
+
+    "require": {
+        "phpunit/phpunit": "~4.5",
+        "videlalvaro/php-amqplib": "~2.5",
+        "jeremeamia/superclosure": "~2.1",
+        "captioning/captioning": "2.*",
+        "wisembly/elephant.io": "~3.0",
+        "facebook/php-sdk-v4": "~5.0",
+        "swiftmailer/swiftmailer": "^5.4"
+    },
+    "autoload": {
+        "psr-4": {
+          "Pi\\Common\\": "src/Pi-Common",
+          "Pi\\Client\\": "src/Pi-Client",
+          "Pi\\Interfaces\\": "src/Pi-Interfaces",
+          "Pi\\Odm\\": "src/Pi-Odm",
+          "Pi\\Uml\\": "src/Pi-Uml",
+          "Pi\\Validation\\": "src/Pi-Validation",
+          "Pi\\Redis\\" : "src/Pi-Redis",
+          "Pi\\MessagePack\\" : "src/Pi-MessagePack",
+          "Pi\\AmqbRabbit\\" : "src/Pi-AmqbRabbit",
+          "Pi\\Realtime\\" : "src/Pi-Realtime",
+          "Pi\\VirtualPath\\" : "src/Pi-VirtualPath",
+          "Pi\\Sitemap\\" : "src/Pi-Sitemap",
+          "Pi\\Queue\\" : "src/Pi-Queue",
+          "Pi\\": "src/Pi",
+          "SpotEvents\\": "src/SpotEvents",
+          "MultiTenant\\": "src/MultiTenant",
+          "Warez\\": "src/Warez",
+          "Mocks\\": "tests/Mocks",
+          "Collaboration\\": "src/Collaboration",
+          "MarkdownView\\": "src/MarkdownView"
+        },
+        "files": [
+          "lib/simple_html_dom.php"
+        ]
+    }
+}

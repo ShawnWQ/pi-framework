@@ -1,0 +1,8 @@
+vendor/
+build/
+demo/public/
+.idea/
+config.ini
+config.json
+.hhconfig
+.config.json
