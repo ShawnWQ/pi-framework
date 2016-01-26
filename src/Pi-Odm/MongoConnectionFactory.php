@@ -26,7 +26,11 @@ class MongoConnectionFactory
     public function open() : IDbConnection
     {
       try {
-        $c = new \MongoClient();
+        
+        $config = $this->ioc->get('OdmConfiguration');
+        $hostname = is_string($config->getHostname()) ? $config->getHostname() : 'localhost';
+        $port = is_int($config->getPort()) ? $config->getPort() : 27017;
+        $c = new \MongoClient('mongodb://' . $hostname . ':' . $port);
         $con = new MongoConnection(
           $c,
           $this->ioc->get('EventManager'),

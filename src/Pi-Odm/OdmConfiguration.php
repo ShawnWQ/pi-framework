@@ -20,6 +20,30 @@ class OdmConfiguration implements IContainable {
 
   protected $multiTenantMode = false;
 
+  protected $hostname;
+
+  protected $port;
+
+  public function getHostname()
+  {
+    return $this->hostname;
+  }
+
+  public function setHostname(string $host)
+  {
+    $this->hostname = $host;
+  }
+
+  public function getPort()
+  {
+    return $this->port;
+  }
+
+  public function setPort(string $port)
+  {
+    $this->port = $port;
+  }
+  
   public function ioc(IContainer $container) 
   {
 
