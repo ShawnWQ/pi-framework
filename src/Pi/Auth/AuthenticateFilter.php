@@ -1,12 +1,17 @@
 <?hh
 
 namespace Pi\Auth;
-use Pi\Filters\RequestFilter;
-use Pi\Interfaces\IRequest;
-use Pi\Interfaces\IResponse;
-use Pi\Interfaces\IHttpRequest;
-use Pi\Auth\AuthService;
-use Pi\ServiceModel\AuthUserAccount;
+
+use Pi\Filters\RequestFilter,
+    Pi\Interfaces\IRequest,
+    Pi\Interfaces\IResponse,
+    Pi\Interfaces\IHttpRequest,
+    Pi\Auth\Interfaces\ICryptorProvider,
+    Pi\Auth\AuthService,
+    Pi\ServiceModel\AuthUserAccount;
+
+
+
 
 class AuthenticateFilter extends RequestFilter {
 

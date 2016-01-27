@@ -2,7 +2,9 @@
 
 use Pi\ServiceModel\BasicRegisterRequest;
 use Pi\ServiceModel\BasicRegisterResponse;
-use Pi\Auth\AuthService;
+use Pi\Auth\AuthService,
+    Pi\Auth\Md5CryptorProvider,
+    Pi\HostConfig;
 use Pi\Auth\CredentialsAuthProvider;
 use Pi\Auth\AuthUserSession;
 use Mocks\MockHostConfiguration;
@@ -18,7 +20,8 @@ class CredentialsAuthProviderTest extends \PHPUnit_Framework_TestCase {
   public function setUp()
   {
     $this->authSvc = new AuthService();
-    $this->authSvc->init(array(new CredentialsAuthProvider(MockHostConfiguration::get(), '/realm', 'basic')), new AuthUserSession());
+    $this->provider = new CredentialsAuthProvider(MockHostConfiguration::get(), '/realm', 'basic', new Md5CryptorProvider());
+    $this->authSvc->init(array($this->provider), new AuthUserSession());
   }
 
   public function testServiceAcceptTheProvider()
@@ -28,22 +31,17 @@ class CredentialsAuthProviderTest extends \PHPUnit_Framework_TestCase {
 
   public function testCanAuthenticate()
   {
-     $account = $this->createAccount();
-     
-  }
-
-  protected function createAccount()
-  {
-    $request = new BasicRegisterRequest();
-    $request->firstName('Guilherme');
-    $request->lastName('Cardoso');
-    $request->displayName('Guilherme Cardoso');
-    $request->email('email@guilhermecardoso.pt' . RandomString::generate(4));
-    $request->password('123_123123');
-
-    $service = $this->appHost->container->getService(new RegisterService());
-    $response = $service->basicRegistration($request);
-    return $request;
-
+    /*$session = new AuthUserSession()
+    $req = new Authenticate();
+    $req->setEmail('asd@asd.com');
+    $req->setPassword($pw);
+    return $this->queryBuilder()
+      ->hydrate()
+      ->field('email')->eq($email)
+      ->field('password')->eq($passwordHash)
+      ->getQuery()
+      ->getSingleResult();
+      */
+    //$provider->authenticate()$this->authSvc, new AuthUserSession(), 
   }
 }

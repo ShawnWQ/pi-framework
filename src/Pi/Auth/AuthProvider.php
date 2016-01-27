@@ -9,24 +9,15 @@ use Pi\Interfaces\IRequest;
 use Pi\Interfaces\IResponse;
 use Pi\Auth\Interfaces\IAuthSession;
 use Pi\Auth\Interfaces\IAuthTokens;
+use Pi\Auth\Interfaces\IUserAuth;
 use Pi\Auth\Interfaces\IUserAuthRepository;
 use Pi\Auth\Authenticate;
 
 abstract class AuthProvider {
 
-  public function __construct(IHostConfig $appSettings, string $authRealm, string $oAuthProvider)
-  {
-    $this->authRealm = is_null($appSettings) ? $authRealm : $appSettings->get('OAuthRealm', $authRealm);
-    $this->provider = $oAuthProvider;
-
-    if(!is_null($appSettings)) {
-      // @todo set redirect and callback url
-    }
-  }
-
   public EventManager $eventManager;
 
-  public  MongoDbAuthUserRepository $repository;
+  public MongoDbAuthUserRepository $repository;
 
   //public abstract function get(Auth $auth);
 
@@ -43,10 +34,21 @@ abstract class AuthProvider {
   protected $callbackUrl;
 
   protected $redirectUrl;
+  
+  public function __construct(IHostConfig $appSettings, string $authRealm, string $oAuthProvider)
+  {
+    $this->authRealm = is_null($appSettings) ? $authRealm : $appSettings->get('OAuthRealm', $authRealm);
+    $this->provider = $oAuthProvider;
 
-  public abstract function authenticate(IService $authService, IAuthSession $session, Authenticate $request);
+    if(!is_null($appSettings)) {
+      // @todo set redirect and callback url
+    }
+  }
 
-  public abstract function isAuthorized(IAuthSession $session, IAuthTokens $tokens, Authenticate $request = null);
+
+  public abstract function authenticate(IService $authService, IAuthSession $session, Authenticate $request) : ?IUserAuth;
+
+  public abstract function isAuthorized(IAuthSession $session, IAuthTokens $tokens, Authenticate $request = null) : bool;
   
   static function handleFailedAuth(IAuthProvider $authProvider, IAuthSession $authSession, IRequest $request, IResponse $response)
   {

@@ -7,6 +7,7 @@ use Pi\Interfaces\ICacheProvider,
 	Pi\Interfaces\IContainer,
 	Pi\Interfaces\ILog,
 	Pi\ServiceModel\PostArticleRequest,
+	Pi\ServiceModel\ArticleState,
 	Pi\Host\HostProvider,
 	Pi\Common\Http\HttpMessage,
 	Pi\Common\Http\HttpRequest;
@@ -124,6 +125,7 @@ class WordpressCrawler implements IContainable {
 					$req->setName($this->formatName((string)$item->title));
 					$req->setArticleBody($body);
 					$req->setHeadline($this->formatHeadline((string)$item->description));
+					$req->setState(ArticleState::Draft);
 					$cover = self::extractImageFromBody($body);
 					if(!is_null($cover)) {
 						//die(print_r($cover));

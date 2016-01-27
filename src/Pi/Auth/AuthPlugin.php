@@ -24,6 +24,10 @@ class AuthPlugin implements IPreInitPlugin, IPlugin {
 	public function configure(IPiHost $appHost) : void
 	{
 
+		$appHost->container->register('Pi\Auth\Interfaces\ICryptorProvider', function(IContainer $container) {
+			return new Md5CryptorProvider();
+		});
+
 		$config = $this->config;
 		if(is_array($appHost->config()->oAuths())) {
 			foreach($appHost->config()->oAuths() as $key => $auth) {
@@ -34,8 +38,9 @@ class AuthPlugin implements IPreInitPlugin, IPlugin {
 		}
 
 		$s = new AuthService();
+		$provider = $appHost->container->get('Pi\Auth\Interfaces\ICryptorProvider');
 		$s->init(array
-				(new CredentialsAuthProvider($appHost->config(), '/realm', 'basic')),
+				(new CredentialsAuthProvider($appHost->config(), '/realm', 'basic', $provider)),
 				new AuthUserSession());
 		
 		$appHost->registerService($s);

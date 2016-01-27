@@ -2,11 +2,12 @@
 
 namespace Pi\Auth;
 
-use Pi\HttpResult;
-use Pi\Interfaces\IService;
-use Pi\Auth\Interfaces\IAuthSession;
-use Pi\Auth\Interfaces\IAuthTokens;
-use Pi\Interfaces\IHostConfig;
+use Pi\HttpResult,
+    Pi\Interfaces\IService,
+    Pi\Interfaces\IHostConfig,
+    Pi\Auth\Interfaces\IAuthSession,
+    Pi\Auth\Interfaces\ICryptorProvider,
+    Pi\Auth\Interfaces\IAuthTokens;
 
 class CredentialsAuthProvider extends AuthProvider {
 
@@ -14,8 +15,11 @@ class CredentialsAuthProvider extends AuthProvider {
 
   const realm = '/auth/credentials';
 
-  public function __construct(IHostConfig $appSettings, string $authRealm, string $oAuthProvider)
+  protected ICryptorProvider $cryptor;
+
+  public function __construct(IHostConfig $appSettings, string $authRealm, string $oAuthProvider, ICryptorProvider $provider)
   {
+    $this->cryptor = $provider;
     $this->provider = self::name;
     parent::__construct($appSettings, $authRealm, $oAuthProvider);
   }
@@ -30,12 +34,12 @@ class CredentialsAuthProvider extends AuthProvider {
     return self::name;
   }
 
-  public function isAuthorized(IAuthSession $session, IAuthTokens $tokens, Authenticate $request = null)
+  public function isAuthorized(IAuthSession $session, IAuthTokens $tokens, Authenticate $request = null) : bool
   {
-
+    return false;
   }
 
-  public function authenticate(IService $authService, IAuthSession $session, Authenticate $request)
+  public function authenticate(IService $authService, IAuthSession $session, Authenticate $request) : ?IUserAuth
   {
     try {
       return $this->tryAuthenticate($authService, $request->getUserName(), $request->getPassword());
@@ -46,14 +50,15 @@ class CredentialsAuthProvider extends AuthProvider {
   }
 
 
-  public function tryAuthenticate(IService $authService, string $userName, string $password)
+  public function tryAuthenticate(IService $authService, string $userName, string $password) : ?IUserAuth
   {
     $authRepo = $authService->tryResolve('Pi\Auth\MongoDb\MongoDbAuthRepository');
     $userRepo = $authService->tryResolve('Pi\Auth\MongoDbAuthUserRepository');
     if(is_null($userRepo) || is_null($authRepo)) {
       throw new \Exception('cant be null');
     }
-    $user = $userRepo->getByEmailAndPw($userName, $password);
+    $hash = $this->cryptor->encrypt($password);
+    $user = $userRepo->getByEmailAndPw($userName, $hash);
     if($user === null) {
       return false;
     }

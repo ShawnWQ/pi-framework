@@ -16,6 +16,8 @@ class Authenticate {
 
   protected string $username;
 
+  protected string $email;
+
   protected string $password;
 
   protected ?bool $rememberMe;
@@ -123,6 +125,16 @@ class Authenticate {
   public function setPassword(string $pw) : void
   {
     $this->password = $pw;
+  }
+
+  public function getEmail() : ?string
+  {
+    return $this->email;
+  }
+
+  public function setEmail(string $pw) : void
+  {
+    $this->email = $pw;
   }
 
 

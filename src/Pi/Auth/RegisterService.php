@@ -14,7 +14,8 @@ use Pi\ServiceModel\UserDto;
 use Pi\ServiceModel\RegistrationAvailabilityRequest;
 use Pi\ResponseUtils;
 use Pi\HttpResult;
-use Pi\ServiceInterface\Events\NewUserRegisterArgs;
+use Pi\ServiceInterface\Events\NewUserRegisterArgs,
+	Pi\Auth\Interfaces\ICryptorProvider;
 
 
 
@@ -24,6 +25,8 @@ class RegisterService extends Service {
 	public UserRepository $userRep;
 
     public RegistrationAvailabilityService $availableService;
+
+    public ICryptorProvider $cryptor;
 
 
 	<<Request,Route('/user/:id'),Method('GET')>>
@@ -79,7 +82,8 @@ class RegisterService extends Service {
 		$entity->firstName($dto->firstName());
 		$entity->lastName($dto->lastName());
 		$entity->email($dto->email());
-		$entity->password($dto->password());
+		$hash = $this->cryptor->encrypt($dto->password());
+		$entity->password($hash);
 		$entity->displayName($dto->displayName());
 		$entity->setCulture('pt-pt');
 		$entity->setCountry('Portugal');

@@ -1,5 +1,5 @@
 <?hh
-namespace Pi\Auth;
+namespace Mocks;
 
 use Pi\Interfaces\IService;
 use Pi\Auth\Interfaces\IAuthSession;
@@ -9,9 +9,9 @@ use Pi\Auth\Interfaces\IOAuthProvider,
     Pi\Auth\Interfaces\IUserAuth;
 use Facebook\Facebook;
 
-class FacebookAuthProvider extends OAuthProvider implements IOAuthProvider {
+class MockAuthProvider extends OAuthProvider implements IOAuthProvider {
 
-  const name = 'facebook';
+  const name = 'mock';
 
   const realm = 'https://graph.facebook.com/v2.0/';
 
@@ -20,16 +20,10 @@ class FacebookAuthProvider extends OAuthProvider implements IOAuthProvider {
   protected $fbClient;
 
 
-  public function __construct(IHostConfig $appSettings, string $authRealm, string $appId, string $appSecret, ?string $accessToken = null)
+  public function __construct(IHostConfig $appSettings)
   {
     $this->provider = self::name;
-    parent::__construct($appSettings, $authRealm, 'facebook');
-    $this->fbClient = new Facebook([
-      'app_id' => $appId,
-      'app_secret' => $appSecret,
-      'default_graph_version' => 'v2.4',
-      'default_access_token' => $accessToken,
-    ]);
+    parent::__construct($appSettings, 'realm', 'mock');
   }
 
   public static function oauthConfig(string $appId, string $appSecret)
