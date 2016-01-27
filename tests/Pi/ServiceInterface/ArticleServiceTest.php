@@ -162,8 +162,10 @@ class ArticleServiceTest extends \PHPUnit_Framework_TestCase {
     	
 		$res = MockHostProvider::execute($req);
 
-		$article = $this->ArticleRepo->get($article->getId());
-		$this->assertEquals($article->getState(), ArticleState::Removed);	
+		$articleDb = $this->ArticleRepo->get($article->getId());
+		$this->assertEquals($articleDb->getState(), ArticleState::Removed);
+		$this->assertEquals($articleDb->getName(), $article->getName());
+		$this->assertEquals($articleDb->getHeadline(), $article->getHeadline());
 	}
 
 	public function testServiceRegisterCustomType()

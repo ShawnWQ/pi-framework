@@ -312,6 +312,7 @@ abstract class AbstractCreativeWorkService extends Service {
 	<<Request,Method('POST'),Route('/article')>>
 	public function create(PostArticleRequest $request)
 	{
+
 		$response = new PostArticleResponse();
 		$entity = new Article();
 		ClassUtils::mapDto($request, $entity);
@@ -464,8 +465,10 @@ abstract class AbstractCreativeWorkService extends Service {
 			->update()
 			->field('_id')->eq($req->getId())
 			->field('state')->set($req->getState())
+			->field('dateModified')->set(new \DateTime('now'))
 			->getQuery()
 			->execute();
+
 		$res = new PostWorkStateResponse();
 		return $res;
 	}
