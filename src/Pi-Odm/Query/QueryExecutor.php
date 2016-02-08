@@ -2,7 +2,7 @@
 
 namespace Pi\Odm\Query;
 
-use Pi\MongoDBException,
+use Pi\Odm\MongoDBException,
     Pi\Odm\MongoDB\DBCollection,
     Pi\Odm\Query\QueryType,
     Pi\Odm\Query\Query,

@@ -43,6 +43,8 @@ use Pi\Service,
 	Pi\ServiceModel\PostArticleCategoryResponse,
 	Pi\ServiceModel\PostArticleKeywordsRequest,
 	Pi\ServiceModel\PostArticleKeywordsResponse,
+	Pi\ServiceModel\PostWorkCategory,
+	Pi\ServiceModel\PostWorkCategoryResponse,
 	Pi\ServiceModel\ArticleDto,
 	Pi\ServiceModel\ArticleSerieDto,
 	Pi\ServiceModel\ArticleCategoryDto,
@@ -270,10 +272,14 @@ abstract class AbstractCreativeWorkService extends Service {
 
 		$categoryId = $request->getCategoryId();
 		if(!is_null($categoryId)){
-			$query
-				->field('categoryPath')->eq(new \MongoRegex("/,$categoryId,/"));
+			$query->field('categoryPath')->eq(new \MongoRegex("/,$categoryId,/"));
 		}
 
+		$state = $request->getState();
+		if(is_int($state)) {
+			$query->field('state')->eq($request->getState());
+		}
+		
 		$name = $request->getName();
 		if(!is_null($name)) {
 			$query->field('name')->eq(new \MongoRegex("/$name/i"));
@@ -345,18 +351,16 @@ abstract class AbstractCreativeWorkService extends Service {
 			$entity->setState(ArticleState::Draft);
 		}
 
-		if(is_null($request->getState())) {
-
-		}
-
 		switch ($request->getState()) {
-
-			default:
+			case ArticleState::Published:
 				$entity->setState(ArticleState::Published);
 				$published = is_null($request->getDatePublished())
 					? new \DateTime('now')
 					: $request->getDatePublished();
 				$entity->setDatePublished($published);
+				break;
+			default:
+				
 				break;
 		}
 
@@ -455,6 +459,29 @@ abstract class AbstractCreativeWorkService extends Service {
 			->execute();
 
 		$res = new PostWorkPublishDateResponse();
+		return $res;
+	}
+
+
+	<<Request,Method('POST'),Route('/article-save-category/:id')>>
+	public function changeCategory(PostWorkCategory $req)
+	{
+		$category = $this->categoryRepo->get($req->getCategoryId());
+		$path = $this->transformPath($category->getId(), $category->getPath());
+		$embed = new ArticleCategoryEmbed();
+		
+		ClassUtils::mapDto($category, $embed);
+		$this->articleRepo->queryBuilder()
+			->update()
+			->field('_id')->eq($req->getId())
+			->field('categoryPath')->set($path)
+			->field('category')->set($embed->jsonSerialize())
+			->field('dateModified')->set(new \DateTime('now'))
+			->getQuery()
+			->execute();
+
+
+		$res = new PostWorkCategoryResponse();
 		return $res;
 	}
 
@@ -583,6 +610,12 @@ abstract class AbstractCreativeWorkService extends Service {
 	{
 		$n = ',' . $id . ',';
 		return is_null($path) ? $n : $parent->getPath() . $id . ',';
+	}
+
+	public static function formatPath(string $id, ?string $path = null)
+	{
+		$n = ',' . $id . ',';
+		return is_null($path) ? $n : $parent->getPath() . $id . ',';	
 	}
 
 	protected function validateInputUrl(?string $url)

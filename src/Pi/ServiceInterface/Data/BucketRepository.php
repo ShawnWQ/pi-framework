@@ -22,7 +22,7 @@ class BucketRepository<TBucket> extends MongoRepository<TBucket> {
 	{
 		$set = $this->redisCounterSet($eventId);
 		$v = $this->redis->get($set);
-		return is_int($v) ? $v : 0;
+		return $v || 0;
 	}
 
 	public function removeEntry(\MongoId $eventId, \MongoId $entityId, $onlyIds = false, $entityKey = 'entityId')
@@ -54,15 +54,15 @@ class BucketRepository<TBucket> extends MongoRepository<TBucket> {
 	public function add(\MongoId $eventId, $entity, $entityKey = 'entityId')
 	{
 		$set = $this->redisCounterSet($eventId);
-		$count = $this->count($eventId);
 		$this->redis->incr($set);
+		$count = $this->redis->get($set);
 
 		$sequence = floor(($count - 1) / $this->bucketLimit);
 
 		if($sequence < 0) {
 			$sequence = 0;
 		}
-
+		
 		$res = $this->queryBuilder()
 			->update()
 			->upsert()
@@ -91,7 +91,7 @@ class BucketRepository<TBucket> extends MongoRepository<TBucket> {
 		return !is_null($query) && count($query) > 0;
 	}
 
-	public function get($eventId, $limit = 21, $entityKey = 'entityId')
+	public function get($eventId, $limit = 2, $entityKey = 'entityId', $skip = 0)
 	{
 
 		$res = $this->queryBuilder()
@@ -100,6 +100,7 @@ class BucketRepository<TBucket> extends MongoRepository<TBucket> {
 			->field($entityKey)->eq($eventId)
 			->sort('position', -1)
 			->limit($limit)
+			->skip($skip)
 			->getQuery()
 			->getSingleResult();
 

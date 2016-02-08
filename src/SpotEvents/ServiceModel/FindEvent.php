@@ -15,6 +15,8 @@ class FindEvent implements IRequestHasSort, IRequestHasLimit {
 
 	protected $upcoming;
 
+    protected ?string $categoryId;
+
 	<<Bool>>
 	public function getUpcoming()
 	{
@@ -123,4 +125,14 @@ class FindEvent implements IRequestHasSort, IRequestHasLimit {
 
         return $this;
     }
+
+    public function getCategoryId() : ?string
+      {
+        return $this->categoryId;
+      }
+
+      public function setCategoryId(string $value) : void
+      {
+        $this->categoryId = $value;
+      }
 }

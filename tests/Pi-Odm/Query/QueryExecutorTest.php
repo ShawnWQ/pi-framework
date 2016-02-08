@@ -4,7 +4,8 @@ use Pi\Odm\Query\QueryType;
 use Pi\Odm\Query\QueryExecutor;
 use Pi\Odm\MongoManager;
 use Mocks\OdmContainer;
-use Mocks\MockEntity;
+use Mocks\MockEntity,
+    Pi\Common\RandomString;
 
 class QueryExecutorTest extends \PHPUnit_Framework_TestCase {
 
@@ -155,6 +156,35 @@ class QueryExecutorTest extends \PHPUnit_Framework_TestCase {
 
           $this->assertTrue($doc->address() === 'abraveses');
         $this->assertTrue($doc->name() === 'Idiozincrecia');
+
+    }
+
+    public function testCanSkipAndLimitOnQueries()
+    {
+      $doc = new MockEntity();
+      for ($i=0; $i < 4; $i++) { 
+        $doc = new MockEntity();
+        $doc->name(RandomString::generate());
+        $this->unitWork->persist($doc);
+        $this->unitWork->commit();
+      }
+
+      $find = function($skip, $take) {
+        $builder = $this->createBuilder();
+        return $builder
+          ->find()
+          ->skip($skip)
+          ->limit($take)
+          ->getQuery()
+          ->toArray();  
+      };
+      
+      $r = $find(0, 1);
+      $this->assertTrue(count($r) == 1);
+      $s = $find(1, 1);
+      $this->assertTrue(count($r) == 1);
+      
+      $this->assertFalse($r[0]['_id'] == $s[0]['_id']);
 
     }
 

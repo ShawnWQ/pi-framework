@@ -65,22 +65,28 @@ class WordpressCrawler implements IContainable {
 		return $parts[1];
 	}
 
-	public function fetch(string $domain, $skip = 0, $take = 50)
+
+	public function fetch(string $domain, $skip = 0, $take = 50, ?string $refferName = null, ?string $refferUrl = null, ?string $refferImage = null)
 	{
+
 		if(!is_string($domain) || empty(trim($domain))) {
 			return false;
 		}
 		
-		$pages = 10;
+		$perPage = 10;
+
+		$begin = ($skip + $take) / $perPage;
+		$pages = abs($take / $perPage);
+
 		$uris = array();
-		for ($i=0; $i < count($pages) ; $i++) { 
-			$page = $i + 1;
+		for ($i=0; $i < $pages; $i++) { 
+			$page = $begin + $i;
 			$uris[] = $domain . '/feed/?paged=' . $page;
 		}
 
 		$responses = array();
 		$pubDate = null;
-
+		
 		foreach($uris as $key => $uri) {
 			
 			$req = new HttpRequest($uri);
@@ -107,7 +113,11 @@ class WordpressCrawler implements IContainable {
 					}
 
 					$id = self::extractIdFromGuid((string)$item->guid);
+					if(is_null($id) || empty($id)) {
+						throw new \Exception('Couldnt generate proper id');
+					}
 					if($this->hasId($domain, $id)) {
+						$this->logger->debug(sprintf('Article %s from %s already inserted', $id, $domain));
 						return false;
 					}
 
@@ -128,7 +138,6 @@ class WordpressCrawler implements IContainable {
 					$req->setState(ArticleState::Draft);
 					$cover = self::extractImageFromBody($body);
 					if(!is_null($cover)) {
-						//die(print_r($cover));
 						$req->setImage($cover);
 						$req->setThumbnailUrl($cover);
 					}
@@ -137,6 +146,16 @@ class WordpressCrawler implements IContainable {
 					if(is_null($date)) {
 						$date = new \DateTime('now');
 					}
+					if(!is_null($refferName)) {
+						$req->setRefferName($refferName);
+					}
+					if(!is_null($refferImage)) {
+						$req->setRefferImage($refferImage);
+					}
+					if(!is_null($refferUrl)) {
+						$req->setRefferUrl($refferUrl);
+					}
+					
 					$req->setDatePublished($date);
 
 					$tags = is_array($item->category) ? $item->category : array($item->category);
@@ -179,7 +198,7 @@ class WordpressCrawler implements IContainable {
 
 	protected function formatName(string $name) : string
 	{
-		$n = ucwords($name);
+		$n = ucwords(strtolower($name));
 		return $this->normalizeXss($n);
 	}
 
@@ -190,7 +209,7 @@ class WordpressCrawler implements IContainable {
 
 	protected function formatHeadline(string $headline) : string
 	{
-		$h = ucwords($headline);
+		$h = ucwords(strtolower($headline));
 		return $this->normalizeXss($h);
 	}
 

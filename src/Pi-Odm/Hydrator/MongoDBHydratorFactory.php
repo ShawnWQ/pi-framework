@@ -167,6 +167,7 @@ EOF
                       $code .= sprintf(<<<EOF
       if(array_key_exists('$name', \$data) && is_int(\$data['$name'])){
           \$r = \$data['$name'];
+          
           \$this->class->reflFields['$name']->setValue(\$document, \$r);
           \$hydratedData['$name'] = \$data['$name'];
        }
@@ -218,7 +219,7 @@ EOF
           }
           catch(\Exception \$ex) {
             \$r = \$data['$name'];
-          \$this->class->reflFields['$name']->setValue(\$document, \$r);
+            
           }
        }
 EOF

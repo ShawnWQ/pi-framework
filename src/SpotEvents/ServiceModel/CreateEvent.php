@@ -33,6 +33,12 @@ class CreateEvent {
 
  	protected $url;
 
+ 	protected $state;
+
+ 	protected ?string $categoryId;
+
+ 	protected $datePublished;
+
  	<<String>>
 	public function getUrl() : ?string
 	{
@@ -143,4 +149,43 @@ class CreateEvent {
 	{
 		$this->longitude = $longitude;
 	}
+
+	<<Int>>
+	public function getState()
+	{
+		return $this->state;
+	}
+
+	public function setState($state)
+	{
+		$this->state = $state;
+	}
+
+	<<String>>
+	public function getCategoryId() : ?string
+	{
+		return $this->categoryId;
+	}
+
+	public function setCategoryId(string $value) : void
+	{
+		$this->categoryId = $value;
+	}
+
+ /**
+   * @return \Datetime
+   */
+	<<DateTime>>
+  public function getDatePublished()
+  {
+      return $this->datePublished;
+  }
+
+  /**
+   * @param \Datetime $datePublished
+   */
+  public function setDatePublished($datePublished)
+  {
+      $this->datePublished = $datePublished;
+  }
 }

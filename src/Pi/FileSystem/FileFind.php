@@ -10,6 +10,7 @@ class FileFind {
 
 	protected int $limit = 10;
 
+	<<Int>>
 	public function getSkip() : int
 	{
 		return $this->skip;
@@ -20,6 +21,7 @@ class FileFind {
 		return $this->skip;
 	}
 
+	<<Int>>
 	public function getLimit() : int
 	{
 		return $this->limit;

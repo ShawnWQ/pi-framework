@@ -23,9 +23,9 @@ class ApplicationFeedBusiness {
 		return true;
 	}
 
-	public function get($appId, $skip = 0, $take = 20)
+	public function get($appId, $skip = 0, $take = 1)
 	{
-		return $this->feedRepo->get($appId, 22, 'appId');
+		return $this->feedRepo->get($appId, $take, 'appId', $skip);
 	}
 
 	public function count($appId)

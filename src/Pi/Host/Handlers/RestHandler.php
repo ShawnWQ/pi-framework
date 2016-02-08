@@ -47,6 +47,8 @@ class RestHandler extends AbstractPiHandler {
             }
             else if(isset($body[$n])) {
                 $value = $body[$n];
+            } else if($request->parameters()->get($n) !== null) {
+            	$value = $request->parameters()->get($n);
             }
 
 
@@ -70,6 +72,16 @@ class RestHandler extends AbstractPiHandler {
                 $reflProp->setAccessible(true);
                 $reflProp->setValue($req, new \MongoId($value));
 
+            } else if($method->getAttribute('Enumerator') !== null) {
+            	
+            	$enum =  $method->getAttribute('Enumerator')[0];
+            	
+            	if($enum::isValid((int)$value)) {
+            		$reflProp = $rc->getProperty($n);
+	                $reflProp->setAccessible(true);
+	                $reflProp->setValue($req, (int)$value);
+	                
+            	}
             }
 
             else if(array_key_exists('File', $attrs)){
@@ -79,8 +91,12 @@ class RestHandler extends AbstractPiHandler {
 					if(is_array($files)) {
 						$req->$n($files[0]);
 					}
-	     	 }
-	      }
+	     		 }
+	      	} else if(array_key_exists('DateTime', $attrs)) {
+	      		$reflProp = $rc->getProperty($n);
+	      		$reflProp->setAccessible(true);
+	      		$reflProp->setValue($req, new \DateTime($value));
+	      	}
 
 	      else if($rc->hasProperty($n) && isset($body[$n])) {
 				$reflProp = $rc->getProperty($n);

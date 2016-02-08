@@ -18,6 +18,8 @@ use Mocks\OdmContainer,
 	Pi\ServiceModel\RemoveArticleRequest,
 	Pi\ServiceModel\RemoveArticleResponse,
 	Pi\ServiceModel\RemoveArticleCategoryRequest,
+	Pi\ServiceModel\PostWorkCategory,
+	Pi\ServiceModel\PostWorkCategoryResponse,
 	Pi\ServiceModel\RemoveArticleCategoryResponse,
 	Pi\ServiceModel\PostArticleSerieRequest,
 	Pi\ServiceModel\PostArticleSerieResponse,
@@ -166,6 +168,23 @@ class ArticleServiceTest extends \PHPUnit_Framework_TestCase {
 		$this->assertEquals($articleDb->getState(), ArticleState::Removed);
 		$this->assertEquals($articleDb->getName(), $article->getName());
 		$this->assertEquals($articleDb->getHeadline(), $article->getHeadline());
+	}
+
+	public function testChangeCategory()
+	{
+		$service = $this->getArticleService();
+		$cat = $this->createCategory();
+		$article = $this->createArticle('asdasd asd', $cat->getId());
+		$newCat = $this->createCategory();
+		$req = new PostWorkCategory();
+		$req->setId($article->getId());
+		$req->setCategoryId($newCat->getId());
+    	
+		$res = MockHostProvider::execute($req);
+
+		$articleDb = $this->ArticleRepo->get($article->getId());
+
+		$this->assertEquals($articleDb->getCategoryPath(), ArticleService::formatPath($newCat->getId()));
 	}
 
 	public function testServiceRegisterCustomType()

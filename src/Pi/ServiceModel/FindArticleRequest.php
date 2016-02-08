@@ -8,6 +8,8 @@ class FindArticleRequest extends RequestQueryAbstract {
 
   protected ?string $name;
 
+  protected $state;
+
   public function getName() : ?string
   {
     return $this->name;
@@ -26,5 +28,16 @@ class FindArticleRequest extends RequestQueryAbstract {
   public function setCategoryId(string $value) : void
   {
     $this->categoryId = $value;
+  }
+
+  <<Enumerator('Pi\ServiceModel\ArticleState')>>
+  public function getState() : ?ArticleState
+  {
+    return $this->state;
+  }
+
+  public function setState(ArticleState $state) : void
+  {
+    $this->state = $value;
   }
 }

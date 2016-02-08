@@ -6,6 +6,24 @@ use Pi\Odm\Interfaces\IEntity;
 <<Entity,Collection("Events")>>
 class EventDto implements \JsonSerializable, IEntity{
 
+	/**
+	 * The date on which the CreativeWork was created.
+	 * @var \DateTime
+	 */
+	protected $dateCreated;
+
+	/**
+	 * The date on which the CreativeWork was most recently modified.
+	 * @var \DateTime
+	 */
+	protected $dateModified;
+
+	/**
+	 * Date of first broadcast/publication.
+	 * @var \Datetime
+	 */
+	protected $datePublished;
+
 	protected $viewsCounter;
 
 	protected string $url;
@@ -45,6 +63,63 @@ class EventDto implements \JsonSerializable, IEntity{
     protected $latitude;
 
     protected $longitude;
+
+    protected $state;
+
+    protected ?string $categoryPath;
+
+    protected $category;
+
+    /**
+   * @return \DateTime
+   */
+	<<DateTime>>
+  public function getDateCreated()
+  {
+      return $this->dateCreated;
+  }
+
+  /**
+   * @param \DateTime $dateCreated
+   */
+  public function setDateCreated($dateCreated)
+  {
+      $this->dateCreated = $dateCreated;
+  }
+
+  /**
+   * @return \DateTime
+   */
+	 <<DateTime>>
+  public function getDateModified()
+  {
+      return $this->dateModified;
+  }
+
+  /**
+   * @param \DateTime $dateModified
+   */
+  public function setDateModified($dateModified)
+  {
+      $this->dateModified = $dateModified;
+  }
+
+  /**
+   * @return \Datetime
+   */
+	<<DateTime>>
+  public function getDatePublished()
+  {
+      return $this->datePublished;
+  }
+
+  /**
+   * @param \Datetime $datePublished
+   */
+  public function setDatePublished($datePublished)
+  {
+      $this->datePublished = $datePublished;
+  }
 
     <<String>>
 	public function getImage()
@@ -265,4 +340,37 @@ class EventDto implements \JsonSerializable, IEntity{
 	{
 		$this->url = $value;
 	}
+
+	<<Int>>
+	public function getState()
+	{
+		return $this->state;
+	}
+
+	public function setState($state)
+	{
+		$this->state = $state;
+	}
+
+	<<String>>
+	public function getCategoryPath() : ?string
+	{
+		return $this->categoryPath;
+	}
+
+	public function setCategoryPath(string $value) : void
+	{
+		$this->categoryPath = $value;
+	}
+
+	<<EmbedOne('Pi\ServiceModel\Types\ArticleCategoryEmbed')>>
+  	public function getCategory()
+  	{
+    	return $this->category;
+  	}
+
+  	public function setCategory($entity) : void
+  	{
+    	$this->category = $entity;
+  	}
 }

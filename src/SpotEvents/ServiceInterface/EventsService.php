@@ -7,6 +7,7 @@ use Pi\HttpError,
     Pi\Service,
     Pi\Extensions,
     Pi\Common\ClassUtils,
+    Pi\ServiceInterface\AbstractCreativeWorkService,
     SpotEvents\ServiceModel\EventCategoryDto,
     Pi\ServiceModel\GetEventCommentsRequest,
     Pi\ServiceModel\GetEventCommentsResponse,
@@ -14,6 +15,7 @@ use Pi\HttpError,
     Pi\ServiceModel\PostEventCommentResponse,
     Pi\ServiceModel\GetEventLikesRequest,
     Pi\ServiceModel\GetEventLikesResponse,
+    Pi\ServiceModel\Types\ArticleCategoryEmbed,
     SpotEvents\ServiceModel\RemoveEventRequest,
     SpotEvents\ServiceModel\RemoveEventResponse,
     Pi\ServiceModel\PostEventLikeRequest,
@@ -23,6 +25,7 @@ use Pi\HttpError,
     Pi\ServiceInterface\LikesProvider,
     Pi\ServiceInterface\UserFriendBusiness,
     Pi\ServiceInterface\UserFeedBusiness,
+    SpotEvents\ServiceModel\EventState,
     SpotEvents\ServiceModel\CreatePaymentRequest,
     SpotEvents\ServiceModel\CreatePaymentResponse,
     SpotEvents\ServiceModel\GetPaymentRequest,
@@ -35,6 +38,8 @@ use Pi\HttpError,
     SpotEvents\ServiceModel\GetEventAttendantRequest,
     SpotEvents\ServiceModel\GetEventAttendantResponse,
     SpotEvents\ServiceModel\GetEventAvatarCardRequest,
+    SpotEvents\ServiceModel\PostEventCategory,
+    SpotEvents\ServiceModel\PostEventCategorySaveResponse,
     SpotEvents\ServiceModel\GetEvent,
     SpotEvents\ServiceModel\GetEventResponse,
     SpotEvents\ServiceModel\CreateEventSubscription,
@@ -62,7 +67,12 @@ use Pi\HttpError,
     SpotEvents\ServiceModel\PostEventCategoryRequest,
     SpotEvents\ServiceModel\PostEventCategoryResponse,
     SpotEvents\ServiceModel\RemoveEventCategoryRequest,
-    SpotEvents\ServiceModel\RemoveEventCategoryResponse;
+    SpotEvents\ServiceModel\RemoveEventCategoryResponse,
+    SpotEvents\ServiceModel\PostEventState,
+    SpotEvents\ServiceModel\PostEventStateResponse;
+
+
+
 
 class EventsService extends Service {
 
@@ -87,6 +97,11 @@ class EventsService extends Service {
         $trimmed = trim($displayName);
         $replaced = str_replace(' ', '-', $trimmed);
         return strtolower($replaced);
+    }
+
+    public static function validateState($state = null) 
+    {
+        return is_int($state);
     }
 
     <<Request,Method('GET'),Route('/event-category/:id')>>
@@ -114,7 +129,7 @@ class EventsService extends Service {
             if(!is_null($parent)) {
                 $n = ',' . $parent->getId() . ',';
 
-                $path = $this->transformPath($parent->getId(), $parent->getPath());
+                $path = AbstractCreativeWorkService::formatPath($parent->getId(), $parent->getPath());
                 $entity->setPath($path);
             }
         }
@@ -229,12 +244,18 @@ class EventsService extends Service {
 
         }
 
+        $categoryId = $request->getCategoryId();
+        if(!is_null($categoryId)){
+            $query
+                ->field('categoryPath')->eq(new \MongoRegex("/,$categoryId,/"));
+        }
+
         $events = $query->getQuery()
             ->execute();
           $response = new FindEventResponse();
 
           foreach($events as $event) {
-            $event->setLikesCount($this->likesProvider->count($event->id()));
+            //$event->setLikesCount($this->likesProvider->count($event->id()));
           }
         $response->setEvents($events);
 
@@ -277,9 +298,37 @@ class EventsService extends Service {
         $event->setCommentsCount(0);
         $event->setLikesCount(0);
         $event->setViewsCounter(0);
+        
 
         if(is_null($request->getTags()) || count($request->getTags()) === 0) {
           $event->setTags(array());
+        }
+
+        if(!EventsService::validateState($request->getState())) {
+            $event->setState(EventState::Published);
+        }
+
+        switch ($event->getState()) {
+
+            case EventState::Published:
+                $published = is_null($request->getDatePublished())
+                    ? new \DateTime('now')
+                    : $request->getDatePublished();
+                $event->setDatePublished($published);
+                break;
+        }
+
+        if(isset($request->getCategoryId())) {
+            $category = $this->categoryRepo->get($request->getCategoryId());
+            if(!is_null($category)) {
+                $path = AbstractCreativeWorkService::formatPath($category->getId(), $category->getPath());
+                $event->setCategoryPath($path);
+                $embed = new ArticleCategoryEmbed();
+                ClassUtils::mapDto($category, $embed);
+                $event->setCategory($embed);
+            } else {
+                throw new \Exception('category doesnt exists');
+            }
         }
 
         $this->eventRepository->insert($event);
@@ -304,7 +353,7 @@ class EventsService extends Service {
     			false,
     			'basic',
     			'normal',
-            array('title' => $event->title(), 'thumbnailSrc' => $event->getThumbnailSrc(), 'id' => (string)$event->id()),
+            array('title' => $event->title(), 'thumbnailSrc' => $event->getImage(), 'id' => (string)$event->id()),
     			'event-new');
 
     		$action->setAuthor($this->request->author());
@@ -324,16 +373,8 @@ class EventsService extends Service {
         $query = $this->eventRepository->queryBuilder()
             ->update()
             ->field('_id')->eq($request->id())
-            ->field('title')->set($request->title())
-            ->field('thumbnailSrc')->set($request->thumbnailSrc())
-            ->field('image')->set($request->thumbnailSrc())
-            ->field('excerpt')->set($request->excerpt())
-            ->field('cardGen')->set($request->getCardGen())
-            ->field('content')->set($request->content())
-            //->field('modalityId')->set($request->modalityId())
-            ->field('doorTime')->set($request->doorTime())
-            ->field('duration')->set($request->duration())
-            ->field('endDate')->set($request->endDate())
+        
+            ->field('dateModified')->set(new \DateTime('now'))
             ->getQuery()
             ->assertExecute();
 
@@ -458,6 +499,44 @@ class EventsService extends Service {
       $this->eventRepository->remove($request->getId());
       $response = new RemoveEventResponse();
       return $response;
+    }
+
+    <<Request,Method('POST'),Route('/event-state/:id')>>
+    public function changeState(PostEventState $req)
+    {
+        $this->eventRepository->queryBuilder()
+            ->update()
+            ->field('_id')->eq($req->getId())
+            ->field('state')->set($req->getState())
+            ->field('dateModified')->set(new \DateTime('now'))
+            ->getQuery()
+            ->execute();
+
+
+        $res = new PostEventStateResponse();
+        return $res;
+    }
+
+    <<Request,Method('POST'),Route('/event-save-category/:id')>>
+    public function changeCategory(PostEventCategory $req)
+    {
+        $category = $this->categoryRepo->get($req->getCategoryId());
+        $path = AbstractCreativeWorkService::formatPath($category->getId(), $category->getPath());
+        $embed = new ArticleCategoryEmbed();
+        
+        ClassUtils::mapDto($category, $embed);
+        $this->eventRepository->queryBuilder()
+            ->update()
+            ->field('_id')->eq($req->getId())
+            ->field('categoryPath')->set($path)
+            ->field('category')->set($embed->jsonSerialize())
+            ->field('dateModified')->set(new \DateTime('now'))
+            ->getQuery()
+            ->execute();
+
+
+        $res = new PostEventCategorySaveResponse();
+        return $res;
     }
 
     public function cancelAttending()
