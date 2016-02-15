@@ -82,7 +82,7 @@ abstract class AppHost
 
       $contextRequest = $this->container->get('IRequest');
 
-      $dto = new HtmlGet($_SERVER['REQUEST_URI']);
+      $dto = new HtmlGet($this->getUri());
       $contextRequest->setDto($dto);
 
       $response = $this->container->get('IResponse');
@@ -103,15 +103,20 @@ abstract class AppHost
         (is_string($arr) ? $arr : '');
     }
 
+    protected function getUri()
+    {
+      return !isset($_SERVER['REQUEST_URI']) ? '/' : $_SERVER['REQUEST_URI'];
+    }
+
     protected function getHttpMethod() : string
     {
-      return in_array($_SERVER['REQUEST_METHOD'], array('GET', 'PUT', 'POST', 'DELETE')) ? $_SERVER['REQUEST_METHOD'] : 'GET';
+      return isset($_SERVER['REQUEST_METHOD']) && in_array($_SERVER['REQUEST_METHOD'], array('GET', 'PUT', 'POST', 'DELETE')) ? $_SERVER['REQUEST_METHOD'] : 'GET';
     }
 
   	public function afterInit()
     {
-
-      $uri = $this->removeQueryParameters($_SERVER['REQUEST_URI']);
+      $uri = $this->getUri();
+      $uri = $this->removeQueryParameters($uri);
       $uri = $this->removeTrailSlash($uri);
 
       if(RandomString::endsWith($uri, '.html')) {

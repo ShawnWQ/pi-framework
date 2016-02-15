@@ -10,9 +10,12 @@ use Pi\Interfaces\IContainer;
 use Pi\Interfaces\PIPiHost;
 use Pi\EventManager;
 use Pi\Auth\MongoDb\MongoDbAuthRepository;
-use Pi\Auth\MongoDbAuthUserRepository;
+use Pi\Auth\MongoDbAuthUserRepository,
+	Pi\Auth\MongoDb\MongoDbAuthDetailsRepository;
 
 class AuthPlugin implements IPreInitPlugin, IPlugin {
+
+	protected $session;
 
 	public function __construct(protected ?AuthConfig $config = null)
 	{
@@ -23,7 +26,7 @@ class AuthPlugin implements IPreInitPlugin, IPlugin {
 
 	public function configure(IPiHost $appHost) : void
 	{
-
+		
 		$appHost->container->register('Pi\Auth\Interfaces\ICryptorProvider', function(IContainer $container) {
 			return new Md5CryptorProvider();
 		});
@@ -39,9 +42,10 @@ class AuthPlugin implements IPreInitPlugin, IPlugin {
 
 		$s = new AuthService();
 		$provider = $appHost->container->get('Pi\Auth\Interfaces\ICryptorProvider');
+		$this->session = new AuthUserSession();
 		$s->init(array
-				(new CredentialsAuthProvider($appHost->config(), '/realm', 'basic', $provider)),
-				new AuthUserSession());
+				(new CredentialsAuthProvider($appHost->appSettings(), '/realm', CredentialsAuthProvider::name, $provider)),
+				$this->session);
 		
 		$appHost->registerService($s);
 
@@ -51,13 +55,28 @@ class AuthPlugin implements IPreInitPlugin, IPlugin {
 
 		$appHost->addRequestFiltersClasses(new AuthenticateFilter());
 
+		$repo = new MongoDbAuthRepository();
+		$detailsRepo = new MongoDbAuthDetailsRepository();
+
 		$appHost->container()->register('Pi\Auth\AuthConfig', function(IContainer $container) use($config){
 			return $config;
 		});
 
+		$appHost->container()->register('Pi\Auth\Interfaces\IAuthRepository', function(IContainer $container) use($repo){
+			return $container->get('Pi\Auth\MongoDb\MongoDbAuthRepository');
+		});
 
-		$appHost->container()->registerRepository(new UserEntity(), new MongoDbAuthUserRepository());
-		$appHost->container()->registerRepository(new Auth(), new MongoDbAuthRepository());
+		$appHost->container()->register('Pi\Auth\Interfaces\IAuthUserRepository', function(IContainer $container) use($repo){
+			return $container->get('Pi\Auth\MongoDb\MongoDbAuthRepository');
+		});
+
+		$appHost->container()->register('Pi\Auth\Interfaces\IAuthDetailsRepository', function(IContainer $container) use($detailsRepo){
+			return $container->get('Pi\Auth\MongoDb\MongoDbAuthDetailsRepository');
+		});
+
+		$appHost->container()->registerRepository(new UserAuthDetails(), $detailsRepo);
+		$appHost->container()->registerRepository(new UserEntity(), $repo);
+		$appHost->container()->registerRepository(new UserAuth(), $repo);
 
 		//$appHost->container()->registerRepository(new UserEntity(), new UserRepository());
 	}

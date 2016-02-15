@@ -8,7 +8,7 @@ use Pi\Odm\Interfaces\IEntity;
 /**
  * Entities that have a somewhat fixed, physical extension.
  */
-<<Entity,Collection('place')>>
+<<Entity,Collection('place'),MultiTenant>>
 class Place extends Thing {
 
 	protected $address;

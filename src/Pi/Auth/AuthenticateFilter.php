@@ -68,6 +68,7 @@ class AuthenticateFilter extends RequestFilter {
 
   protected function assertToken($token)
   {
+    return;
     $user = $this->authService->getUserRedisByToken($token);
 
     if(!is_array($user)) {

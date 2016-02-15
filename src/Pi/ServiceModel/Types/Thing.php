@@ -3,6 +3,7 @@
 namespace Pi\ServiceModel\Types;
 use Pi\Odm\Interfaces\IEntity;
 
+
 class Thing implements IEntity, \JsonSerializable {
 
 	protected $id;
@@ -134,4 +135,5 @@ class Thing implements IEntity, \JsonSerializable {
 	{
 		$this->viewsCounter = $value;
 	}
+
 }

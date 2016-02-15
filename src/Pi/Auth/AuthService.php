@@ -1,10 +1,15 @@
 <?hh
 
 namespace Pi\Auth;
-use Pi\Service;
+use Pi\Service,
+    Pi\HttpError,
+    Pi\ErrorMessages;
 use Pi\HttpResult;
 use Pi\Common\RandomString;
-use Pi\Auth\Interfaces\IAuthSession;
+use Pi\Auth\Interfaces\IAuthSession,
+    Pi\Auth\Interfaces\IAuthRepository,
+    Pi\Auth\Interfaces\IAuthUserRepository,
+    Pi\Auth\Interfaces\IAuthDetailsRepository;
 use Pi\ServiceModel\AuthRedisKeys;
 use Pi\ServiceModel\AuthAuthorize;
 use Pi\ServiceModel\AuthAuthorizeResponse;
@@ -19,7 +24,11 @@ class AuthService extends Service {
 
   const logoutAction = 'logout';
 
-  public MongoDbAuthUserRepository $repository;
+  public IAuthUserRepository $repository;
+
+  public IAuthDetailsRepository $detailsRepository;
+
+  public IAutRepository $authRepository;
 
   public AuthConfig $config;
 
@@ -71,6 +80,12 @@ class AuthService extends Service {
       self::$currentSessionFactory = $sessionFactory;
     }
 
+
+  }
+
+  public function saveSession($session, ?\DateTime $expires = null)
+  {
+    $this->request()->saveSession($session, $expires);
   }
 
   // When you confirm the form, the server creates a temporary token (auth token as they're called), which typically has a very short life (my oauth2 sp code typically sets this to 60 seconds). This is the time your server has to go from receiving the code to triggering step 2.
@@ -119,6 +134,8 @@ class AuthService extends Service {
 
     $r->setUserName($request->getEmail());
     $r->setPassword($request->getPassword());
+
+
     $user = self::$defaultOAuthProvider->authenticate($this, $this->request()->getSession(), $r);
     if(is_null($user) || $user === false)  {
       return HttpResult::createCustomError('InvalidEmailOrPw', _('InvalidEmailOrPw'));
@@ -138,6 +155,102 @@ class AuthService extends Service {
 
   }
 
+  /*public function login(Authenticate $request)
+  {
+    $provider = empty($request->getProvider()) ? self::$defaultOAuthProvider->getName() : $request->getProvider();
+    $oauthProvider = $this->getAuthProvider($provider);
+
+    if($oauthProvider == null)
+      throw HttpError::notFound(ErrorMessages::unknownAuthProviderFmt(''));
+    // if request.rememberMe add request.addSessionOptions
+    $session = $this->getSession();
+
+    $response = $this->doAuthenticate($request, $provider, $session, $oauthProvider);
+    try {
+      
+      $response = $this->doAuthenticate($request, $provider, $session, $oauthProvider);
+      $session = $this->getSession();
+      if($request->getProvider() == nul && !$session->isAuthenticated()) {
+        throw HttpError::unauthorized(ErrorMessages::$notAuthenticated);
+      }
+
+      //referUrl request.continue session.refferUrl request->header("Referer") oauthConfig->callbackUrl
+      $referrerUrl = '';
+
+      if($response == null)
+        $response = new AuthenticateResponse(
+          $session->getUserId(),
+          $session->getUserAuthName() ?: $session->getUserName() ?: sprintf("{0} {1}", $session->getFirstName(), $sesssion->getLastName()),
+          $session->getId(),
+          $referrerUrl
+        );
+     
+    }
+    catch(\Exception $exception) {
+      // check if redirect
+      throw $ex;
+    }
+    // do logout
+  }
+*/
+  <<Request,Route('/auth'),Method('GET')>>
+  public function authenticate(Authenticate $request)
+  {
+    $provider = $request->getProvider() ?: self::$defaultOAuthProvider->getName();
+    $oauthProvider = self::getAuthProvider($provider);
+
+    if($oauthProvider == null)
+      $oauthProvider = self::$defaultOAuthProvider;
+      //throw HttpError::notFound('invalid provider format' . $provider);
+
+
+    // if request.remember me add request.addsessionptions
+    // check if the request provider is logout, then call the logout method on the $oauthProvider
+    $session = $this->getSession();
+    $response = $this->doAuthenticate($request, $provider, $session, $oauthProvider);
+    if($response == null)
+      throw new \Exception('Not authorized');
+    $session = $this->getSession();
+
+    // Generate a authentication token
+    $authReq = new AuthAuthorize('', $response->getUserId(), '', 'login');
+    $tokenReq = $this->getAuthorization($authReq);
+    $token = $this->getToken(new AuthToken('', $response->getUserId(), 'read write update', 'login', $tokenReq->getCode()));
+    
+    $v = json_encode(array('id' => (string)$response->getUserId(), 'token' => $token->getCode()));
+    setcookie("Authorization", $token->getCode(), time() + 60*60*24*365, '/', $this->appConfig()->domain());
+
+
+    if($response == null)
+      $response = new AuthenticateResponse(
+        $session->getUserId(),
+        $session->getUserAuthName() ?: $session->getUserName() ?: sprintf("{0} {1}", $session->getFirstName(), $sesssion->getLastName()),
+        $session->getId(),
+        $referrerUrl
+      );
+
+    return $response;
+  }
+
+  protected function doAuthenticate(Authenticate $request, string $provider, $session, $oauthProvider)
+  {
+
+    if(empty($request->getProvider()) && empty($request->getEmail()))
+      return null;
+
+    $session = $this->getSession();
+
+    $response = null;
+    if(AuthExtensions::getOAuthTokensFromSession($session, $provider) == null ||
+      !$oauthProvider->isAuthorized($session, AuthExtensions::getOAuthTokensFromSession($session, $provider), $request)) {
+     //$this->request()->getSession()
+      //if($generateCookies) // request.generateNewSessionCookies
+      $response = $oauthProvider->authenticate($this, $session, $request);
+    } else {
+      // if $generateCookies request->generateNewSessionCookies request->saveSession($session)
+    }
+    return $response;
+  }
   /*
    * public because tests
    */

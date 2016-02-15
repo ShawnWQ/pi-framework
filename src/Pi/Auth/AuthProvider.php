@@ -3,10 +3,11 @@
 namespace Pi\Auth;
 use Pi\Service;
 use Pi\EventManager;
-use Pi\Interfaces\IHostConfig;
+use Pi\Interfaces\AppSettingsInterface;
 use Pi\Interfaces\IService;
 use Pi\Interfaces\IRequest;
-use Pi\Interfaces\IResponse;
+use Pi\Interfaces\IResponse,
+    Pi\Interfaces\IHttpResponse;
 use Pi\Auth\Interfaces\IAuthSession;
 use Pi\Auth\Interfaces\IAuthTokens;
 use Pi\Auth\Interfaces\IUserAuth;
@@ -35,9 +36,9 @@ abstract class AuthProvider {
 
   protected $redirectUrl;
   
-  public function __construct(IHostConfig $appSettings, string $authRealm, string $oAuthProvider)
+  public function __construct(AppSettingsInterface $appSettings, string $authRealm, string $oAuthProvider)
   {
-    $this->authRealm = is_null($appSettings) ? $authRealm : $appSettings->get('OAuthRealm', $authRealm);
+    $this->authRealm = is_null($appSettings) || !$appSettings->exists('OAuthRealm') ? $authRealm : $appSettings->getString('OAuthRealm', $authRealm);
     $this->provider = $oAuthProvider;
 
     if(!is_null($appSettings)) {
@@ -49,11 +50,47 @@ abstract class AuthProvider {
   public abstract function authenticate(IService $authService, IAuthSession $session, Authenticate $request) : ?IUserAuth;
 
   public abstract function isAuthorized(IAuthSession $session, IAuthTokens $tokens, Authenticate $request = null) : bool;
+
+  public function loadAuthInfo(AuthUserSession $userSession, IAuthTokens $tokens, Map<string,string> $authInfo)
+  {
+
+  }
+
+  public function getOAuthRealm()
+  {
+    return self::realm;
+  }
+
+  public function getPreAuthUrl()
+  {
+    return self::preAuthUrl;
+  }
+
+  public function getRealm()
+  {
+    return self::realm;
+  }
+
+  public function getName()
+  {
+    return self::name;
+  }
   
   static function handleFailedAuth(IAuthProvider $authProvider, IAuthSession $authSession, IRequest $request, IResponse $response)
   {
 
     // $request->endRequest();
+  }
+
+  public static function populateSession(IUserAuthRepository $authRepo, IUserAuth $userAuth, IAuthSession $session)
+  {
+    $cacheId = $session->getId();
+    AuthExtensions::populateSessionWithUserAuth($session, $userAuth);
+    $session->setId($cacheId);
+    $session->setUserId($userAuth->getId());
+    $session->setProviderOAuthAccess($authRepo->getUserAuthDetails($session->getUserId()));
+    $session->setUsername($userAuth->getUsername());
+    $session->setDisplayName($userAuth->getDisplayName());
   }
 
   public function emailAlreadyExists(IAuthRepository $authRepo, IUserAuth $userAuth, ?IAuthTokens $tokens = null)
@@ -124,5 +161,42 @@ abstract class AuthProvider {
 
   }
 
+  public function saveUserAuth(IService $authService, IAuthSession $session, IAuthRepository $authRepo, ?IAuthTokens $tokens = null) : void
+  {
 
+    if($authRepo == null) return;
+    if($tokens != nul)  {
+      $user = $authRepo->createOrMergeAuthSession($sessio, $tokens);
+      $session->setUserId($user->getUserId());
+    }
+
+    $authRepo->loadUserAuth($session, $tokens);
+    $httpRes = $authService->request()->response();
+    if($httpRes instanceof IHttpResponse) {
+      // add cookies
+    }
+    $this->onSaveUserAuth($authService, $session);
+  }
+
+  public function onSaveUserAuth(IService $authService, IAuthSession $session)
+  {
+
+  }
+
+  static function loginMatchesSession(IAuthSession $session, string $userName) : bool
+  {
+    if($session == null || empty($userName))
+      return false;
+
+    $isEmail = strpos($userName, '@') !== false;
+    if($isEmail) {
+      if($userName != $session->getEmail())
+        return false;
+    }
+    else {
+      if($userName != $session->getUserAuthName())
+        return false;
+    }
+    return true;
+  }
 }

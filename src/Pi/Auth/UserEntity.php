@@ -89,11 +89,11 @@ class UserEntity implements IEntity, IUserAuth {
 	public function __construct()
 	{
 		
-		$this->meta = array(array());
-		$this->permissions = array(array());
-		$this->albuns = array(array());
-		$this->address = array(array());
-		$this->profiles = array(array());
+		$this->meta = array();
+		$this->permissions = array();
+		$this->albuns = array();
+		$this->address = array();
+		$this->profiles = array();
 	}
 
 	<<Collection>>
@@ -360,6 +360,7 @@ class UserEntity implements IEntity, IUserAuth {
 		$this->timeZone = $value;
 	}
 
+	<<Id,ObjectId>>
 	public function getId()
 	{
 		return $this->id;

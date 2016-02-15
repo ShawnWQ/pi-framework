@@ -2,6 +2,7 @@
 
 namespace Pi\ServiceModel\Types;
 
+<<MultiTenant>>
 class ArticleSerie extends Thing {
 	
 	protected array $articles;

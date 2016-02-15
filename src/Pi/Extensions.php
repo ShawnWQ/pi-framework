@@ -40,7 +40,8 @@ class Extensions {
 
   public static function testingMode()
   {
-    return constant('PHPUNIT_PI_DEBUG') || false;
+    return defined('PHPUNIT_PI_DEBUG') && constant('PHPUNIT_PI_DEBUG') === true;
+    //return constant('PHPUNIT_PI_DEBUG') || false;
   }
 
   public static function protectFn(\Closure $callable)

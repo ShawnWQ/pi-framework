@@ -1,47 +1,63 @@
 <?hh
+namespace Test\Auth;
 
-use Pi\ServiceModel\BasicRegisterRequest;
-use Pi\ServiceModel\BasicRegisterResponse;
-use Pi\Auth\AuthService,
+
+use Mocks\MockHostConfiguration,
+    Mocks\BibleHost,
+    Test\Auth\BaseAuthTest,
+    Pi\HostConfig,
+    Pi\ServiceModel\BasicRegisterRequest,
+    Pi\ServiceModel\BasicRegisterResponse,
+    Pi\Common\RandomString,
+    Pi\Auth\AuthService,
     Pi\Auth\Md5CryptorProvider,
-    Pi\HostConfig;
-use Pi\Auth\CredentialsAuthProvider;
-use Pi\Auth\AuthUserSession;
-use Mocks\MockHostConfiguration;
-use Pi\Common\RandomString;
+    Pi\Auth\Authenticate,
+    Pi\Auth\CredentialsAuthProvider,
+    Pi\Auth\AuthUserSession;
 
-class CredentialsAuthProviderTest extends \PHPUnit_Framework_TestCase {
+
+
+
+class CredentialsAuthProviderTest extends BaseAuthTest {
 
 
   protected $provider;
 
   protected $authSvc;
 
+  protected $host;
+
   public function setUp()
   {
-    $this->authSvc = new AuthService();
-    $this->provider = new CredentialsAuthProvider(MockHostConfiguration::get(), '/realm', 'basic', new Md5CryptorProvider());
-    $this->authSvc->init(array($this->provider), new AuthUserSession());
+    $this->host = new BibleHost();
+    $this->host->init();
+    $this->authSvc = $this->host->serviceController()->getServiceInstance('Pi\Auth\AuthService');
+    $this->provider = $this->authSvc->getAuthProvider(CredentialsAuthProvider::name);
   }
 
   public function testServiceAcceptTheProvider()
   {
-    $this->assertNotNull($this->authSvc->getAuthProvider('basic'));
+    $this->assertNotNull($this->provider);
   }
 
   public function testCanAuthenticate()
   {
-    /*$session = new AuthUserSession()
-    $req = new Authenticate();
-    $req->setEmail('asd@asd.com');
-    $req->setPassword($pw);
-    return $this->queryBuilder()
-      ->hydrate()
-      ->field('email')->eq($email)
-      ->field('password')->eq($passwordHash)
-      ->getQuery()
-      ->getSingleResult();
-      */
-    //$provider->authenticate()$this->authSvc, new AuthUserSession(), 
+    $authRepo = $this->getAuthRepository();
+    $cryptor = $this->getCryptor();
+    $user = $this->createUserAuth();
+    $userDb = $authRepo->createUserAuth($user, $cryptor->encrypt('123'));
+    
+    $session = $this->authSvc->getSession();
+    $this->assertFalse($session->isAuthenticated());
+
+    $request = new Authenticate();
+    $request->setUserName($user->getEmail());
+    $request->setPassword('123');
+    $session = $this->createAuthUserSession();
+    $res = $this->provider->authenticate($this->authSvc, $session, $request);
+    $this->assertEquals($res->getDisplayName(), $userDb->getDisplayName());
+    
+    $session = $this->authSvc->getSession();
+    $this->assertTrue($session->isAuthenticated());
   }
 }

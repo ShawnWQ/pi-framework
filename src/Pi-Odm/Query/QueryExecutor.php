@@ -9,7 +9,8 @@ use Pi\Odm\MongoDBException,
     Pi\Odm\MongoDB\Cursor,
     Pi\Odm\Mapping\EntityMetaData,
     Pi\Odm\MongoManager,
-    Pi\Odm\UnitWork;
+    Pi\Odm\UnitWork,
+    Pi\Host\HostProvider;
 
 class QueryExecutor {
 
@@ -192,7 +193,6 @@ class QueryExecutor {
         $query = array();
         $ops = array('$eq', '$pull');
 
-
         foreach($ops as $op){
           if(array_key_exists($op, $this->query['query']) && is_array($this->query['query'][$op])) {
             foreach($this->query['query'][$op] as $k => $v) {
@@ -202,23 +202,28 @@ class QueryExecutor {
         }
 
         if(array_key_exists('$in', $this->query['query']) && is_array($this->query['query']['$in'])) {
-            foreach($this->query['query']['$in'] as $k => $v) {
-                $query[$k]['$in'] = $v;
-
-              }
-
-          }
-        if(array_key_exists('$or', $this->query['query']) && is_array($this->query['query']['$or'])) {
-            foreach($this->query['query']['$or'] as $k => $v) {
-
-              foreach($v  as $c => $n) {
-                $query['$or'][] = array($c =>  $n);
-              }
+          foreach($this->query['query']['$in'] as $k => $v) {
+              $query[$k]['$in'] = $v;
 
             }
 
-          }
+        }
 
+        if(array_key_exists('$or', $this->query['query']) && is_array($this->query['query']['$or'])) {
+          foreach($this->query['query']['$or'] as $k => $v) {
+
+            foreach($v  as $c => $n) {
+              $query['$or'][] = array($c =>  $n);
+            }
+
+          }
+        }
+
+        if(HostProvider::instance()->tryResolve('OdmConfiguration')->getMultiTenantMode() &&
+          $this->class->getMultiTenantMode()) {
+            $query['appId'] = HostProvider::tryResolve('IRequest')->appId();
+        }
+        
         return $query;
     }
 
@@ -232,10 +237,12 @@ class QueryExecutor {
               if(isset($query['$or'])) {
 
               }
+            
             $cursor = $this->collection->find(
               $query,
               isset($this->query['select']) ? $this->query['select'] : array()
             );
+
             if($cursor === null) {
               return;
             }

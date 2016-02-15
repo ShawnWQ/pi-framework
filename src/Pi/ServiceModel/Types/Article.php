@@ -7,13 +7,15 @@ use Pi\ServiceModel\ArticleState;
 /**
  * An article, such as a news article or piece of investigative report. Newspapers and magazines have articles of many different types and this is intended to cover them all
  */
-<<Collection("article"),InheritanceType('Single'),DiscriminatorField('type'),DefaultDiscriminatorValue('article')>>
+<<Collection("article"),InheritanceType('Single'),DiscriminatorField('type'),DefaultDiscriminatorValue('article'),MultiTenant>>
 class Article extends CreativeWork {
 
 	public function __construct()
 	{
 		parent::__construct();
 	}
+
+	protected $appId;
 
 	/**
 	 * The actual body of the article.
@@ -39,6 +41,17 @@ class Article extends CreativeWork {
 	protected ArticleState $state;
 
 	const TYPE = 'Pi\ServiceModel\Types\Article';
+
+
+	public function getAppId()
+	{
+		return $this->appId;
+	}
+
+	public function setAppId($id)
+	{
+		$this->appId = $id;
+	}
 
 	<<EmbedOne('Pi\ServiceModel\Types\ArticleCategoryEmbed')>>
 	public function getCategory()

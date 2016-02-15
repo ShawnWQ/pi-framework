@@ -6,7 +6,7 @@ use Pi\Interfaces\IMeta;
 
 class Authenticate {
 
-  protected string $provider;
+  protected ?string $provider;
 
   protected string $state;
 
@@ -28,7 +28,7 @@ class Authenticate {
 
   protected array $meta;
 
-  public function getProvider() : string
+  public function getProvider() : ?string
   {
     return $this->provider;
   }

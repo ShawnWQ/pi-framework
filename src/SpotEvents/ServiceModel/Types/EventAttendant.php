@@ -3,6 +3,7 @@
 namespace SpotEvents\ServiceModel\Types;
 use Pi\Odm\Interfaces\IEntity;
 
+<<MultiTenant>>
 class EventAttendant implements IEntity, \JsonSerializable {
 	
 	protected $id;

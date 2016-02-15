@@ -9,7 +9,8 @@ use Pi\Host\HostProvider;
 use Pi\IContainer;
 use Pi\Container;
 use Pi\Cache\LocalCacheProvider;
-use Pi\Interfaces\ICacheProvider;
+use Pi\Interfaces\ICacheProvider,
+    Pi\Interfaces\AppSettingsInterface;
 use Pi\Interfaces\IRequest;
 use Pi\Interfaces\IResponse;
 use Pi\Validation\AbstractValidator;
@@ -101,6 +102,13 @@ class PiHostTest
     $this->assertFalse($a);
     $this->host->init();
     $this->assertTrue($a);
+  }
+
+  public function testAppSettingsIsRegistered()
+  {
+    $this->host->init();
+    $provider = $this->host->container()->get('AppSettingsInterface');
+    $this->assertTrue($provider != null && $provider instanceof AppSettingsInterface);
   }
 
   public function testRegisterAbstractValidator()

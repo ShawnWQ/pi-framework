@@ -15,6 +15,7 @@ use Pi\Auth\UserRepository,
     Pi\Interfaces\IPiHost,
     Pi\Interfaces\IService,
     Pi\Interfaces\IContainer,
+    Pi\Interfaces\AppSettingsInterface,
     Pi\Interfaces\IMessageFactory,
     Pi\Interfaces\ICacheProvider,
     Pi\Interfaces\IRoutesManager,
@@ -166,8 +167,9 @@ abstract class PiHost implements IPiHost{
 
   public function __construct(protected HostConfig $config = null)
   {
-
-    ob_start();
+    if(!Extensions::testingMode()) {
+      ob_start();  
+    }
     date_default_timezone_set('Europe/Lisbon');
 
     if($this->config === null){
@@ -238,10 +240,11 @@ abstract class PiHost implements IPiHost{
       $response->endRequest();
       //throw $ex;
     }});
+    $this->registerPlugin(new RedisPlugin());
     $this->registerPlugin(new WarezPlugin());
     $this->registerPlugin(new ServerEventsPlugin());
-    $this->registerPlugin(new AuthPlugin());
     $this->registerPlugin(new SessionPlugin());
+    $this->registerPlugin(new AuthPlugin());
     if(!$this->hasPluginType('Pi\Odm\OdmPlugin')) {
       $this->registerPlugin(new OdmPlugin());
     }
@@ -249,9 +252,7 @@ abstract class PiHost implements IPiHost{
     $this->registerPlugin(new FileSystemPlugin());
     $this->registerPlugin(new CorsPlugin());
     $this->registerPlugin(new PiPlugins());
-    $this->registerPlugin(new RedisPlugin());
-
-
+    
     $rm = $this->routes = new RoutesManager($this);
     $this->routes = $rm;
     HostProvider::catchAllHandlers()->add(function(string $httpMethod, string $pathInfo, string $filePath) use($rm){
@@ -324,6 +325,7 @@ abstract class PiHost implements IPiHost{
 
     $this->configure($this->container);
     $this->configurePlugins();
+
     $this->registerServices();
   }
 
@@ -966,9 +968,9 @@ abstract class PiHost implements IPiHost{
     return $this->config;
   }
 
-  public function appSettings() : IAppSettings
+  public function appSettings() : AppSettingsInterface
   {
-    throw new NotImplementedException();
+    return $this->container->get('AppSettingsInterface');
   }
 
 
@@ -1055,6 +1057,7 @@ abstract class PiHost implements IPiHost{
   }
   protected function configurePlugins()
   {
+   
     foreach($this->plugins as $plugin) {
 
       if($plugin instanceof IPlugin){

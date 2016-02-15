@@ -7,45 +7,54 @@ use Pi\Auth\Interfaces\IAuthTokens;
 use Pi\Interfaces\IRequest;
 use Pi\Interfaces\IService;
 
-class AuthUserSession implements IAuthSession {
+class AuthUserSession implements IAuthSession, \JsonSerializable {
 
-  protected $referenceUrl;
+  protected $referenceUrl = '';
 
   protected $id;
 
   protected $userId;
 
-  protected $userName;
+  protected $userName = '';
 
-  protected $displayName;
+  protected $displayName = '';
 
-  protected $firstName;
+  protected $firstName = '';
 
-  protected $lastName;
+  protected $lastName = '';
 
-  protected $email;
+  protected $email = '';
 
-  protected $providerOAuthAccess;
+  /**
+   * @var Pi\Auth\Interfaces\IAuthTokens OAuth tokens
+   */
+  protected $providerOAuthAccess = array();
 
   protected $createdAt;
 
   protected $lastModified;
 
-  protected $roles;
+  protected $roles = array();
 
-  protected $permissions;
+  protected $permissions = array();
 
   protected $sequence;
 
   protected $isAuthenticated = false;
 
-  protected string $userAuthName;
+  protected string $userAuthName = '';
 
-  public function __construct()
+  public function jsonSerialize()
   {
-    $this->providerOAuthAccess = array();
-    $this->roles = array();
-    $this->permissions = array();
+    $vars = get_object_vars($this);
+    if(count($vars['providerOAuthAccess']) > 0) {
+      $acccess = array();
+      foreach ($vars['providerOAuthAccess'] as $provider) {
+        $acccess[] = $provider->jsonSerialize();
+      }
+      $vars['providerOAuthAccess'] = $acccess;
+    }
+    return $vars;
   }
 
   public function getReferenceUrl() : string
@@ -63,7 +72,7 @@ class AuthUserSession implements IAuthSession {
     $this->id = $id;
   }
 
-  public function getUserId() : \MongoId
+  public function getUserId() : ?\MongoId
   {
     return $this->userId;
   }
@@ -73,7 +82,7 @@ class AuthUserSession implements IAuthSession {
     $this->userId = $id;
   }
 
-  public function getUserAuthName() : string
+  public function getUserAuthName() : ?string
   {
     return $this->userAuthName;
   }
@@ -108,9 +117,19 @@ class AuthUserSession implements IAuthSession {
     return $this->firstName;
   }
 
+  public function setFirstName(string $value)
+  {
+    $this->firstName = $value;
+  }
+
   public function getLastName() : string
   {
     return $this->lastName;
+  }
+
+  public function setLastName(string $value)
+  {
+    $this->lastName = $value;
   }
 
   public function getEmail() : string
@@ -148,7 +167,7 @@ class AuthUserSession implements IAuthSession {
     $this->createdAt = $value;
   }
 
-  public function getLastModified() : \DateTime
+  public function getLastModified() : ?\DateTime
   {
     return $this->lastModified;
   }

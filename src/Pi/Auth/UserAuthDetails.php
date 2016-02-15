@@ -4,6 +4,7 @@ namespace Pi\Auth;
 
 use Pi\Auth\Interfaces\IUserAuthDetails;
 
+<<Entity,Collection("auths")>>
 class UserAuthDetails implements IUserAuthDetails {
 
   protected \MongoId $id;
@@ -128,6 +129,12 @@ class UserAuthDetails implements IUserAuthDetails {
     return $this->userId;
   }
 
+  public function setUserId(\MongoId $value)
+  {
+    $this->userId = $value;
+  }
+
+  <<DateTime>>
   public function getCreatedDate() : \DateTime
   {
     return $this->createdDate;
@@ -138,19 +145,37 @@ class UserAuthDetails implements IUserAuthDetails {
     return $this->modifiedDate;
   }
 
+  <<String>>
   public function getProvider()
   {
     return $this->provider;
   }
 
+  public function setProvider(string $value)
+  {
+    $this->provider = $value;
+  }
+
+  <<String>>
   public function getAccessToken() : string
   {
     return $this->accessToken;
   }
 
+  public function setAccessToken(string $value)
+  {
+    $this->accessToken = $value;
+  }
+
+  <<String>>
   public function getAccessTokenSecret() : string
   {
     return $this->accessTokenSecret;
+  }
+
+  public function setAccessTokenSecret(string $value)
+  {
+    $this->accessTokenSecret = $value;
   }
 
   public function getRefreshToken() : string
@@ -158,14 +183,26 @@ class UserAuthDetails implements IUserAuthDetails {
     return $this->refreshToken;
   }
 
+  public function setRefreshToken(string $value)
+  {
+    $this->refreshToken = $value;
+  }
+
   public function getRefreshTokenExpiry() : ?\DateTime
   {
     return $this->refreshTokenExpiry;
+
   }
 
+  <<String>>
   public function getRequestToken() : string
   {
     return $this->requestToken;
+  }
+
+  public function setRequestToken(string $value) : void
+  {
+    $this->requestToken = $value;
   }
 
   public function getRequestTokenSecret() : string
@@ -173,6 +210,7 @@ class UserAuthDetails implements IUserAuthDetails {
     return $this->requestTokenSecret;
   }
 
+  <<Collection>>
   public function getItems() : array
   {
     return $this->items;

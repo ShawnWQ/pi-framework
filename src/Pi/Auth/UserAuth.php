@@ -10,63 +10,63 @@ class UserAuth implements IEntity, IUserAuth {
 
 	protected $id;
 
-	protected $firstName;
+	protected $firstName = '';
 
-	protected $lastName;
+	protected $lastName = '';
 
-	protected $email;
+	protected $email = '';
 
-	protected $password;
+	protected $password = '';
 
-	protected $displayName;
+	protected $displayName = '';
 
-  protected $state;
+  	protected $state;
 
-	protected string $userName;
+	protected string $userName = '';
 
-	protected string $company;
+	protected string $company = '';
 
-	protected string $phoneNumber;
+	protected string $phoneNumber = '';
 
 	protected \DateTime $birthDate;
 
-	protected string $address;
+	protected string $address = '';
 
-	protected string $address2;
+	protected string $address2 = '';
 
-	protected string $city;
+	protected string $city = '';
 
-	protected string $country;
+	protected string $country = '';
 
-	protected string $culture;
+	protected string $culture = '';
 
-	protected string $fullName;
+	protected string $fullName = '';
 
-	protected string $gender;
+	protected string $gender = '';
 
-	protected string $language;
+	protected string $language = '';
 
-	protected string $mailAddress;
+	protected string $mailAddress = '';
 
-	protected string $nickName;
+	protected string $nickName = '';
 
-	protected string $postalCode;
+	protected string $postalCode = '';
 
-	protected string $timeZone;
+	protected string $timeZone = '';
 
-	protected string $primaryEmail;
+	protected string $primaryEmail = '';
 
-	protected string $salt;
+	protected string $salt = '';
 
-	protected string $digestHalt;
+	protected string $digestHalt = '';
 
-	protected string $passwordHash;
+	protected string $passwordHash = '';
 
-	protected array $permissions;
+	protected array $permissions = array();
 
-	protected array $roles;
+	protected array $roles = array();
 
-	protected string $refId;
+	protected string $refId = '';
 
 	protected $invalidLoginAttempt;
 
@@ -76,9 +76,9 @@ class UserAuth implements IEntity, IUserAuth {
 
 	protected \DateTime $createdDate;
 
-	protected \DateTime $modifiedDate;
+	protected ?\DateTime $modifiedDate;
 
-	protected array $meta;
+	protected array $meta = array();
 
 	<<String>>
 	public function getUserName() : string
@@ -311,9 +311,15 @@ class UserAuth implements IEntity, IUserAuth {
 		$this->timeZone = $value;
 	}
 
+	<<Id>>
 	public function getId()
 	{
 		return $this->id;
+	}
+
+	public function setId(\MongoId $value)
+	{
+		$this->id = $value;
 	}
 
 	<<String>>
@@ -433,7 +439,7 @@ class UserAuth implements IEntity, IUserAuth {
 	}
 
 	<<DateTime>>
-  public function getModifiedDate() : \DateTime
+  public function getModifiedDate() : ?\DateTime
 	{
 		return $this->modifiedDate;
 	}

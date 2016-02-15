@@ -2,7 +2,10 @@
 
 namespace MultiTenant;
 
-class MultiTenantConfig {
+use Pi\HostConfig;
+
+
+class MultiTenantConfig extends HostConfig {
 	
 	protected string $mainHost;
 
@@ -11,4 +14,15 @@ class MultiTenantConfig {
 	protected string $mainDb;
 
 	protected array $slavesDb;
+
+	public function __construct(
+		protected ?\MongoId $appId)
+	{
+		parent::__construct();
+	}
+
+	public function getAppId() : ?\MongoId
+	{
+		return $this->appId;
+	}
 }

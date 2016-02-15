@@ -12,4 +12,11 @@ namespace Pi;
 class HttpError {
 
 
+	static function notFound($message) {
+		return new \Exception('nt found');
+	}
+
+	static function unauthorized($message) {
+		return new \Exception('not authenticated');
+	}
 }

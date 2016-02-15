@@ -2,11 +2,12 @@
 
 namespace Pi\Host;
 
-use Pi\Interfaces\IHttpResponse;
-use Pi\Interfaces\IHttpRequest;
-use Pi\Interfaces\IRequest;
-use Pi\Interfaces\IResponse;
-use Pi\Host\HostProvider;
+use Pi\Extensions,
+	Pi\Interfaces\IHttpResponse,
+	Pi\Interfaces\IHttpRequest,
+	Pi\Interfaces\IRequest,
+	Pi\Interfaces\IResponse,
+	Pi\Host\HostProvider;
 
 class PhpResponse extends BasicResponse implements IHttpResponse {
 
@@ -44,17 +45,31 @@ class PhpResponse extends BasicResponse implements IHttpResponse {
 	public function write($text, int $responseStatus = 200) : void
 	{
 		$this->setHeaders();
+		$this->setCookies();
 		parent::write($text, $responseStatus);
 	}
 
 	public function writeDto(IRequest $httpRequest, $dto) : void
 	{
 		$this->setHeaders();
+		$this->setCookies();
 		parent::writeDto($httpRequest, $dto);
+	}
+
+	protected function setCookies()
+	{
+		if(Extensions::testingMode()) return;
+
+		foreach ($this->cookies as $key => $value) {
+			$domain = HostProvider::instance()->config()->domain();
+			setcookie($key, $value, time() + 60*60*24*365, '/', $domain);
+		}
 	}
 
 	public function setHeaders()
 	{
+		if(Extensions::testingMode()) return;
+		
 		$this->assertHeadersPristine();   
 		if(isset($_SERVER['HTTP_ORIGIN'])) {
 		    //header("Access-Control-Allow-Origin: {$_SERVER['HTTP_ORIGIN']}");
@@ -62,7 +77,7 @@ class PhpResponse extends BasicResponse implements IHttpResponse {
 		    //header('Access-Control-Max-Age: 86400');    // cache for 1 day
 			$this->processCrossOrigin();
 		}
-        if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+        if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
             //header('Access-Control-Allow-Methods: GET, POST, OPTIONS, PUT, DELETE');
             //header("Access-Control-Allow-Headers: {$_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS']}");
             $this->processOptions();

@@ -576,6 +576,7 @@ class UnitWork
       $this->documentIdentifiers[$oid] = $idValue;
     }
 
+    /*
     if($class->getMultiTenantMode()){
 
       $appId = HostProvider::instance()->tryResolve('IRequest')->appId();
@@ -583,6 +584,7 @@ class UnitWork
       $reflection->setAccessible(true);
       $reflection->setValue($document, $appId);
     }
+    */
 
     $this->documentStates[$oid] = DocumentState::Managed;
 

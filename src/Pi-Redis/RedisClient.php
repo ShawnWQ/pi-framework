@@ -37,6 +37,9 @@ class RedisClient
 
   public function set($key, $value)
   {
+    if($value instanceof \JsonSerializable) {
+      $value = json_encode($value->jsonSerialize());
+    }
     return $this->client->set($key, $value); //ini_get('session.gc_maxlifetime')
   }
 

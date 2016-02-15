@@ -1,18 +1,23 @@
 <?hh
 
 namespace Pi\Redis;
-use Pi\Interfaces\IPlugin;
-use Pi\Interfaces\IPiHost;
-use Pi\Interfaces\IContainer;
-use Pi\Redis\Interfaces\IRedisFactory;
-use Pi\Interfaces\IHasGlobalAssertion;
-use Pi\Cache\RedisCacheProvider;
 
-class RedisPlugin implements IPlugin {
+use Pi\AppSettings,
+	Pi\Interfaces\IPlugin,
+	Pi\Interfaces\IPreInitPlugin,
+	Pi\Interfaces\IPiHost,
+	Pi\Interfaces\IContainer,
+	Pi\Redis\Interfaces\IRedisFactory,
+	Pi\Interfaces\IHasGlobalAssertion,
+	Pi\Cache\RedisCacheProvider;
+
+
+
+
+class RedisPlugin implements IPlugin, IPreInitPlugin {
 
 	public function configure(IPiHost $host) : void
 	{
-
 		$host->container()->register('IRedisFactory', function(IContainer $ioc){
 			return new RedisFactory();
 		});
@@ -33,6 +38,17 @@ class RedisPlugin implements IPlugin {
 		$host->registerCacheProvider(new RedisCacheProvider($redis));
 
 		$host->container()->registerAlias('Pi\Redis\Interfaces\IRedisClientsManager', 'IRedisClientsManager');
+
+		$host->container()->register('AppSettingsProviderInterface', function(IContainer $ioc) {
+			$factory = $ioc->get('IRedisFactory');
+			return new RedisAppSettingsProvider($factory->createClient());
+		});
+
+		$host->container()->register('AppSettingsInterface', function(IContainer $ioc) {
+	      $provider = $ioc->get('AppSettingsProviderInterface');
+	      return new AppSettings($provider);
+	    });
+
 	}
 
 	/**

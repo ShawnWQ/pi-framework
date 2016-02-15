@@ -6,7 +6,9 @@ use Pi\Auth\Interfaces\IAuthSession;
 use Pi\Auth\Interfaces\IAuthTokens;
 use Pi\Interfaces\IHostConfig;
 use Pi\Auth\Interfaces\IOAuthProvider,
-    Pi\Auth\Interfaces\IUserAuth;
+    Pi\Auth\Interfaces\IUserAuth,
+    Pi\Auth\UserAuth,
+    Pi\Auth\UserAuthDetails;
 use Facebook\Facebook;
 
 class MockAuthProvider extends OAuthProvider implements IOAuthProvider {
@@ -34,25 +36,6 @@ class MockAuthProvider extends OAuthProvider implements IOAuthProvider {
     );
   }
 
-  public function getOAuthRealm()
-  {
-    return self::realm;
-  }
-
-  public function getPreAuthUrl()
-  {
-    return self::preAuthUrl;
-  }
-
-  public function getRealm()
-  {
-    return self::realm;
-  }
-
-  public function getName()
-  {
-    return self::name;
-  }
 
   /**
    * Endpoint called by FB
@@ -60,9 +43,42 @@ class MockAuthProvider extends OAuthProvider implements IOAuthProvider {
    */
   public function authenticate(IService $authService, IAuthSession $session, Authenticate $request) : ?IUserAuth
   {
-    //$request = new HttpRequest(self::preAuthUrl, HttpRequest::METHOD_POST);
-    $tokens = $this->init($authService, $session, $request);
+    $userAuth = $this->tryAuthenticate($authService, $request->getUserName(), $request->getPassword());
+    $userAuth = new UserAuth();
+    $userAuth->setEmail($request->getUserName());
+    $userAuth->setFirstName('Guilherme');
+    $userAuth->setLastName('Cardoso');
+    $userAuth->setDisplayName('Guilherme Cardoso');
+    $userAuth->setEmail('email@guilhermecardoso.pt');
+    $userAuth->setUsername('email@guilhermecardoso.pt');
+    $userAuth->setId(new \MongoId());
 
+    $details = array();
+    $detail = new UserAuthDetails();
+    $detail->setUserId($userAuth->getId());
+    $details[] = $detail;
+
+    $session = $authService->getSession();
+      
+    $cacheId = $session->getId();
+    AuthExtensions::populateSessionWithUserAuth($session, $userAuth);
+    $session->setId($cacheId);
+    $session->setUserId($userAuth->getId());
+    $session->setProviderOAuthAccess($details);
+    $session->setUsername($userAuth->getUsername());
+    $session->setDisplayName($userAuth->getDisplayName());
+
+    $referrerUrl = '';
+
+    $response = $this->onAuthenticated($authService, $session, null, null);
+
+    return new AuthenticateResponse(
+      $session->getUserId(),
+      $session->getUserAuthName() ?: $session->getUserName() ?: sprintf("{0} {1}", $session->getFirstName(), $session->getLastName()),
+      $session->getDisplayName(),
+      $session->getId(),
+      $referrerUrl
+    );
   }
 
   public function logout(IService $service, Authenticate $request)

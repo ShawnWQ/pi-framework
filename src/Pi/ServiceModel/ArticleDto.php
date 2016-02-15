@@ -4,10 +4,12 @@ namespace Pi\ServiceModel;
 
 use Pi\Odm\Interfaces\IEntity;
 
-<<Collection("article")>>
+<<Collection("article"),MultiTenant>>
 class ArticleDto implements IEntity, \JsonSerializable {
 
   protected \MongoID $id;
+
+  protected $appId;
 
   /**
    * An alias for the item.
@@ -102,6 +104,16 @@ class ArticleDto implements IEntity, \JsonSerializable {
   protected ?string $refferUrl;
 
   protected ?string $refferImage;
+
+  public function getAppId()
+  {
+    return $this->appId;
+  }
+
+  public function setAppId($id)
+  {
+    $this->appId = $id;
+  }
 
   <<EmbedOne('Pi\ServiceModel\Types\ArticleCategoryEmbed')>>
   public function getCategory()

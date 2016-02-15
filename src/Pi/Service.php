@@ -339,11 +339,11 @@ abstract class Service extends EventSubscriber  implements
 
 	public function getSession($reload = false) : IAuthSession
 	{
-			$req = $this->request;
-			if(is_null($req)) {
-				return null;
-			}
-			return $req->getSession($reload);
+		$req = $this->request;
+		if(is_null($req)) {
+			throw new \Exception('Request is null');
+		}
+		return $req->getSession($reload);
 	}
 
   public function appConfig()

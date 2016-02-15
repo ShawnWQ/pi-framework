@@ -4,7 +4,7 @@ namespace SpotEvents\ServiceModel\Types;
 
 use Pi\Odm\Interfaces\IEntity;
 
-<<Collection('event-category')>>
+<<MultiTenant,Collection('event-category')>>
 class EventCategory implements IEntity {
 
   protected string $id;

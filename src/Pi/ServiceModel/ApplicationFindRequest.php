@@ -2,6 +2,6 @@
 
 namespace Pi\ServiceModel;
 
-class ApplicationFindRequest {
+class ApplicationFindRequest extends RequestQueryAbstract{
 	
 }

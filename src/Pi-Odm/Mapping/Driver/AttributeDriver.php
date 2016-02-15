@@ -10,6 +10,7 @@ use Pi\Odm\Events;
 use Pi\Odm\Interfaces\IMappingDriver;
 use Pi\Common\ClassUtils;
 use Pi\Common\Mapping\Driver\AbstractMappingDriver;
+use Pi\Host\HostProvider;
 
 /**
  * The AttributeDriver reads the metadata from hacklang attributes
@@ -81,14 +82,18 @@ class AttributeDriver extends AbstractMappingDriver implements IMappingDriver{
       $entity->setDiscriminator($value[0], $type);
     }
 
-    $multiT = false;
-    if($attrs->get('MultiTenant') !== null) {
+    $multiT = HostProvider::instance()->tryResolve('OdmConfiguration')->getMultiTenantMode();
+
+
+    if($multiT && $attr = $reflClass->getAttribute('MultiTenant') !== NULL) {
+
       $entity->setMultiTenant(true);
       $multiT = true;
 
       if($entity->getReflectionClass()->hasProperty('appId')) {
-        $appIdProp = $entity->getReflectionClass()->getProperty('appId');
+        //$appIdProp = $entity->getReflectionClass()->getProperty('appId');
         $entity->setMultiTenantField('appId');
+        
       }
     }
 

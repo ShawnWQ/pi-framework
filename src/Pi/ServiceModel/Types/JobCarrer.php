@@ -4,7 +4,7 @@ namespace Pi\ServiceModel\Types;
 
 use Pi\Odm\Interfaces\IEntity;
 
-<<Collection('JobCarrer')>>
+<<Collection('JobCarrer'),MultiTenant>>
 class JobCarrer implements IEntity {
 
 	protected \MongoId $id;

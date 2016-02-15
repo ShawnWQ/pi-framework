@@ -4,7 +4,14 @@ namespace Pi\Auth;
 
 use Pi\Auth\Interfaces\IAuthTokens;
 
-class AuthTokens implements IAuthTokens {
+class AuthTokens implements IAuthTokens, \JsonSerializable {
+
+	public function jsonSerialize()
+	{
+		$vars = get_object_vars($this);
+		$vars['userId'] = (string)$vars['userId'];
+		return $vars;
+	}
 
   protected string $provider;
 
@@ -22,51 +29,51 @@ class AuthTokens implements IAuthTokens {
 
   protected $state;
 
-  protected string $userName;
+  protected string $userName = '';
 
-  protected string $company;
+  protected string $company = '';
 
-  protected string $phoneNumber;
+  protected string $phoneNumber = '';
 
   protected \DateTime $birthDate;
 
-  protected string $address;
+  protected string $address = '';
 
-  protected string $address2;
+  protected string $address2 = '';
 
-  protected string $city;
+  protected string $city = '';
 
-  protected string $country;
+  protected string $country = '';
 
-  protected string $culture;
+  protected string $culture = '';
 
-  protected string $fullName;
+  protected string $fullName = '';
 
-  protected string $gender;
+  protected string $gender = '';
 
-  protected string $language;
+  protected string $language = '';
 
-  protected string $mailAddress;
+  protected string $mailAddress = '';
 
-  protected string $nickName;
+  protected string $nickName = '';
 
-  protected string $postalCode;
+  protected string $postalCode = '';
 
-  protected string $timeZone;
+  protected string $timeZone = '';
 
   protected array $items;
 
-  protected string $accessToken;
+  protected string $accessToken = '';
 
-  protected string $accessTokenSecret;
+  protected string $accessTokenSecret = '';
 
-  protected string $refreshToken;
+  protected string $refreshToken = '';
 
   protected ?\Datetime $refreshTokenExpire;
 
-  protected string $requestToken;
+  protected string $requestToken = '';
 
-  protected string $requestTokenSecret;
+  protected string $requestTokenSecret = '';
 
 
 
@@ -79,6 +86,11 @@ class AuthTokens implements IAuthTokens {
   public function setItems(array $value) : void
   {
     $this->items = $value;
+  }
+
+  public function addItem(string $key, string $value) : void
+  {
+  	$this->items[$key] = $value;
   }
 
   <<String>>
@@ -408,15 +420,4 @@ class AuthTokens implements IAuthTokens {
   {
     $this->requestTokenSecret = $value;
   }
-
-  public function getItems() : array
-  {
-    return $this->items;
-  }
-
-  public function setItems(array $values) : void
-  {
-    $this->items = $values;
-  }
-
 }

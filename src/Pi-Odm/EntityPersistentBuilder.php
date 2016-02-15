@@ -3,7 +3,8 @@
 namespace Pi\Odm;
 
 
-use Pi\Common\StringUtils;
+use Pi\Common\StringUtils,
+    Pi\Host\HostProvider;
 /**
  * Builds the queries used by EntityPersistent to update and insert documents then a DocumentMananger is flushed
  */
@@ -48,9 +49,9 @@ class EntityPersistentBuilder {
 
        if($mapping->isArray() && is_array($value) && count($value) === 0)
        {
-          $insertions[$mapping->getName()] =  null;
+          $insertions[$mapping->getName()] =  array();
        } else if($mapping->isEmbedMany() && count($value) === 0) {
-
+        $insertions[$mapping->getName()] =  array();
        } else if($mapping->getName() == $class->getId() && $mapping->getName() === 'id') {
           $insertions['_id'] = $value;
        }
@@ -59,7 +60,7 @@ class EntityPersistentBuilder {
       }
     }
 
-    if($class->getMultiTenantMode()){
+    if($class->getMultiTenantMode() && HostProvider::instance()->tryResolve('OdmConfiguration')->getMultiTenantMode()){
       $reflection = new \ReflectionProperty(get_class($document), $class->getMultiTenantField());
       $reflection->setAccessible(true);
       $insertions['appId'] = $reflection->getValue($document);
@@ -101,7 +102,7 @@ class EntityPersistentBuilder {
         $prop->setAccessible(true);
         $value = $prop->getValue($document);
       }
-     if($mapping->isNotNull() && $mapping->isArray() && (!is_array($value) || count($value) === 0))
+     if($mapping->isArray() && (!is_array($value) || count($value) === 0))
      {
         $insertions[$mapping->getName()] = array();
 
@@ -128,11 +129,17 @@ class EntityPersistentBuilder {
           $insertions[$mapping->getName()] = $value;
       }
     }
+     if(HostProvider::instance()->tryResolve('OdmConfiguration')->getMultiTenantMode()) {
+          
+        $insertions['appId'] = HostProvider::tryResolve('IRequest')->appId();
+        
+      }
+    /*
     if($class->getMultiTenantMode()){
       $reflection = new \ReflectionProperty(get_class($document), $class->getMultiTenantField());
       $reflection->setAccessible(true);
       $insertions['appId'] = $reflection->getValue($document);
-    }
+    }*/
 
     if(!StringUtils::isNullOrEmptyString($class->getDiscriminatorField()) && !array_key_exists($class->getDiscriminatorField(), $insertions)) {
       $insertions[$class->getDiscriminatorField()] = get_class($document);

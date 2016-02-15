@@ -30,9 +30,23 @@
           "SpotEvents\\": "src/SpotEvents",
           "MultiTenant\\": "src/MultiTenant",
           "Warez\\": "src/Warez",
-          "Mocks\\": "tests/Mocks",
           "Collaboration\\": "src/Collaboration",
-          "MarkdownView\\": "src/MarkdownView"
+          "MarkdownView\\": "src/MarkdownView",
+          "Mocks\\": "tests/Mocks",
+          "Test\\Common\\": "tests/Pi-Common",
+          "Test\\Client\\": "tests/Pi-Client",
+          "Test\\Interfaces\\": "tests/Pi-Interfaces",
+          "Test\\Odm\\": "tests/Pi-Odm",
+          "Test\\Uml\\": "tests/Pi-Uml",
+          "Test\\Validation\\": "tests/Pi-Validation",
+          "Test\\Redis\\" : "tests/Pi-Redis",
+          "Test\\MessagePack\\" : "tests/Pi-MessagePack",
+          "Test\\AmqbRabbit\\" : "tests/Pi-AmqbRabbit",
+          "Test\\Realtime\\" : "tests/Pi-Realtime",
+          "Test\\VirtualPath\\" : "tests/Pi-VirtualPath",
+          "Test\\Sitemap\\" : "tests/Pi-Sitemap",
+          "Test\\Queue\\" : "tests/Pi-Queue",
+          "Test\\": "tests/Pi"
         },
         "files": [
           "lib/simple_html_dom.php"

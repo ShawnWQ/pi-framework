@@ -79,6 +79,14 @@ class ServiceController
 
   protected $servicesMeta = Map{};
 
+  /**
+   * methods names, temp solution
+   * @var [type]
+   */
+  protected $requests = Set{};
+
+  protected $operations = Map{};
+
   public function __construct(&$appHost)
   {
       $this->appHost = $appHost;
@@ -396,22 +404,23 @@ class ServiceController
 
   public function getService($requestType) : ?ServiceExecuteFn
   {
-
     return $this->servicesExecutors[$requestType];
+  }
+
+  public function getServiceInstance(string $serviceName)
+  {
+    $req = $this->appHost->container->get('IRequest');
+    $service = $this->appHost->container->get($serviceName);
+    $service->setRequest($req);
+    $service->setResolver(HostProvider::instance()->container());
+    HostProvider::instance()->container()->autoWireService($service);
+    return $service;
   }
 
   protected function handleServiceNotRegistered($requestType)
   {
     throw new \Exception(sprintf('The request type %s isnt registered by any Service.', $requestType));
   }
-
-  /**
-   * methods names, temp solution
-   * @var [type]
-   */
-  protected $requests = Set{};
-
-  protected $operations = Map{};
 
   public function getRequestTypeByOperation($operationName)
   {

@@ -78,7 +78,7 @@ interface IPiHost {
 
   public function config() : IHostConfig;
 
-  public function appSettings() : IAppSettings;
+  public function appSettings() : AppSettingsInterface;
 
   public function registerPlugin(IPlugin $plugin);
 

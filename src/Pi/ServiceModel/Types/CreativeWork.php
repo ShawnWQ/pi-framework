@@ -5,6 +5,7 @@ namespace Pi\ServiceModel\Types;
 /**
  * The most generic kind of creative work, including books, movies, photographs, software programs, etc.
  */
+<<MultiTenant>>
 class CreativeWork extends Thing {
   /**
 	 * The party holding the legal copyright to the CreativeWork.

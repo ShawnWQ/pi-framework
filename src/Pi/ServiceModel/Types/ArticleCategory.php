@@ -4,7 +4,7 @@ namespace Pi\ServiceModel\Types;
 
 use Pi\Odm\Interfaces\IEntity;
 
-<<Collection('article-category')>>
+<<Collection('article-category'),MultiTenant>>
 class ArticleCategory implements IEntity {
 
   protected string $id;
@@ -16,6 +16,18 @@ class ArticleCategory implements IEntity {
   protected ?string $path;
 
   protected string $uri;
+
+  protected $appId;
+
+  public function getAppId()
+  {
+    return $this->appId;
+  }
+
+  public function setAppId($id)
+  {
+    $this->appId = $id;
+  }
 
   <<Id>>
   public function id($value = null)

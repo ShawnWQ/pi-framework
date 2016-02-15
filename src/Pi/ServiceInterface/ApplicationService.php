@@ -36,7 +36,8 @@ class ApplicationService extends Service {
 	<<Request,Route('/asdnfxvc213123nedzkjcxnvkxcvcxv'),Method('GET')>>
 	public function defaultAccount(BasicRegisterRequest $req)
 	{
-		if(!$this->cache()->get($this->getCacheAppBootKey($this->request()->appId())) !== true) {
+		$appId = $this->request()->appId() ?: new \MongoId();
+		if(!$this->cache()->get($this->getCacheAppBootKey($appId)) !== true) {
 			$req = new BasicRegisterRequest();
 			$req->setFirstName('Guilherme');
 			$req->setLastName('Cardoso');
@@ -47,7 +48,7 @@ class ApplicationService extends Service {
 		}
 	}
 
-	protected function getCacheAppBootKey(\MongoId $appI) : string
+	protected function getCacheAppBootKey(\MongoId $appId) : string
 	{
 		return sprintf('app::%s::boot', (string)$appId);
 	}
@@ -110,6 +111,8 @@ class ApplicationService extends Service {
 
 		$results = $this->appRepo->queryBuilder('Pi\ServiceModel\ApplicationDto')
 			->find()
+			->limit($request->getLimit())
+			->skip($request->getSkip())
 			->hydrate()
 			->getQuery()
 			->execute();

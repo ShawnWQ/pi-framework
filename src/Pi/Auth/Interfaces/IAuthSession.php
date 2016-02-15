@@ -13,11 +13,11 @@ interface IAuthSession {
 
   public function setId(string $id) : void;
 
-  public function getUserId() : \MongoId;
+  public function getUserId() : ?\MongoId;
 
   public function setUserId(\MongoId $id) : void;
 
-  public function getUserAuthName() : string;
+  public function getUserAuthName() : ?string;
 
   public function setUserAuthName(string $value)  : void;
 

@@ -18,6 +18,8 @@ class BasicRegisterRequest {
 
 	protected string $city;
 
+	protected ?string $username;
+
 	<<Id>>
 	public function id($value = null)
 	{
@@ -69,5 +71,16 @@ class BasicRegisterRequest {
 	public function setCity(string $value) : void
 	{
 		$this->city = $value;
+	}
+
+	<<String>>
+	public function getUsername() : ?string
+	{
+		return $this->username;
+	}
+
+	public function setUsername(string $value)
+	{
+		$this->username = $value;
 	}
 }

@@ -236,6 +236,11 @@ class HostConfig
     $this->loggerFolder = $value;
   }
 
+  public function getAppId()
+  {
+    return $this->appId;
+  }
+
   public function appId($value = null)
   {
     if($value === null) return $this->appId;

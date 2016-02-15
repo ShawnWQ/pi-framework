@@ -63,6 +63,7 @@ class RegisterService extends Service {
 		$this->eventManager()->dispatch('Pi\ServiceInterface\Events\NewUserRegisterArgs', $event);
 		$response = new BasicRegisterResponse();
 		$response->setId($account->id());
+
 		return $response;
 	}
 
@@ -83,7 +84,9 @@ class RegisterService extends Service {
 		$entity->lastName($dto->lastName());
 		$entity->email($dto->email());
 		$hash = $this->cryptor->encrypt($dto->password());
-		$entity->password($hash);
+		//$entity->password($hash);
+		$entity->setPasswordHash($hash);
+		$entity->setUsername($dto->email());
 		$entity->displayName($dto->displayName());
 		$entity->setCulture('pt-pt');
 		$entity->setCountry('Portugal');

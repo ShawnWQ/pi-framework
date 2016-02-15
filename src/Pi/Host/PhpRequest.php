@@ -8,6 +8,9 @@ use Pi\Interfaces\IResponse;
 use Pi\Interfaces\IContainer;
 use Pi\HttpMethod;
 
+use Pi\SessionPlugin,
+    Pi\Auth\Interfaces\IAuthSession;
+
 class PhpRequest extends BasicRequest implements IHttpRequest {
 
   protected $httpMethod;
@@ -40,6 +43,19 @@ class PhpRequest extends BasicRequest implements IHttpRequest {
   public function __construct()
   {
     parent::__construct();
+    if (!function_exists('apache_request_headers')) { 
+     function apache_request_headers() { 
+          foreach($_SERVER as $key=>$value) { 
+              if (substr($key,0,5)=="HTTP_") { 
+                  $key=str_replace(" ","-",ucwords(strtolower(str_replace("_"," ",substr($key,5))))); 
+                  $out[$key]=$value; 
+              }else{ 
+                  $out[$key]=$value; 
+      } 
+          } 
+          return $out; 
+      } 
+    } 
     $this->reset();
 
     // The HTTP request method
@@ -95,7 +111,6 @@ class PhpRequest extends BasicRequest implements IHttpRequest {
       foreach($route->params() as $k => $v)
       $this->parameters->add(Pair { $k, $v});
     }
-
   }
 
   public function httpOrigin() : ?string
@@ -188,8 +203,8 @@ class PhpRequest extends BasicRequest implements IHttpRequest {
   protected function reset()
   {
 
-    //$headers = apache_request_headers();
-    $headers = $_REQUEST;
+    $headers = apache_request_headers();
+    //$headers = $_REQUEST;
     $this->headers = Map {};
     foreach($headers as $key => $value) {
       $this->headers[$key] = $value;
@@ -229,5 +244,26 @@ class PhpRequest extends BasicRequest implements IHttpRequest {
   public function xRealIp() : ?string
   {
     return $this->xRealIp;
+  }
+
+  public function saveSession(IAuthSession $session, ?\DateTime $expiresIn = null)
+  {
+    $this->onSaveSession($this, $session, $expiresIn);
+  }
+
+  public function onSaveSession(IRequest $httpReq, IAuthSession $session, ?\DateTime $expiresIn = null)
+  {
+    if($httpReq == null) return;
+
+    $sessionId = $this->getSessionId();
+    $sessionKey = SessionPlugin::getSessionKey($sessionId);
+    $session = (is_null($sessionKey) ? $cache->get($sessionKey) : null)
+        ? : SessionPlugin::createNewSession($this, $sessionId);
+    
+    $session->setLastModified(new \DateTime('now'));
+    $cache = $this->tryResolve('ICacheProvider');
+
+    $cache->set($sessionId, $session);
+    $this->items[SessionPlugin::RequestItemsSessionKey] = $session;
   }
 }
