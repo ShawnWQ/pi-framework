@@ -3,7 +3,7 @@
 namespace Pi\Auth;
 
 use Facebook\Facebook;
-use Pi\Interfaces\IPreInitPlugin;
+use Pi\Interfaces\IPostInitPlugin;
 use Pi\Interfaces\IPlugin;
 use Pi\Interfaces\IPiHost;
 use Pi\Interfaces\IContainer;
@@ -13,19 +13,20 @@ use Pi\Auth\MongoDb\MongoDbAuthRepository;
 use Pi\Auth\MongoDbAuthUserRepository,
 	Pi\Auth\MongoDb\MongoDbAuthDetailsRepository;
 
-class AuthPlugin implements IPreInitPlugin, IPlugin {
+class AuthPlugin implements IPostInitPlugin, IPlugin {
 
 	protected $session;
 
-	public function __construct(protected ?AuthConfig $config = null)
-	{
+	protected Set<IAuthEvents> $authEvents;
+
+	public function __construct(protected ?AuthConfig $config = null) {
 		if($this->config === null) {
 			$this->config = new AuthConfig();
 		}
+		$this->authEvents = Set{};
 	}
 
-	public function configure(IPiHost $appHost) : void
-	{
+	public function register(IPiHost $appHost) : void {
 		
 		$appHost->container->register('Pi\Auth\Interfaces\ICryptorProvider', function(IContainer $container) {
 			return new Md5CryptorProvider();
@@ -79,5 +80,16 @@ class AuthPlugin implements IPreInitPlugin, IPlugin {
 		$appHost->container()->registerRepository(new UserAuth(), $repo);
 
 		//$appHost->container()->registerRepository(new UserEntity(), new UserRepository());
+	}
+
+	public function afterPluginsLoaded(IPiHost $appHost) {
+		$events = $appHost->tryResolve('IAuthEvents');
+		if($events == null) {
+			$events = $this->authEvents->count() == 0
+				? new AuthEvents() :
+					$this->authEvents->count() == 1 
+					? $this->authEvents->firstValue()
+					: new AuthEvents();
+		}
 	}
 }

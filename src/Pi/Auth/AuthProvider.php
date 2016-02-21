@@ -1,18 +1,23 @@
 <?hh
 
 namespace Pi\Auth;
-use Pi\Service;
-use Pi\EventManager;
-use Pi\Interfaces\AppSettingsInterface;
-use Pi\Interfaces\IService;
-use Pi\Interfaces\IRequest;
-use Pi\Interfaces\IResponse,
-    Pi\Interfaces\IHttpResponse;
-use Pi\Auth\Interfaces\IAuthSession;
-use Pi\Auth\Interfaces\IAuthTokens;
-use Pi\Auth\Interfaces\IUserAuth;
-use Pi\Auth\Interfaces\IUserAuthRepository;
-use Pi\Auth\Authenticate;
+
+use Pi\Service,
+    Pi\EventManager,
+    Pi\Interfaces\AppSettingsInterface,
+    Pi\Interfaces\IService,
+    Pi\Interfaces\IRequest,
+    Pi\Interfaces\IResponse,
+    Pi\Interfaces\IHttpResponse,
+    Pi\Auth\Interfaces\IAuthSession,
+    Pi\Auth\Interfaces\IAuthTokens,
+    Pi\Auth\Interfaces\IUserAuth,
+    Pi\Auth\Interfaces\IUserAuthRepository,
+    Pi\Auth\Interfaces\IAuthEvents,
+    Pi\Auth\Authenticate;
+
+
+
 
 abstract class AuthProvider {
 
@@ -35,6 +40,8 @@ abstract class AuthProvider {
   protected $callbackUrl;
 
   protected $redirectUrl;
+
+  protected ?IAuthEvents $authEvents;
   
   public function __construct(AppSettingsInterface $appSettings, string $authRealm, string $oAuthProvider)
   {
@@ -46,10 +53,19 @@ abstract class AuthProvider {
     }
   }
 
-
   public abstract function authenticate(IService $authService, IAuthSession $session, Authenticate $request) : ?IUserAuth;
 
   public abstract function isAuthorized(IAuthSession $session, IAuthTokens $tokens, Authenticate $request = null) : bool;
+
+  public function authEvents() : IAuthEvents
+  {
+    
+    if(is_null($this->authEvents)) {
+      $this->authEvents =  HostProvider::tryResolve('IAuthEvents') ?: new AuthEvents();
+    }
+
+    return $this->authEvents;
+  } 
 
   public function loadAuthInfo(AuthUserSession $userSession, IAuthTokens $tokens, Map<string,string> $authInfo)
   {

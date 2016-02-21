@@ -47,7 +47,7 @@ use SpotEvents\ServiceInterface\EventLikesProvider;
 
 class SpotEventsPlugin  implements IPlugin {
 
-    public function configure(IPiHost $appHost) : void
+    public function register(IPiHost $appHost) : void
     {
         $container = $appHost->container();
         $appHost->registerService(new EventsService());

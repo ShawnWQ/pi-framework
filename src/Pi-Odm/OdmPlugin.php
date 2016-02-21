@@ -20,7 +20,7 @@ use Pi\Odm\OdmConfiguration;
 use Pi\Odm\Repository\RepositoryFactory;
 use Pi\Common\ClassUtils;
 
-class OdmPlugin implements IPlugin, IPreInitPlugin {
+class OdmPlugin implements IPlugin {
 
   protected $configuration;
 
@@ -44,7 +44,7 @@ class OdmPlugin implements IPlugin, IPreInitPlugin {
     });
   }
 
-  public function configure(IPiHost $appHost) : void
+  public function register(IPiHost $appHost) : void
   {
 
     $config = $this->configuration;

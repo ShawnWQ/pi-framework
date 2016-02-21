@@ -372,11 +372,21 @@ class EventsService extends Service {
         
         $query = $this->eventRepository->queryBuilder()
             ->update()
-            ->field('_id')->eq($request->id())
-        
+            ->field('_id')->eq($request->id())        
             ->field('dateModified')->set(new \DateTime('now'))
-            ->getQuery()
-            ->assertExecute();
+            ->field('title')->set($request->title())
+            ->field('excerpt')->set($request->excerpt())
+            ->field('content')->set($request->content());
+
+        if(!is_null($request->doorTime())) {
+            $query->field('doorTime')->set($request->doorTime());
+        }
+        if(!is_null($request->endDate())) {
+            $query->field('endDate')->set($request->endDate());
+        }
+        
+        $query->getQuery()
+            ->execute();
 
         $response = new CreateEventResponse();
         //$response->event($dto);

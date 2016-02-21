@@ -34,6 +34,8 @@ class RestHandler extends AbstractPiHandler {
 			$body = json_decode(file_get_contents('php://input'), true);
 		}
 
+		
+
 		foreach($methods as $method)
 	    {
             $n = ClassUtils::getMethodName($method->name);

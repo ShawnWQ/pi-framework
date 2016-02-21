@@ -170,6 +170,7 @@ abstract class PiHost implements IPiHost{
     if(!Extensions::testingMode()) {
       ob_start();  
     }
+
     date_default_timezone_set('Europe/Lisbon');
 
     if($this->config === null){
@@ -1063,7 +1064,7 @@ abstract class PiHost implements IPiHost{
       if($plugin instanceof IPlugin){
 
         try {
-          $plugin->configure($this);
+          $plugin->register($this);
         }
         catch (\Exception $ex){
           $this->onStartupException($ex);
@@ -1099,7 +1100,7 @@ abstract class PiHost implements IPiHost{
   {
     foreach($this->plugins as $plugin) {
       try {
-        $plugin->configure($this);
+        $plugin->register($this);
         $this->pluginsLoaded->add(get_class($plugin));
       }
       catch(\Exception $ex) {

@@ -56,7 +56,7 @@ use Pi\Host\HostProvider;
      return $session;
    }
 
-   public function configure(IPiHost $host) : void
+   public function register(IPiHost $host) : void
  	{
      $host->container()->register('ISessionClient', function(IContainer $ioc) {
        $factory = new SessionFactory($ioc->get('ICachedClient'));

@@ -7,7 +7,7 @@ use Pi\Interfaces\IPiHost;
 
 class PiUmlPlugin implements IPlugin {
 	
-	public function configure(IPiHost $host)	
+	public function register(IPiHost $host)	
 	{
 		$host->registerService(new UmlGeneratorService());
 	}

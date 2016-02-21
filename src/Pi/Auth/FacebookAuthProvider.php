@@ -19,7 +19,6 @@ class FacebookAuthProvider extends OAuthProvider implements IOAuthProvider {
 
   protected $fbClient;
 
-
   public function __construct(AppSettingsInterface $appSettings, string $authRealm, string $appId, string $appSecret, ?string $accessToken = null)
   {
     $this->provider = self::name;

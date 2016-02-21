@@ -628,18 +628,40 @@ class UnitWork
   {
 
     $oid = md5(serialize($document));
-
-
-
     $this->assertCanScheduleForInsert($oid);
-
     $this->documentInsertions[$oid] = $document;
 
     if(isset($this->documentIdentifiers[$oid])){
 
       $this->addToIdentityMap($document);
-    } else {
+    }
+  }
 
+  public function isScheduleForUpdate($document) : bool
+  {
+    return isset($this->documentUpdates(md5(serialize($document))));
+  }
+
+  protected function assertCanScheduleForUpdate($oid)
+  {
+    if(!isset($this->documentIdentifiers[$oid])) {
+      throw new \InvalidArgumentException("Document has no identity, not registered");
+    }
+
+    if(isset($this->documentDeletions[$oid])) {
+      throw new \InvalidArgumentException("Document is removed.");
+    }
+  }
+
+  public function scheduleForUpdate($document)
+  {
+    $oid = md5(serialize($document));
+    $this->assertCanScheduleForUpdate($oid);
+
+    if(!isset($this->documentUpdates[$oid])
+      && !isset($this->documentInsertions[$oid])
+      && !isset($this->documentUpserts[$oid])) {
+      $this->documentUpdates[$oid] = $document;
     }
   }
 

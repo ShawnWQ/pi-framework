@@ -28,6 +28,31 @@ class UnitWorkTest extends \PHPUnit_Framework_TestCase{
     $this->assertTrue($this->unitWork->isDocumentScheduled($entity));
   }
 
+  public function testDocumentUpdatedCantBeScheduleForInsert()
+  {
+    $class = $this->mockClass();
+    $entity = new MockEntity();
+    $this->unitWork->scheduleForUpdate($entity);
+    $throwed = false;
+    try {
+      $this->unitWork->scheduleForInsert($class, $entity);
+    }
+    catch(\ArgumentException $ex) {
+      $throwed = true;
+    }
+    $this->assertTrue($throwed);
+  }
+
+  public function testDocumentRemovedCantBeScheduleForInsert()
+  {
+    
+  }
+
+  public function testDocumentAlreadyRegisteredCantBeScheduleForInsert()
+  {
+    
+  }
+
   public function testInsertionsArePreparedWithMultiTenant()
   {
     $host = new MultiTenantHostMock();

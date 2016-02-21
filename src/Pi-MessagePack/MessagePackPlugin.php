@@ -10,7 +10,7 @@ use Pi\Interfaces\IHasGlobalAssertion;
 
 class MessagePackPlugin implements IPlugin, IHasGlobalAssertion {
 
-	public function configure(IPiHost $appHost)
+	public function register(IPiHost $appHost)
 	{
 		$this->assertGlobalEnvironment();
 

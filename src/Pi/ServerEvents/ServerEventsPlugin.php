@@ -20,7 +20,7 @@ class ServerEventsPlugin implements IPlugin {
       $config->notifyChannelOfSubscriptions(true);
     }
   }
-  public function configure(IPiHost $host)
+  public function register(IPiHost $host)
   {
     $host->registerService(new ServerEventsSubscribersService());
     $host->registerService(new ServerEventsUnRegisterService());

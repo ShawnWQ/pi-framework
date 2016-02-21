@@ -14,7 +14,7 @@ use Warez\ServiceModel\Types\Movie;
 
 class WarezPlugin implements IPlugin, IHasGlobalAssertion {
 
-	public function configure(IPiHost $appHost)
+	public function register(IPiHost $appHost)
 	{
 		$this->assertGlobalEnvironment();
 

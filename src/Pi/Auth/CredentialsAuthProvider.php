@@ -98,12 +98,10 @@ class CredentialsAuthProvider extends AuthProvider {
       return null;
     }
     $session = $authService->getSession();
-    if($user != null) {
-      // populate session, set is authenticated, id,
-      $session->setUserId($user->getId());
-      $session->setProviderOAuthAccess($authRepo->getUserAuthDetails($session->getUserId()));
-      $session->setIsAuthenticated(true);
-    }
+    $session->setUserId($user->getId());
+    $session->setProviderOAuthAccess($authRepo->getUserAuthDetails($session->getUserId()));
+    $session->setIsAuthenticated(true);
+    
     // hrow new AuthenticationException("This account has been locked");
     // set the session with the res info
     return $user;
@@ -123,9 +121,9 @@ class CredentialsAuthProvider extends AuthProvider {
                 $tokens->addItem($key, $value);
               }
             }
-            $user = $authRepo->createOrMergeAuthSession($session, $tokens);
+            $userDetails = $authRepo->createOrMergeAuthSession($session, $tokens);
             //$session->setUserId($user->getId());
-            $session->setUserId($user->getUserId());
+            $session->setUserId($userDetails->getUserId());
           }
 
           foreach ($session->getProviderOAuthAccess() as $oauthToken) {

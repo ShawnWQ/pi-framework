@@ -8,7 +8,7 @@ use Pi\Interfaces\IHasGlobalAssertion;
 
 class SitemapPlugin implements IPlugin {
 
-	public function configure(IPiHost $host) : void
+	public function register(IPiHost $host) : void
 	{
 
 		

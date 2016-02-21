@@ -18,7 +18,7 @@ use Pi\Cache\RedisCacheProvider;
 class CollaborationPlugin implements IPlugin {
 
 
-	public function configure(IPiHost $host) : void
+	public function register(IPiHost $host) : void
 	{
 
 		$container = $host->container();

@@ -2,16 +2,16 @@
 
 namespace Pi\Validation;
 use Pi\Interfaces\IPiHost;
-use Pi\Interfaces\IPreInitPlugin;
+use Pi\Interfaces\IPlugin;
 use Pi\Interfaces\IRequest;
 use Pi\Interfaces\IResponse;
 use Pi\Filters\RequestFilter;
 use Pi\Host\HostProvider;
 
 
-class ValidationPlugin implements IPreInitPlugin {
+class ValidationPlugin implements IPlugin {
 
-	public function configure(IPiHost $appHost) : void
+	public function register(IPiHost $appHost) : void
 	{
 		$appHost->addRequestFiltersClasses(new ValidationAssertionFilter());
 	}

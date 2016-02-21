@@ -37,3 +37,8 @@ Provides authentication with Credentials Provider
 The basic authentication with username/email and password.
 
 To authenticate with credentials, the user must register a new account with RegisterService
+
+
+## References
+
+ * http://api.drupalhelp.net/api/oauth/lib--OAuth.php/function/OAuthUtil%3A%3Aurlencode_rfc3986/7.3

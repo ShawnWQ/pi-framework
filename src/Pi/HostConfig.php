@@ -25,8 +25,6 @@ class HostConfig
 
   protected $appId;
 
-  
-
   protected $webHostPhysicalPath;
 
   protected $protocol = 'http';
@@ -58,6 +56,28 @@ class HostConfig
   protected ?string $smtpSsl;
 
   protected string $appName;
+
+  protected ?string $oauthFacebookRedirectUrl;
+
+  protected ?string $oauthFacebookCallbackUrl;
+
+  protected ?string $oauthFacebookConsumerKey;
+
+  protected ?string $oauthFacebookConsumerSecret;
+
+  protected ?string $oauthFacebookAppId;
+
+  protected ?string $oauthFacebookAppSecret;
+
+  protected ?string $oauthFacebookPermissions;
+
+  protected ?string $oauthFacebookFields;
+
+  protected ?string $oauthFacebookTokenUrl;
+
+  protected ?string $oauthFacebookAuthorizeUrl;
+
+  protected ?string $oauthFacebookAccessTokenUrl;
 
   public function __construct()
   {
@@ -261,5 +281,115 @@ class HostConfig
   public function setConfigsPath(string $path)
   {
     $this->configsPath = $path;
+  }
+
+  public function getOauthFacebookRedirectUrl() : ?string
+  {
+    return $this->oauthFacebookRedirectUrl;
+  }
+
+  public function setOauthFacebookRedirectUrl(string $value) : void
+  {
+    $this->oauthFacebookRedirectUrl = $value;
+  }
+
+  public function getOauthFacebookCallbackUrl() : ?string
+  {
+    return $this->oauthFacebookCallbackUrl;
+  }
+
+  public function setOauthFacebookCallbackUrl(string $value) : void
+  {
+    $this->oauthFacebookCallbackUrl = $value;
+  }
+
+  public function getOauthFacebookConsumerKey() : ?string
+  {
+    return $this->oauthFacebookConsumerKey;
+  }
+
+  public function setOauthFacebookConsumerKey(string $value) : void
+  {
+    $this->oauthFacebookConsumerKey = $value;
+  }
+
+  public function getOauthFacebookConsumerSecret() : ?string
+  {
+    return $this->oauthFacebookConsumerSecret;
+  }
+
+  public function setOauthFacebookConsumerSecret(string $value) : void
+  {
+    $this->oauthFacebookConsumerSecret = $value;
+  }
+
+  public function getOauthFacebookAppId() : ?string
+  {
+    return $this->oauthFacebookAppId;
+  }
+
+  public function setOauthFacebookAppId(string $value) : void
+  {
+    $this->oauthFacebookAppId = $value;
+  }
+
+  public function getOauthFacebookAppSecret() : ?string
+  {
+    return $this->oauthFacebookAppSecret;
+  }
+
+  public function setOauthFacebookAppSecret(string $value) : void
+  {
+    $this->oauthFacebookAppSecret = $value;
+  }
+
+  public function getOauthFacebookPermissions() : ?string
+  {
+    return $this->oauthFacebookPermissions;
+  }
+
+  public function setOauthFacebookPermissions(string $value) : void
+  {
+    $this->oauthFacebookPermissions = $value;
+  }
+
+  public function getOauthFacebookFields() : ?string
+  {
+    return $this->oauthFacebookFields;
+  }
+
+  public function setOauthFacebookFields(string $value) : void
+  {
+    $this->oauthFacebookFields = $value;
+  }
+
+  public function getOauthFacebookTokenUrl() : ?string
+  {
+    return $this->oauthFacebookTokenUrl;
+  }
+
+  public function setOauthFacebookTokenUrl(string $value) : void
+  {
+    $this->oauthFacebookTokenUrl = $value;
+  }
+
+  public function getOauthFacebookAuthorizeUrl() : ?string
+  {
+    return $this->oauthFacebookTokenUrl;
+  }
+
+  public function setOauthFacebookAuthorizeUrl(string $value) : void
+  {
+    $this->oauthFacebookTokenUrl = $value;
+  }
+
+  public function getOauthFacebookAccessTokenUrl() : ?string
+  {
+    return $this->oauthFacebookAccessTokenUrl;
+  }
+
+  public function setOauthFacebookAccessTokenUrl(string $value) : void
+  {
+    $this->oauthFacebookAccessTokenUrl = $value;
   }
 }

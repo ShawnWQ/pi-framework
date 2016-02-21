@@ -15,7 +15,7 @@ class FileSystemPlugin implements IPlugin {
     }
   }
 
-  public function configure(IPiHost $host) : void
+  public function register(IPiHost $host) : void
   {
     $config = $this->config;
     $host->container()->register('FileSystemConfiguration', function() use($config){

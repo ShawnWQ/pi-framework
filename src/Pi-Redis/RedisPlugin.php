@@ -3,6 +3,7 @@
 namespace Pi\Redis;
 
 use Pi\AppSettings,
+	Pi\Host\HostProvider,
 	Pi\Interfaces\IPlugin,
 	Pi\Interfaces\IPreInitPlugin,
 	Pi\Interfaces\IPiHost,
@@ -14,9 +15,9 @@ use Pi\AppSettings,
 
 
 
-class RedisPlugin implements IPlugin, IPreInitPlugin {
+class RedisPlugin implements IPlugin {
 
-	public function configure(IPiHost $host) : void
+	public function register(IPiHost $host) : void
 	{
 		$host->container()->register('IRedisFactory', function(IContainer $ioc){
 			return new RedisFactory();
@@ -46,7 +47,8 @@ class RedisPlugin implements IPlugin, IPreInitPlugin {
 
 		$host->container()->register('AppSettingsInterface', function(IContainer $ioc) {
 	      $provider = $ioc->get('AppSettingsProviderInterface');
-	      return new AppSettings($provider);
+	      
+	      return new AppSettings($provider, HostProvider::instance()->config());
 	    });
 
 	}

@@ -2,6 +2,9 @@
 
 namespace Pi\Interfaces;
 
+/**
+ * Custom logic after plugins are registered
+ */
 interface IPostInitPlugin {
-	public function configure(IPiHost $appHost) : void;
+	public function afterPluginsLoaded(IPiHost $appHost) : void;
 }

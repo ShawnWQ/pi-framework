@@ -86,9 +86,9 @@ use Pi\Interfaces\IPlugin,
     Pi\Queue\RedisPiQueue;
 
 
-class PiPlugins  implements IPlugin, IPreInitPlugin {
+class PiPlugins  implements IPlugin {
 
-    public function configure(IPiHost $appHost) : void {
+    public function register(IPiHost $appHost) : void {
         $container = $appHost->container();
         $config = $appHost->config();
 
