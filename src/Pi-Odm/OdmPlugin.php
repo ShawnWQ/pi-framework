@@ -24,8 +24,7 @@ class OdmPlugin implements IPlugin {
 
   protected $configuration;
 
-  public function __construct(?OdmConfiguration $configuration = null)
-  {
+  public function __construct(?OdmConfiguration $configuration = null) {
     if($configuration === null){
       $this->configuration = new OdmConfiguration();
     } else {
@@ -44,8 +43,7 @@ class OdmPlugin implements IPlugin {
     });
   }
 
-  public function register(IPiHost $appHost) : void
-  {
+  public function register(IPiHost $appHost) : void {
 
     $config = $this->configuration;
     $hostConfig = $appHost->config();

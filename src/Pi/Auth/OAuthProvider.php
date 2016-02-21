@@ -78,4 +78,8 @@ abstract class OAuthProvider extends AuthProvider  {
 
     return $tokens;
   }
+
+  public function ladUserOAuthProvider(IAuthSession $authSession, IAuthTokens $tokens) {
+    
+  }
 }

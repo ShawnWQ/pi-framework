@@ -109,33 +109,35 @@ class CredentialsAuthProvider extends AuthProvider {
 
    public function onAuthenticated(IService $authService, IAuthSession $session, ?IAuthTokens $tokens, ?Map<string,string> $authInfo = null)
    {
-     $authRepo = $authService->tryResolve('Pi\Auth\Interfaces\IAuthRepository');
+      $authRepo = $authService->tryResolve('Pi\Auth\Interfaces\IAuthRepository');
+      $hasTokens = $tokens != null && $authInfo != null;
 
-     if($session instanceof AuthUserSession) {
+      if($hasTokens && $session instanceof AuthUserSession) {
+        $this->loadUserAuthInfo($session, $tokens, $authInfo);
 
-          //$this->loadAuthInfo($session, $tokens, $authInfo);
-          
-          if(!is_null($tokens)) {
-            if(!is_null($authInfo)) {
-              foreach ($authInfo as $key => $value) {
-                $tokens->addItem($key, $value);
-              }
-            }
-            $userDetails = $authRepo->createOrMergeAuthSession($session, $tokens);
-            //$session->setUserId($user->getId());
-            $session->setUserId($userDetails->getUserId());
+        foreach ($authInfo as $key => $value) {
+          $tokens->addItem($key, $value);
+        }
+
+        $userDetails = $authRepo->createOrMergeAuthSession($session, $tokens);
+        //$session->setUserId($user->getId());
+        $session->setUserId($userDetails->getUserId());
+
+        foreach ($session->getProviderOAuthAccess() as $oauthToken) {
+          $provider = AuthenticateService::getAuthProvider($oAuthToken->getProvider());
+          if($provider == null)
+            continue;
+
+          if($provider instanceof OAuthProvider) {
+            $provider->loadUserOAuthProvider($session, $oAuthToken);
           }
-
-          foreach ($session->getProviderOAuthAccess() as $oauthToken) {
-            $provider = AuthenticateService::getAuthProvider($oAuthToken->getProvider());
-            if($provider == null)
-              continue;
-          }
+        }     
     }
 
     $httpRes = $authService->request()->response();
     if($httpRes != null) {
       // add cookie HeadersUserAuthId, session.UserAuthId
+      $httpRes->cookies()->add(Pair{self::xPiUserAuthId, $session->getUserId()});
     }
 
     $session->setIsAuthenticated(true);

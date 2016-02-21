@@ -324,9 +324,8 @@ abstract class PiHost implements IPiHost{
         return new RedisPiQueue($logger, $redis);
     });
 
-    $this->configure($this->container);
     $this->configurePlugins();
-
+    $this->configure($this->container);
     $this->registerServices();
   }
 
@@ -350,13 +349,11 @@ abstract class PiHost implements IPiHost{
     }
   }
 
-  public function build() : void
-  {
+  public function build() : void {
 
   }
 
-  public function init() : void
-  {
+  public function init() : void {
 
     //$this->routes = new RoutesManager($this);
 

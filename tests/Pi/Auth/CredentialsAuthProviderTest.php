@@ -60,4 +60,19 @@ class CredentialsAuthProviderTest extends BaseAuthTest {
     $session = $this->authSvc->getSession();
     $this->assertTrue($session->isAuthenticated());
   }
+
+  public function testSetCookiesOnAuthenticated() {
+    $authRepo = $this->getAuthRepository();
+    $cryptor = $this->getCryptor();
+    $user = $this->createUserAuth();
+    $userDb = $authRepo->createUserAuth($user, $cryptor->encrypt('123'));
+    $session = $this->authSvc->getSession();
+
+    $request = new Authenticate();
+    $request->setUserName($user->getEmail());
+    $request->setPassword('123');
+    $session = $this->createAuthUserSession();
+    $this->provider->authenticate($this->authSvc, $session, $request);
+    $this->assertTrue($this->authSvc->request()->response()->cookies()->contains(CredentialsAuthProvider::xPiUserAuthId));
+  }
 }

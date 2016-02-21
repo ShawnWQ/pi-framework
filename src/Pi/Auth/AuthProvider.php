@@ -21,6 +21,8 @@ use Pi\Service,
 
 abstract class AuthProvider {
 
+  const xPiUserAuthId = 'Pi-UserId';
+
   public EventManager $eventManager;
 
   public MongoDbAuthUserRepository $repository;
@@ -67,7 +69,7 @@ abstract class AuthProvider {
     return $this->authEvents;
   } 
 
-  public function loadAuthInfo(AuthUserSession $userSession, IAuthTokens $tokens, Map<string,string> $authInfo)
+  public function loadUserAuthInfo(AuthUserSession $userSession, IAuthTokens $tokens, Map<string,string> $authInfo)
   {
 
   }
