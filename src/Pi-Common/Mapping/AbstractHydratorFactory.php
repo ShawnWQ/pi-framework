@@ -2,13 +2,13 @@
 
 namespace Pi\Common\Mapping;
 
-use Pi\Interfaces\HydratorFactoryInterce,
+use Pi\Interfaces\HydratorFactoryInterface,
     Pi\Interfaces\DtoMetadataInterface,
     Pi\Interfaces\HydratorInterface,
     Pi\Odm\Interfaces\IEntityMetaDataFactory;
 
 
-class AbstractHydratorFactory implements HydratorFactoryInterce {
+class AbstractHydratorFactory implements HydratorFactoryInterface {
 	
 	protected Map $hydrators;
 	

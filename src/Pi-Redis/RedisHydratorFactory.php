@@ -2,7 +2,7 @@
 
 namespace Pi\Redis;
 
-use Pi\Interfaces\HydratorFactoryInterce,
+use Pi\Interfaces\HydratorFactoryInterface,
     Pi\Common\Mapping\AbstractHydratorFactory;
 
 

@@ -2,7 +2,7 @@
 
 namespace Pi\Interfaces;
 
-interface HydratorFactoryInterce {
+interface HydratorFactoryInterface {
 
 	public function hydrate($document, $data);
 
