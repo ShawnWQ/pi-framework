@@ -17,9 +17,9 @@ class RedisHydratorFactoryTest extends \PHPUnit_Framework_TestCase {
 
   public function testCanGetHydratorForClassAndHydrate()
   {
-/*    $entity = new MockEntity();
+    $entity = new MockEntity();
     $container = OdmContainer::get();
-    $unitWork = $container->get('UnitWork');
+    /*
     
     $factory = new RedisHydratorFactory(
       $container->get('ClassMetadataFactory'),
