@@ -9,8 +9,7 @@ use Pi\Interfaces\IHasAppHost;
  * The principal request. Access to request information as verbe, rawInput, headers, cookies
  * MqRequests have a diferent Request
  */
-class HttpRequest
-  implements IHasAppHost{
+class HttpRequest implements IHasAppHost{
 
   protected $appHost;
 

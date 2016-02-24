@@ -62,6 +62,7 @@ use Pi\Auth\UserRepository,
     Pi\ServiceInterface\CorsPlugin,
     Pi\ServiceInterface\Validators\ApplicationCreateValidator,
     Warez\WarezPlugin,
+    SpotEvents\SpotEventsPlugin,
     Pi\Queue\RedisPiQueue,
     Pi\Queue\PiQueue;
 
@@ -225,10 +226,6 @@ abstract class PiHost implements IPiHost{
       $this->registerCacheProvider($cacheProvider);
     }
 
-    $driver = OperationDriver::create(array('../'), $this->event, $this->cacheProvider());
-
-    $this->metadata = new ServiceMetadata($this->restPaths, $this->event, $driver, $this->cacheProvider());
-
     $this->pluginsLoaded = Set{};
     $this->plugins =  array();
     $this->exceptionHandler = Map {};
@@ -243,7 +240,9 @@ abstract class PiHost implements IPiHost{
     }});
     $this->registerPlugin(new RedisPlugin());
     $this->registerPlugin(new WarezPlugin());
+    $this->registerPlugin(new SpotEventsPlugin());
     $this->registerPlugin(new ServerEventsPlugin());
+
     $this->registerPlugin(new SessionPlugin());
     $this->registerPlugin(new AuthPlugin());
     if(!$this->hasPluginType('Pi\Odm\OdmPlugin')) {
@@ -258,7 +257,7 @@ abstract class PiHost implements IPiHost{
     $this->routes = $rm;
     HostProvider::catchAllHandlers()->add(function(string $httpMethod, string $pathInfo, string $filePath) use($rm){
       $handler = new RestHandler();
-      //$httpResponse->headers()->add(Pair{'Content-Type', 'application/json'});
+      $httpResponse->headers()->add(Pair{'Content-Type', 'application/json'});
       //$handler->processRequestAsync($httpRequest, $httpResponse, $route->requestType());
       return $handler;
     });
@@ -276,7 +275,7 @@ abstract class PiHost implements IPiHost{
     });
 
     $this->registerValidator(new ApplicationCreateRequest(), new ApplicationCreateValidator());
-    $this->configurePreInitPlugins();
+    $this->runPreInitPluginConfiguration();
 
 
     $this->container()->registerRepository(new UserEntity(), new UserRepository());
@@ -290,6 +289,28 @@ abstract class PiHost implements IPiHost{
     $this->container()->register('Pi\Interfaces\ILogFactory', function(IContainer $ioc){
       return new DebugLogFactory();
     });
+
+    /**
+     * This implementation is used by all Mapping implementations that don't implement their own IMappingDriver instance
+     */
+    $this->container()->register('ClassMappingDriver', function(IContainer $container){
+      $instance = new ClassMappingDriver(array(), $container->get('EventManager'), $container->get('ICacheProvider'));
+      $instance->ioc($container);
+      return $instance;
+    });
+
+    /**
+     * This implementation is used by all Mapping implementations that don't implement their own IEntityMetadataFactory instance
+     */
+    $this->container()->register('ClassMetadataFactory', function(IContainer $container){
+      $instance = ClassMetadataFactory::create(array(), $container->get('EventManager'), $container->get('ClassMappingDriver'));
+      $instance->ioc($container);
+      return $instance;
+    });
+
+    $driver = OperationDriver::create(array('../'), $this->event, $this->cacheProvider());
+
+    $this->metadata = new ServiceMetadata($this->restPaths, $this->event, $driver, $this->cacheProvider());
 
     $factory = $this->container()->get('Pi\Interfaces\ILogFactory');
     $this->log = $factory->getLogger(get_class($this));
@@ -324,7 +345,7 @@ abstract class PiHost implements IPiHost{
         return new RedisPiQueue($logger, $redis);
     });
 
-    $this->configurePlugins();
+    $this->runPluginRegistration();
     $this->configure($this->container);
     $this->registerServices();
   }
@@ -358,7 +379,6 @@ abstract class PiHost implements IPiHost{
     //$this->routes = new RoutesManager($this);
 
     $this->container->register('IResponse', function(IContainer $ioc) {
-
       return new PhpResponse();
     });
 
@@ -1038,7 +1058,7 @@ abstract class PiHost implements IPiHost{
    * Plugins
    */
 
-  protected function configurePreInitPlugins()
+  protected function runPreInitPluginConfiguration()
   {
     foreach($this->plugins as $plugin) {
 
@@ -1053,7 +1073,7 @@ abstract class PiHost implements IPiHost{
       }
     }
   }
-  protected function configurePlugins()
+  protected function runPluginRegistration()
   {
    
     foreach($this->plugins as $plugin) {

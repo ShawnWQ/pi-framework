@@ -46,3 +46,4 @@ spl_autoload_register(function ($class_name) {
 	}
     return false;
 });
+date_default_timezone_set('Europe/Lisbon');

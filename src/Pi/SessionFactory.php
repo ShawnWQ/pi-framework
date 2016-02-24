@@ -1,18 +1,18 @@
 <?hh
 
 namespace Pi;
-use Pi\Cache\SessionCacheClient;
-use Pi\Interfaces\ICachedClient;
-use Pi\Interfaces\IRequest;
-use Pi\Interfaces\IResponse;
-use Pi\Interfaces\IClient;
-use Pi\Interfaces\ISessionFactory;
+
+use Pi\Interfaces\ICacheProvider,
+    Pi\Interfaces\IRequest,
+    Pi\Interfaces\IResponse,
+    Pi\Interfaces\IClient,
+    Pi\Interfaces\ISessionFactory;
 
 class SessionFactory implements ISessionFactory {
 
    private $client;
 
-   public function __construct(ICachedClient $client)
+   public function __construct(ICacheProvider $client)
    {
       $this->client = $client;
    }

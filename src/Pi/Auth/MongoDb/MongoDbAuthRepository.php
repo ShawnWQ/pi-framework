@@ -22,31 +22,30 @@ class MongoDbAuthRepository extends MongoRepository<TAuth> implements IUserAuthR
   public function tryAuthenticate(string $userNameOrEmail, string $password) : ?IUserAuth
   {
     $user = $this->getUserAuthByUserName($userNameOrEmail);
-    
     if(is_null($user)) {
       return null;
     }
     if(is_null($user->getPasswordHash())) throw new \Exception(print_r($user));
 
     if($user->getPasswordHash()!== $password) {
+      die('nulo');
       return null;
     }
 
     return $user;
   }
 
-  public function createUserAuth(IUserAuth $newUser, string $passwordHash) : IUserAuth
+  public function createUserAuth(IUserAuth $newUser, string $passwordHash) : IUserAuth 
   {
     $newUser->setPasswordHash($passwordHash);
     $newUser->setCreatedDate(new \DateTime('now'));
     $newUser->setModifiedDate($newUser->getCreatedDate());
 
     $this->insert($newUser);
-    
     return $newUser;
   }
 
-  public function createAuth(?IAuthSession $session) : IUserAuth
+  public function createAuth(?IAuthSession $session) : IUserAuth 
   {
     $newUser = new UserAuth();
     if($session == null)
@@ -58,7 +57,7 @@ class MongoDbAuthRepository extends MongoRepository<TAuth> implements IUserAuthR
     return $newUser;
   }
 
-  public function createOrMergeAuthSession(IAuthSession $session, IAuthTokens $tokens) : IUserAuthDetails
+  public function createOrMergeAuthSession(IAuthSession $session, IAuthTokens $tokens) : IUserAuthDetails 
   {
     $registered = true;
 

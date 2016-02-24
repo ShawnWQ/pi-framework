@@ -3,13 +3,15 @@
 namespace Pi\Auth;
 use Pi\Service,
     Pi\HttpError,
-    Pi\ErrorMessages;
+    Pi\ErrorMessages,
+    Pi\Interfaces\IRequest;
 use Pi\HttpResult;
 use Pi\Common\RandomString;
 use Pi\Auth\Interfaces\IAuthSession,
     Pi\Auth\Interfaces\IAuthRepository,
     Pi\Auth\Interfaces\IAuthUserRepository,
-    Pi\Auth\Interfaces\IAuthDetailsRepository;
+    Pi\Auth\Interfaces\IAuthDetailsRepository,
+    Pi\Interfaces\HasSessionIdInterface;
 use Pi\ServiceModel\AuthRedisKeys;
 use Pi\ServiceModel\AuthAuthorize;
 use Pi\ServiceModel\AuthAuthorizeResponse;
@@ -65,6 +67,19 @@ class AuthService extends Service {
     }
 
     return null;
+  }
+
+  static function populateFromRequestIfHasSessionId(IRequest $req, $dto) : bool {
+    if($dto instanceof HasSessionIdInterface) {
+      $req->setSessionId($dto->getSessionId());
+      return true;
+    }
+    return false;
+  }
+
+  static function hasAuthProviders() : bool
+  {
+    return self::$authProviders != null && count(self::$authProviders) > 0;
   }
 
   static function init(array $authProviders, $sessionFactory) : void
@@ -203,13 +218,14 @@ class AuthService extends Service {
       $oauthProvider = self::$defaultOAuthProvider;
       //throw HttpError::notFound('invalid provider format' . $provider);
 
-
     // if request.remember me add request.addsessionptions
     // check if the request provider is logout, then call the logout method on the $oauthProvider
     $session = $this->getSession();
     $response = $this->doAuthenticate($request, $provider, $session, $oauthProvider);
+    
     if($response == null)
-      throw new \Exception('Not authorized');
+      return HttpResult::createCustomError('InvalidLogin', _('InvalidLogin'));
+      
     $session = $this->getSession();
 
     // Generate a authentication token
@@ -247,6 +263,7 @@ class AuthService extends Service {
       //if($generateCookies) // request.generateNewSessionCookies
       $response = $oauthProvider->authenticate($this, $session, $request);
     } else {
+      die('no oauth');
       // if $generateCookies request->generateNewSessionCookies request->saveSession($session)
     }
     return $response;

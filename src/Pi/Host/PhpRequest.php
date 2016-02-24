@@ -38,26 +38,12 @@ class PhpRequest extends BasicRequest implements IHttpRequest {
 
   protected $httpOrigin;
 
-  protected $cookies;
+  
 
   public function __construct()
   {
+    $this->response = new PhpResponse();
     parent::__construct();
-    if (!function_exists('apache_request_headers')) { 
-     function apache_request_headers() { 
-          foreach($_SERVER as $key=>$value) { 
-              if (substr($key,0,5)=="HTTP_") { 
-                  $key=str_replace(" ","-",ucwords(strtolower(str_replace("_"," ",substr($key,5))))); 
-                  $out[$key]=$value; 
-              }else{ 
-                  $out[$key]=$value; 
-      } 
-          } 
-          return $out; 
-      } 
-    } 
-    $this->reset();
-
     // The HTTP request method
     $this->httpMethod = isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : 'GET';
     if(array_key_exists('HTTP_X_FORWARDED_FOR', $_SERVER) && $_SERVER['HTTP_X_FORWARDED_FOR'] != ''){
@@ -200,18 +186,7 @@ class PhpRequest extends BasicRequest implements IHttpRequest {
     return $this->rawInput;
   }
 
-  protected function reset()
-  {
-
-    $headers = apache_request_headers();
-    //$headers = $_REQUEST;
-    $this->headers = Map {};
-    foreach($headers as $key => $value) {
-      $this->headers[$key] = $value;
-    }
-
-    $this->cookies = array();
-  }
+ 
 
   public function addCookie(string $name, string $value, ?\DateTime $expiration = null, ?string $domain = null)
   {

@@ -3,13 +3,13 @@
 namespace Pi;
 
 use Pi\Interfaces\ISession;
-use Pi\Interfaces\ICacheClient;
+use Pi\Interfaces\ICacheProvider;
 
 class SessionCacheClient implements ISession {
 
   protected $prefixNs;
 
-  public function __construct(protected ICacheClient $cacheClient, string $sessionId)
+  public function __construct(protected ICacheProvider $cacheClient, string $sessionId)
   {
       $this->prefixNs = 'sess::' . $sessionId . ':';
   }

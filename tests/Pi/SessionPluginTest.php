@@ -17,7 +17,14 @@ class SessionPluginTest extends \PHPUnit_Framework_TestCase {
 
 	public function testCreateNewSessionAndSaveInCache()
 	{
+		$cache = $this->host->tryResolve('ICacheProvider');
 		$session = SessionPlugin::createNewSession($this->host->tryResolve('IRequest'), 'random-session-id');
 		$this->assertTrue($session instanceof IAuthSession);
+		//$key = SessionPlugin::getSessionKey($session->getSessionKey());
+		//die(print_r($cache->get($key)));
+	}
+
+	public function testSessionAreCreatedCachedAndLaterUsedByHttpHeaders() {
+		
 	}
 }

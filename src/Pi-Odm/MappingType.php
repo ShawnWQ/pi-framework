@@ -26,5 +26,4 @@ enum MappingType : string {
   DiscriminatorField = 'DiscriminatorField';
   DefaultDiscriminatorValue = 'DefaultDiscriminatorValue';
   MappedSuperclass = 'MappedSuperclass';
-
 }

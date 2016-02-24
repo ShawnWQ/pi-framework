@@ -116,7 +116,7 @@ class ServiceControllerTest extends \PHPUnit_Framework_TestCase {
     $host->init();
     $meta = $host->serviceController()->getClassMetadata(get_class($op));
     $this->assertTrue(array_key_exists('book', $meta->mappings()));
-    $this->assertEquals($meta->mappings()['book']['fieldName'], 'book');
+    $this->assertEquals($meta->mappings()['book']->getFieldName(), 'book');
   }
 
   private function createAppHost()

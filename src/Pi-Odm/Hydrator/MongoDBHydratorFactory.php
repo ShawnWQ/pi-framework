@@ -19,8 +19,7 @@ use Pi\Odm\Interfaces\IEntityMetaDataFactory;
  * Mongo Hydrator Factory
  * Similar to Doctrine ODM hydrators
  */
-class MongoDBHydratorFactory
-  implements IContainable {
+class MongoDBHydratorFactory implements IContainable {
 
   protected $hydrators = Map {};
 
@@ -127,9 +126,6 @@ class MongoDBHydratorFactory
 
   /**
    * Generates a Hydrator for a specific document and saves it
-   * @param EntityMetaData $entity            [description]
-   * @param [type]         $hydratorClassName [description]
-   * @param [type]         $fileName          [description]
    */
   public function generateHydratorClass(EntityMetaData $entity, $hydratorClassName, $fileName)
   {

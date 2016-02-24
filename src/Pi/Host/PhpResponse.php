@@ -39,7 +39,7 @@ class PhpResponse extends BasicResponse implements IHttpResponse {
 
 	public function cookies() : Map<string,string>
 	{
-		return $this->headers;
+		return $this->cookies;
 	}
 
 	public function write($text, int $responseStatus = 200) : void
@@ -71,15 +71,12 @@ class PhpResponse extends BasicResponse implements IHttpResponse {
 		if(Extensions::testingMode()) return;
 		
 		$this->assertHeadersPristine();   
+		
 		if(isset($_SERVER['HTTP_ORIGIN'])) {
-		    //header("Access-Control-Allow-Origin: {$_SERVER['HTTP_ORIGIN']}");
-		    //header('Access-Control-Allow-Credentials: true');
-		    //header('Access-Control-Max-Age: 86400');    // cache for 1 day
 			$this->processCrossOrigin();
 		}
+
         if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
-            //header('Access-Control-Allow-Methods: GET, POST, OPTIONS, PUT, DELETE');
-            //header("Access-Control-Allow-Headers: {$_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS']}");
             $this->processOptions();
         }
 		
@@ -87,7 +84,6 @@ class PhpResponse extends BasicResponse implements IHttpResponse {
 			 header($key . ': ' . $value);
 		}
 		$this->headersSent = true;
-
 	}
 
 	protected function assertHeadersPristine() : void
@@ -107,6 +103,6 @@ class PhpResponse extends BasicResponse implements IHttpResponse {
 	{
 		$this->addHeader('Access-Control-Allow-Origin', "{$_SERVER['HTTP_ORIGIN']}");
 		$this->addHeader('Access-Control-Allow-Credentials', 'true');
-		$this->addHeader('Access-Control-Max-Age', '86400');
+		$this->addHeader('Access-Control-Max-Age', '86400'); // one day
 	}
 }

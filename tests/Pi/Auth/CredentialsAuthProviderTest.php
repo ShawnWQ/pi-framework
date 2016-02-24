@@ -4,7 +4,10 @@ namespace Test\Auth;
 
 use Mocks\MockHostConfiguration,
     Mocks\BibleHost,
+    Mocks\HttpRequestMock,
     Test\Auth\BaseAuthTest,
+    Pi\SessionPlugin,
+    Pi\SessionFactory,
     Pi\HostConfig,
     Pi\ServiceModel\BasicRegisterRequest,
     Pi\ServiceModel\BasicRegisterResponse,
@@ -35,8 +38,7 @@ class CredentialsAuthProviderTest extends BaseAuthTest {
     $this->provider = $this->authSvc->getAuthProvider(CredentialsAuthProvider::name);
   }
 
-  public function testServiceAcceptTheProvider()
-  {
+  public function testServiceAcceptTheProvider() {
     $this->assertNotNull($this->provider);
   }
 
@@ -61,7 +63,8 @@ class CredentialsAuthProviderTest extends BaseAuthTest {
     $this->assertTrue($session->isAuthenticated());
   }
 
-  public function testSetCookiesOnAuthenticated() {
+  public function testSetCookiesOnAuthenticated()
+  {
     $authRepo = $this->getAuthRepository();
     $cryptor = $this->getCryptor();
     $user = $this->createUserAuth();
@@ -71,8 +74,35 @@ class CredentialsAuthProviderTest extends BaseAuthTest {
     $request = new Authenticate();
     $request->setUserName($user->getEmail());
     $request->setPassword('123');
-    $session = $this->createAuthUserSession();
-    $this->provider->authenticate($this->authSvc, $session, $request);
-    $this->assertTrue($this->authSvc->request()->response()->cookies()->contains(CredentialsAuthProvider::xPiUserAuthId));
+    $request->setProvider(CredentialsAuthProvider::name);
+    //$session = $this->createAuthUserSession();
+    $httpReq = new HttpRequestMock($request);
+    $res = $this->host->execute($request, $httpReq);
+    $this->assertEquals($httpReq->response()->cookies()->get(CredentialsAuthProvider::xPiUserAuthId), $session->getUserId());
+  }
+
+  public function testSessionIsSavedAndIsAuthenticated()
+  {
+    $authRepo = $this->getAuthRepository();
+    $cryptor = $this->getCryptor();
+    $user = $this->createUserAuth();
+    $userDb = $authRepo->createUserAuth($user, $cryptor->encrypt('123'));
+    $session = $this->authSvc->getSession();
+
+    $request = new Authenticate();
+    $request->setUserName($user->getEmail());
+    $request->setPassword('123');
+    $request->setProvider(CredentialsAuthProvider::name);
+    
+    $httpReq = new HttpRequestMock($request);
+    $res = $this->host->execute($request, $httpReq);
+    
+    $httpReq->setSessionId($session->getId());
+    $cacheProvider = $this->host->tryResolve('ICacheProvider');
+    $sessionCacheFactory = new SessionFactory($cacheProvider);
+    $cache = $sessionCacheFactory->getOrCreateSession($httpReq, $httpReq->response());
+    $sessionKey = SessionPlugin::getSessionKey($session->getId());
+    $this->assertNotNull($cache->get($sessionKey)); 
+    $cacheBrut = $cacheProvider->get($sessionKey);
   }
 }

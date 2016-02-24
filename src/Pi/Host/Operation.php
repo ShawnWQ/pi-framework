@@ -1,40 +1,39 @@
 <?hh
 
 namespace Pi\Host;
-use Pi\Extensions;
-use Pi\Interfaces\IRequest;
-use Pi\Common\Mapping\AbstractMetadata;
 
+use Pi\Extensions,
+    Pi\Interfaces\IRequest,
+    Pi\Interfaces\DtoMappingMetadataInterface,
+    Pi\Common\Mapping\AbstractMetadata;
+
+
+
+
+/**
+ * Operation Metadata class
+ */
 class Operation extends AbstractMetadata{
+
   protected $multiTenantEnabled = false;
-  protected $fieldMappings;
+  
   protected $multiTenantField;
+  
   protected $serviceType = null;
+  
   protected $requestType = null;
+  
   protected $responseType = null;
+  
   protected $routes = null;
+  
   protected $restrictTo = null;
+  
   protected $actions = null;
 
   public function __construct(string $requestName)
   {
     parent::__construct($requestName);
-  }
-
-  public function mappings()
-  {
-    return $this->fieldMappings;
-  }
-
-  public function mapField($mapping)
-  {
-    if(array_key_exists('fieldName', $mapping) && $this->reflClass->hasProperty($mapping['fieldName'])) {
-      $reflProp = $this->reflClass->getProperty($mapping['fieldName']);
-      $reflProp->setAccessible(true);
-      $this->reflFields[$mapping['name']] = $reflProp;
-    }
-
-    $this->fieldMappings[$mapping['name']] = $mapping;
   }
 
   public function serviceType($value = null)
@@ -75,11 +74,6 @@ class Operation extends AbstractMetadata{
   public function name() : ?string
   {
     return $this->name;
-  }
-
-  public function getName()
-  {
-    return $this->name();
   }
 
   public function isOneWay()

@@ -135,10 +135,10 @@ class OperationHydratorFactory
 
     foreach($entity->mappings() as $key => $mapping){
       //if($mapping->isString()) {
-      $fieldName = $mapping['fieldName'];
-      $name = $mapping['name'];
+      $fieldName = $mapping->getFieldName();
+      $name = $mapping->getName();
 
-      if($mapping['isEmbedMany']) {
+      if($mapping->isEmbedMany()) {
         $embedType = $mapping->getEmbedType();
                       $code .= sprintf(<<<EOF
        if (array_key_exists('$name', \$data) && is_array(\$data['$name'])) {
@@ -161,7 +161,7 @@ class OperationHydratorFactory
 EOF
 
                  );
-      }  else if($mapping['type'] === OperationMappingType::Int) {
+      }  else if($mapping->isInt() === OperationMappingType::Int) {
                       $code .= sprintf(<<<EOF
       if(array_key_exists('$name', \$data) && is_int(\$data['$name'])){
           \$r = \$data['$name'];
@@ -173,8 +173,8 @@ EOF
                  );
                     }
 
-      else if($mapping['isEmbedOne']) {
-        $embedType = $mapping['embedType'];
+      else if($mapping->isEmbedOne()) {
+        $embedType = $mapping->getEmbedType();
                       $code .= sprintf(<<<EOF
        if (array_key_exists('$name', \$data) && !is_null(\$data['$name'])) {
           \$many = \$this->serviceController->getEmbedDocument('$embedType', \$data['$name']);
@@ -202,7 +202,7 @@ EOF
 EOF
           );
 
-      } else if($mapping['type'] === OperationMappingType::DateTime) {
+      } else if($mapping->getPHPType() === OperationMappingType::DateTime) {
 
                  $code .= sprintf(<<<EOF
        if (array_key_exists('$name', \$data)) {

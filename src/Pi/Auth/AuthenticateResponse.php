@@ -2,7 +2,12 @@
 
 namespace Pi\Auth;
 
-class AuthenticateResponse {
+use Pi\Interfaces\HasSessionIdInterface;
+
+
+
+
+class AuthenticateResponse implements HasSessionIdInterface {
 	
 	public function __construct(
 
@@ -30,7 +35,7 @@ class AuthenticateResponse {
 		return $this->displayName;
 	}
 
-	public function getSessionId()
+	public function getSessionId() : string
 	{
 		return $this->sessionId;
 	}

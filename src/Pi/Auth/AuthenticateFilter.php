@@ -2,7 +2,8 @@
 
 namespace Pi\Auth;
 
-use Pi\Filters\RequestFilter,
+use Pi\SessionPlugin,
+    Pi\Filters\RequestFilter,
     Pi\Interfaces\IRequest,
     Pi\Interfaces\IResponse,
     Pi\Interfaces\IHttpRequest,
@@ -20,39 +21,40 @@ class AuthenticateFilter extends RequestFilter {
   public function execute(IRequest $req, IResponse $res, $requestDto) : void
   {
 
-    $requestType = get_class($requestDto);
-    $operation = $this->appHost->metadata()->getOperation(get_class($requestDto));
+    if(!AuthService::hasAuthProviders()) 
+      throw new \InvalidArgumentException('The AuthService must be initialized by calling AuthService::init to use an authenticate attribute');
 
-    if($operation === null) { throw new \Exception('Service isnt registered in ServiceMetadata' . get_class($requestDto));}
+    $requestType = get_class($requestDto);
+
+    // @fix This shouldnt been here but i need this validation to know that the core can handle any registered request type
+    $operation = $this->appHost->metadata()->getOperation(get_class($requestDto));
+    if($operation === null) { 
+      throw new \InvalidArgumentException('Service isnt registered in ServiceMetadata' . get_class($requestDto));}
 
     $reflMethod = $this->appHost->serviceController()->getReflRequest($requestType);
-
-    $attr = $reflMethod->getAttribute('Auth');
-    $required = true;
-    if($attr === null) {
-      $required = false;
-    }
+    
+    //if($reflMethod->getAttribute('Auth') == null)
+    //  return;
 
     $token = null;
 
     $user = null;
+    $res = $req->response();
+    SessionPlugin::populateSessionFromRequest($req, $res);
 
     if(!$req instanceof IHttpRequest) {
-      throw new \Exception('Non supported');
+      throw new \Exception('Authenticate filter is not ready for non IHttpReques');
     } else if(isset($_SERVER['HTTP_AUTHORIZATION'])) {
-
-      $token = $this->getTokenFromHeaders($req);
-      if(!is_null($token))
-        $user = $this->assertToken(explode(' ', $token)[1]);
-
-    } else if(isset($req->parameters()['access_token'])) {
-      $token = $this->getTokenFromParameters($req);
-      $user = $this->assertToken($token);
-    } else if(isset($_COOKIE['Authorization'])) {
-          $user = $this->assertToken($_COOKIE['Authorization']);
-    } else {
-
-      
+        $token = $this->getTokenFromHeaders($req);
+        
+        if(!is_null($token))
+          $user = $this->assertToken(explode(' ', $token)[1]);
+      } else if(isset($req->parameters()['access_token'])) {
+        $token = $this->getTokenFromParameters($req);
+        $user = $this->assertToken($token);
+      } else if(isset($_COOKIE['Authorization'])) {
+        $user = $this->assertToken($_COOKIE['Authorization']);
+      } else {
       // header WWW-Authenticate status 401
 //      throw AuthExtensions::throwUnauthorizedRequest();
       $name = isset($_SERVER['HTTP_AUTHORIZATION']) ? $_SERVER['HTTP_AUTHORIZATION'] : 'John Doe';

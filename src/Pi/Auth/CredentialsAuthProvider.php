@@ -147,10 +147,8 @@ class CredentialsAuthProvider extends AuthProvider {
     $session->onAuthenticated($authService, $session, $tokens, $authInfo);
     // AuthEvents
   
-   
     $expire = new \DateTime('now');
     $expire->modify('+1 day');
-    $authService->saveSession($session, $expire);
-     
+    $authService->saveSession($session, $expire);   
    }
 }

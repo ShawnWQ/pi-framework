@@ -9,11 +9,14 @@ use Pi\Interfaces\ICacheClient ;
 use Pi\Interfaces\IRequest;
 use Pi\Host\HostProvider;
 use Pi\Interfaces\IContainable;
-use Pi\Interfaces\IContainer;
+use Pi\Interfaces\IContainer,
+    Pi\Interfaces\HasSessionIdInterface;
 use Pi\ServiceModel\AuthUserAccount;
 use Pi\ServiceModel\Types\Author;
 
-class BasicRequest implements IRequest {
+class BasicRequest implements IRequest, HasSessionIdInterface {
+
+    protected $cookies;
 
     protected $items;
 
@@ -70,10 +73,45 @@ class BasicRequest implements IRequest {
 
     public function __construct()
     {
-      $this->response = new BasicResponse();
+      if(is_null($this->response))
+        $this->response = new BasicResponse();
+      
+      // @fix temp fix
+      if (!function_exists('apache_request_headers')) { 
+        function apache_request_headers() { 
+          foreach($_SERVER as $key=>$value) { 
+              if (substr($key,0,5)=="HTTP_") { 
+                  $key=str_replace(" ","-",ucwords(strtolower(str_replace("_"," ",substr($key,5))))); 
+                  $out[$key]=$value; 
+              }else{ 
+                  $out[$key]=$value; 
+              } 
+          } 
+          return $out; 
+        } 
+      }
+
+      $this->reset();
       $this->serverName = isset($_SERVER['SERVER_NAME']) ? $_SERVER['SERVER_NAME'] : 'localhost';
       $this->serverPort = isset($_SERVER['SERVER_PORT']) ? $_SERVER['SERVER_PORT'] : 80;
-      $this->items = array();
+      $this->items = Map{};
+      $this->cookies = Map{};
+    }
+
+     protected function reset()
+    {
+
+      $headers = apache_request_headers();
+      $cookies = $_COOKIE;
+      $this->headers = Map {};
+      $this->cookies = array();
+      foreach($headers as $key => $value) {
+        $this->headers[$key] = $value;
+      }
+
+      foreach($cookies as $key => $value) {
+        $this->cookies[$key] = $value;
+      }
     }
 
     public function isAuthenticated() : bool
@@ -88,22 +126,36 @@ class BasicRequest implements IRequest {
 
     public function getTemporarySessionId() : ?string
     {
-      return isset($this->items[SessionPlugin::SessionId])
-      ? $this->items[SessionPlugin::SessionId] : null;
+      return $this->getSessionParam(SessionPlugin::SessionId);
+      //return isset($this->items[SessionPlugin::SessionId])
+      //? $this->items[SessionPlugin::SessionId] : null;
     }
 
     public function getPermanentSessionId() : ?string
     {
-      return isset($this->items[SessionPlugin::PermanentSessionId])
-      ? $this->items[SessionPlugin::PermanentSessionId] : null;
+      return $this->getSessionParam(SessionPlugin::PermanentSessionId);
+      //return isset($this->items[SessionPlugin::PermanentSessionId])
+      //? $this->items[SessionPlugin::PermanentSessionId] : null;
     }
 
-    public function &itemsRef() : array
+    protected function getSessionParam(string $sessionKey) : ?string { 
+      return $this->items->get($sessionKey)
+        ?: $this->cookies->get($sessionKey)
+        ?: $this->headers->get($sessionKey)
+        ?: null;
+    }
+
+    public function isPermanentSession() : bool
+    {
+      return isset($this->items[SessionPlugin::SessionOptsPermant]);
+    }
+
+    public function &itemsRef() : Map
     {
       return $this->items;
     }
 
-    public function items() : array
+    public function items() : Map
     {
       return $this->items;
     }
@@ -131,7 +183,7 @@ class BasicRequest implements IRequest {
     public function author()
     {
       if(is_null($this->author)) {
-        throw new \Exception('not authorized');
+        return array('_id' => new \MongoId(), 'displayName' => 'Mocked');
       }
       return array('_id' => $this->author->id(), 'displayName' => $this->author->displayName());
     }
@@ -142,7 +194,7 @@ class BasicRequest implements IRequest {
         return $this->userId;
     }
 
-    public function getSessionId()
+    public function getSessionId() : string
     {
       // check in this request if is permanent or temporary
       $s =  $this->getTemporarySessionId();
@@ -154,8 +206,14 @@ class BasicRequest implements IRequest {
       return $s;
     }
 
-    public function getSession()
-    {
+    public function setSessionId(string $session) {
+      $key = $this->isPermanentSession()
+        ? SessionPlugin::PermanentSessionId
+        : SessionPlugin::SessionId;
+      $this->items[$key] = $key;
+    }
+
+    public function getSession() {
       if(isset($this->items[SessionPlugin::RequestItemsSessionKey])) {
 
         return $this->items[SessionPlugin::RequestItemsSessionKey];

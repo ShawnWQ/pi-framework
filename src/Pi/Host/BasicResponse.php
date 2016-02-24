@@ -42,6 +42,7 @@ class BasicResponse
 
       if($res instanceof IHttpResponse) {
         $res->cookies()->add(Pair{SessionPlugin::SessionId, $sessionId});
+        $res->headers()->add(Pair{SessionPlugin::SessionId, $sessionId});
       }
 
       $request->itemsRef()[SessionPlugin::SessionId] = $sessionId;
@@ -54,6 +55,7 @@ class BasicResponse
 
       if($res instanceof IHttpResponse) {
         $res->cookies()->add(Pair{SessionPlugin::PermanentSessionId, $sessionId});
+        $res->headers()->add(Pair{SessionPlugin::PermanentSessionId, $sessionId});
       }
 
       $request->itemsRef()[SessionPlugin::PermanentSessionId] = $sessionId;

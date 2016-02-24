@@ -2,11 +2,12 @@
 
 namespace Pi\Odm\Mapping;
 
-use Pi\Odm\Interfaces\IEntity;
-use Pi\Odm\Mapping\EntityFieldMapping;
-use Pi\Odm\CascadeOperation;
-use Pi\Odm\MappingType;
-use Pi\Common\Mapping\AbstractMetadata;
+use Pi\Interfaces\DtoMappingMetadataInterface,
+	Pi\Odm\Interfaces\IEntity,
+	Pi\Odm\Mapping\EntityFieldMapping,
+	Pi\Odm\CascadeOperation,
+	Pi\Odm\MappingType,
+	Pi\Common\Mapping\AbstractMetadata;
 
 class EntityMetaData extends AbstractMetadata {
 
@@ -21,45 +22,13 @@ class EntityMetaData extends AbstractMetadata {
 	public $collection;
 
 	/**
-	 * Array of indexes for the document collection
-	 */
-	public $indexes = Set{};
-
-	/**
-	 * Whether this class describes the mapping of a embedded document.
-	 */
-	public $isEmbeddedDocument = false;
-
-	public $embeddedDocument;
-
-	public $reference = false;
-
-	/**
 	 * The name of the field that's used to lock the document
 	 */
 	public $lockField;
 
-	public $fieldsMapping;
-
 	public $lifeCycleCallbacks;
 
 	public $slaveOkay;
-
-	protected $fieldMappings;
-
-	protected $isFile = false;
-
-	protected $multiTenantEnabled = false;
-
-	protected $multiTenantField;
-
-	protected string $defaultDiscriminatorValue;
-
-	protected string $discriminatorField;
-
-  protected string $inheritanceType;
-
-	protected $isSuperclass = false;
 
 
 	public function __construct(string $documentName)
@@ -70,123 +39,12 @@ class EntityMetaData extends AbstractMetadata {
 
 	}
 
-	public function setMappedSuperclass(bool $value = true) : void
-	{
-		$this->isSuperclass = $value;
-	}
-
-	public function isMappedSuperclass() : bool
-	{
-		return $this->isSuperclass;
-	}
-
-	public function getDiscriminatorField() : ?string
-	{
-		return $this->discriminatorField;
-	}
-
-	public function getDefaultDiscriminatorValue() : ?string
-	{
-		return $this->discriminatorField;
-	}
-
-	public function setDiscriminator(string $field, ?string $inheritanceType = 'Single', ?string $defaultValue = null)
-	{
-		$this->discriminatorField = $field;
-		$this->inheritanceType = $inheritanceType;
-		if(!is_null($defaultValue)) {
-			$this->defaultDiscriminatorValue = $defaultValue;
-		}
-	}
-
-	public function getInheritanceType() : ?string
-	{
-		return $this->inheritanceType;
-	}
-
-	public function setInheritanceType(string $value) : void
-	{
-		$this->inheritanceType = $value;
-	}
-
-	public function setMultiTenant(bool $enabled)
-	{
-		$this->multiTenantEnabled = $enabled;
-	}
-
-	public function setMultiTenantField(string $fieldName) : void
-	{
-		$this->multiTenantField = $fieldName;
-	}
-
-	public function getMultiTenantField()
-	{
-		return $this->multiTenantField;
-	}
-
-	public function getMultiTenantMode()
-	{
-		return $this->multiTenantEnabled;
-	}
-
-	public function isFile()
-	{
-		return $this->isFile;
-	}
-
-	public function isReference()
-	{
-		return isset($this->reference);
-	}
-
-	public function setEmbeddedDocument()
-	{
-		$this->isEmbeddedDocument = true;
-	}
-
-	public function isEmbeddedDocument()
-	{
-		return $this->isEmbeddedDocument;
-	}
-
-	public function setIdentifierValue(&$id, $document)
-	{
-		if(!isset($this->identifier) && !$this->isEmbeddedDocument){
-			throw new \Exception('The mapping of ' . get_class($document) . ' hasn\'t any Id mapped. Each document should have one Id');
-		}
-		$this->reflFields[$this->identifier]->setValue($document, $id);
-	}
-
-	public function getDatabase()
-	{
-		return $this->database;
-	}
-
-	public function getIdentifierObject($document)
-	{
-		return $this->getDatabaseIdentifierValue($this->getIdentifierValue($document));
-	}
-
-
-	public function getPHPIdentifierValue($id = null)
-	{
-		return $this->getDatabaseIdentifierValue($id);
-	}
-
-	public function getDatabaseIdentifierValue($id = null)
-	  {
-			if(!isset($this->identifier) || !isset($this->fieldMappings[$this->identifier])){
-				return null;
-			}
-	      $idType = $this->fieldMappings[$this->identifier]->getPHPType();
-	      //return Type::getType($idType)->convertToDatabaseValue($id);
-	  }
-	public function mappings()
-	{
-		return $this->fieldMappings;
-	}
-
-	public function mapField(EntityFieldMapping $mapping)
+	/**
+	 * Map a field to this metadata
+	 * @param  DtoMappingMetadataInterface The metadata field mapping class
+	 * @return void
+	 */
+	public function mapField(DtoMappingMetadataInterface $mapping) : void
 	{
 		// Most cases user will set only name of mapping, which is equal to fieldName
 		if($mapping->getFieldName() === null && $mapping->getName() !== null){
@@ -195,17 +53,18 @@ class EntityMetaData extends AbstractMetadata {
 			$mapping->setName((string)$mapping->getFieldName());
 		}
 
+		if($mapping instanceof EntityFieldMapping) {
+			if($mapping->isCascade()) {
+				switch($mapping->getCascade()) {
+					case CascadeOperation::All:
+					break;
 
-		if($mapping->isCascade()) {
-			switch($mapping->getCascade()) {
-				case CascadeOperation::All:
-				break;
-
-				case CascadeOperation::Refresh:
-				break;
+					case CascadeOperation::Refresh:
+					break;
+				}
 			}
 		}
-
+		
 		if($this->reflClass->hasProperty($mapping->getFieldName())) {
 			$reflProp = $this->reflClass->getProperty($mapping->getFieldName());
 			$reflProp->setAccessible(true);
@@ -215,12 +74,24 @@ class EntityMetaData extends AbstractMetadata {
 		$this->fieldMappings[$mapping->getName()] = $mapping;
 	}
 
+	public function getDatabase()
+	{
+		return $this->database;
+	}
+
+	public function getDatabaseIdentifierValue($id = null)
+	{
+		if(!isset($this->identifier) || !isset($this->fieldMappings[$this->identifier])){
+			return null;
+		}
+		$idType = $this->fieldMappings[$this->identifier]->getPHPType();
+	  	//return Type::getType($idType)->convertToDatabaseValue($id);
+	}
+
 	public function hasLifeCycleCallbacks(string $event)
 	{
 		return $this->lifeCycleCallbacks->contains($event);
 	}
-
-
 
 	/**
 	 * Dispatch the lifecycle event of the giving document
@@ -254,21 +125,6 @@ class EntityMetaData extends AbstractMetadata {
 		$this->lifeCycleCallbacks = $callbacks;
 	}
 
-	public function hasField(string $fieldName) : bool
-	{
-		return $this->fieldsMapping->contains($fieldName);
-	}
-
-	public function setId(string $name)
-	{
-		$this->id = $name;
-		$this->identifier = $name;
-	}
-
-	public function getId()
-	{
-		return $this->identifier;
-	}
 
 	public function getCollection()
 	{

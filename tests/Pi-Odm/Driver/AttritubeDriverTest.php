@@ -1,10 +1,14 @@
 <?hh
-use Pi\Odm\Mapping\EntityMetaDataFactory;
-use Pi\Odm\Mapping\EntityFieldMapping;
-use Pi\Odm\Mapping\EntityMetaData;
-use Pi\Odm\Mapping\Driver\AttributeDriver;
-use Pi\Odm\MongoEntity;
-use Mocks\ADT1;
+use Pi\Odm\Mapping\EntityMetaDataFactory,
+    Pi\Odm\Mapping\EntityFieldMapping,
+    Pi\Odm\Mapping\EntityMetaData,
+    Pi\Odm\Mapping\Driver\AttributeDriver,
+    Pi\Odm\MongoEntity,
+    Pi\Odm\MappingType,
+    Pi\EventManager,
+    Pi\Interfaces\ICacheProvider,
+    Mocks\ADT1,
+    Mocks\BibleHost;
 
 <<Document,Collection("News"),MultiTenant>>
 class NewsEntity {
@@ -89,41 +93,90 @@ class AttributeDriverTest extends \PHPUnit_Framework_TestCase{
 
   public function testLoadMetadataForClass()
   {
-    $class = new TestEntity();
-    $metaData = new EntityMetaData(get_class($class));
+   $metaData = $this->getMockMetadata();
     $driver = $this->createDriver();
     $this->assertFalse(!is_null($metaData->getId()));
-
-    // $class set repository
-    // $class set Collection
-    //
-
     $driver->loadMetadataForClass($metaData->getName(), $metaData);
     $this->assertTrue(!is_null($metaData->getId()));
   }
 
   public function testSetInheriranceType()
   {
-    $class = new ADT1();
-    $metaData = new EntityMetadata(get_class($class));
+    $metaData = $this->getMockMetadata();
     $driver = $this->createDriver();
     $driver->loadMetadataForClass($metaData->getName(), $metaData);
     $this->assertEquals('Single', $metaData->getInheritanceType());
     $this->assertEquals('type', $metaData->getDiscriminatorField());
   }
 
+  public function testCanSetStringMapping()
+  {    
+    $metaData = $this->getMockMetadata();
+    $driver = $this->createDriver();
+    $driver->loadMetadataForClass($metaData->getName(), $metaData);
+    $this->assertNotNull($metaData->mappings()['text']);
+    $this->assertEquals($metaData->mappings()['text']->getPHPType(), MappingType::String);
+  }
+
+  public function testCanMapDateTimeField()
+  {
+    $metaData = $this->getMockMetadata();
+    $mapping = $metaData->mappings()['date'];
+    $this->assertNotNull($mapping);
+    $this->assertEquals($mapping->getPHPType(), MappingType::Date);
+    $this->assertTrue($mapping->isNotNull());
+  }
+
+  public function testCanNotNullField()
+  {
+    $metaData = $this->loadMockMetadata();
+    $mapping = $metaData->mappings()['number'];
+    $this->assertNotNull($mapping);
+    $this->assertTrue($mapping->isNotNull());
+  }
+
+  public function testCanMapCollectionField()
+  {
+    $metaData = $this->loadMockMetadata();
+    $this->assertNotNull($metaData->mappings()['collection']);
+    $this->assertEquals($metaData->mappings()['collection']->getPHPType(), MappingType::Collection);
+  }
+
   public function testSetMultiTenantMode()
   {
-    $class = new NewsEntity();
-    $metaData = new EntityMetaData(get_class($class));
+    $metaData = $this->loadMockMetadata();
     $driver = $this->createDriver();
     $this->assertFalse($metaData->getMultiTenantMode());
     $driver->loadMetadataForClass($metaData->getName(), $metaData);
     $this->assertTrue($metaData->getMultiTenantMode());
   }
 
+  protected function createMockClass() : ADT1
+  {
+    $class = new ADT1();
+    $class->set('random', 1, new \DateTime());
+    return $class;
+  }
+
+  protected function getMockMetadata() : EntityMetadata
+  {
+    return new EntityMetadata(get_class($this->createMockClass()));
+  }
+
+  protected function loadMockMetadata(?EntityMetadata $metaData = null) : ?EntityMetadata
+  {
+    if($metaData == null) {
+      $metaData = $this->getMockMetadata();
+    }
+    $driver = $this->createDriver();
+    $driver->loadMetadataForClass($metaData->getName(), $metaData);
+    return $metaData;
+  }
+
   private function createDriver()
   {
-    return new AttributeDriver(array());
+    $this->host = new BibleHost();
+    $this->host->init();
+    return $this->host->resolve('IMappingDriver');
   }
 }

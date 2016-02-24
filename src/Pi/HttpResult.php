@@ -17,39 +17,6 @@ class HttpResult implements IIsStreamWriter {
 
   }
 
-  public function setHeader($key, $value)
-  {
-      $this->headers[$key] = $value;
-  }
-
-  public function getHeaders()
-  {
-      return $this->headers;
-  }
-
-  public function writeTo($responseStream)
-  {
-    echo 'writting to output';
-  }
-
-  public function response($value = null)
-  {
-    if($value === null) return $this->response;
-    $this->response = $value;
-  }
-
-  public function status(?int $value = null)
-  {
-    if($value === null) return $this->status;
-    $this->status = $value;
-  }
-
-  public function statusDescription($value = null)
-  {
-    if($value === null) return $this->statusDescription;
-    $this->statusDescription = $value;
-  }
-
   public static function notFound(string $message = null, string $code = null)
   {
       if(is_null($message)) {
@@ -83,5 +50,38 @@ class HttpResult implements IIsStreamWriter {
       $res->status($statusCode);
       $res->setHeader(HttpHeaders::Location, $redirectUri);
       return $res;
+  }
+  
+  public function setHeader($key, $value)
+  {
+      $this->headers[$key] = $value;
+  }
+
+  public function getHeaders()
+  {
+      return $this->headers;
+  }
+
+  public function writeTo($responseStream)
+  {
+    echo 'writting to output';
+  }
+
+  public function response($value = null)
+  {
+    if($value === null) return $this->response;
+    $this->response = $value;
+  }
+
+  public function status(?int $value = null)
+  {
+    if($value === null) return $this->status;
+    $this->status = $value;
+  }
+
+  public function statusDescription($value = null)
+  {
+    if($value === null) return $this->statusDescription;
+    $this->statusDescription = $value;
   }
 }

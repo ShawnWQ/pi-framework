@@ -49,6 +49,11 @@ class HostProvider {
       return self::$instance;
     }
 
+    public static function tryInstance() : ?IPiHost
+    {
+      return self::$instance;
+    }
+
     public static function tryResolve($dependency)
     {
     	return self::$instance->tryResolve($dependency);

@@ -1,14 +1,19 @@
 <?hh
 
 namespace Pi;
-use Pi\Auth\AuthService;
-use Pi\Interfaces\IPlugin;
-use Pi\Interfaces\IPiHost;
-use Pi\Interfaces\IRequest;
-use Pi\Interfaces\IResponse;
-use Pi\Host\BasicRequest;
-use Pi\Host\BasicResponse;
-use Pi\Host\HostProvider;
+
+use Pi\Auth\AuthService,
+    Pi\Interfaces\IPlugin,
+    Pi\Interfaces\IPiHost,
+    Pi\Interfaces\IRequest,
+    Pi\Interfaces\IResponse,
+    Pi\Interfaces\IContainer,
+    Pi\Host\BasicRequest,
+    Pi\Host\BasicResponse,
+    Pi\Host\HostProvider;
+
+
+
 
 /*
  * Session Plugin
@@ -20,6 +25,7 @@ use Pi\Host\HostProvider;
  	const string SessionId = 'X-Pi-Id';
  	const string PermanentSessionId = 'X-Pi-Pid';
  	const string RequestItemsSessionKey = "__session";
+  const string SessionOptsPermant = 'perm';
 
    public static function getSessionKey(?string $sessionId)
    {
@@ -36,6 +42,8 @@ use Pi\Host\HostProvider;
      return $sessionId;
    }
 
+
+   //  IAuthSession
    public static function createNewSession(IRequest $request, string $sessionId)
    {
      $session = AuthService::getCurrentSessionFactory();
@@ -56,26 +64,27 @@ use Pi\Host\HostProvider;
      return $session;
    }
 
-   public function register(IPiHost $host) : void
- 	{
-     $host->container()->register('ISessionClient', function(IContainer $ioc) {
-       $factory = new SessionFactory($ioc->get('ICachedClient'));
-       $client = $factory->create();
-       return $client;
-     });
-
-     $host->globalRequestFilters()->add(function(IRequest $req, IResponse $res){
-
-       if(is_null($req->getPermanentSessionId())) {
-        BasicResponse::createPermanentSessionId($res, $req);
-       }
-
-       if(is_null($req->getTemporarySessionId())) {
-         BasicResponse::createTemporarySessionId($res, $req);
-       }
-
-     });
+  public function register(IPiHost $host) : void
+  {
+     // Filter that sets an session id provided or create a new
+    $host->globalRequestFilters()->add(function(IRequest $req, IResponse $res) {
+      return self::populateSessionFromRequest($req, $res);
+    });
  	}
+
+  static function populateSessionFromRequest(IRequest $req, IResponse $res)
+  {
+    if(AuthService::populateFromRequestIfHasSessionId($req, $req->dto()))
+        return;
+
+      if(is_null($req->getPermanentSessionId())) {
+        BasicResponse::createPermanentSessionId($res, $req);
+      }
+
+      if(is_null($req->getTemporarySessionId())) {
+        BasicResponse::createTemporarySessionId($res, $req);
+      }
+  }
 
    public function pre($request)
    {

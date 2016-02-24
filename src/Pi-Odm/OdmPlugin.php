@@ -2,23 +2,26 @@
 
 namespace Pi\Odm;
 
-use Pi\Interfaces\IPreInitPlugin;
-use Pi\Interfaces\IPlugin;
-use Pi\Interfaces\IPiHost;
-use Pi\Interfaces\IContainer;
-use Pi\Interfaces\IContainable;
-use Pi\Odm\Hydrator\MongoDBHydratorFactory;
-use Pi\Odm\UnitWork;
-use Pi\Odm\MongoManager;
-use Pi\PiContainer;
-use Pi\EventManager;
-use Pi\Odm\DocumentManager;
-use Pi\Odm\MongoConnection;
-use Pi\Odm\Mapping\Driver\AttributeDriver;
-use Pi\Odm\Mapping\EntityMetaDataFactory;
-use Pi\Odm\OdmConfiguration;
-use Pi\Odm\Repository\RepositoryFactory;
-use Pi\Common\ClassUtils;
+use Pi\Interfaces\IPreInitPlugin,
+    Pi\Interfaces\IPlugin,
+    Pi\Interfaces\IPiHost,
+    Pi\Interfaces\IContainer,
+    Pi\Interfaces\IContainable,
+    Pi\Odm\Hydrator\MongoDBHydratorFactory,
+    Pi\Odm\UnitWork,
+    Pi\Odm\MongoManager,
+    Pi\PiContainer,
+    Pi\EventManager,
+    Pi\Odm\DocumentManager,
+    Pi\Odm\MongoConnection,
+    Pi\Odm\Mapping\Driver\AttributeDriver,
+    Pi\Odm\Mapping\EntityMetaDataFactory,
+    Pi\Odm\OdmConfiguration,
+    Pi\Odm\Repository\RepositoryFactory,
+    Pi\Common\ClassUtils;
+
+
+
 
 class OdmPlugin implements IPlugin {
 
@@ -47,12 +50,21 @@ class OdmPlugin implements IPlugin {
 
     $config = $this->configuration;
     $hostConfig = $appHost->config();
+
+
+
+    $appHost->container()->register('IMappingDriver', function(IContainer $container){
+      $instance = AttributeDriver::create(array(), $container->get('EventManager'), $container->get('ICacheProvider'));
+      $instance->ioc($container);
+      return $instance;
+    });
+
     $appHost->container()->register('OdmConfiguration', function(IContainer $container) use($config, $hostConfig){
       $config->setHydratorNamespace('Mocks\\Hydrators');
       $config->setAutoGenerateHydratorClasses(true);
       $config->setDefaultDb('fitting');
       $config->setHydratorDir($hostConfig->hydratorDir());
-      $config->setMetadataDriverImplementation(AttributeDriver::create(array('/home/gui/workspace/pi-framework/src/Pi/FileSystem')));
+      //$config->setMetadataDriverImplementation(AttributeDriver::create(array('/home/gui/workspace/pi-framework/src/Pi/FileSystem')));
       return $config;
     });
 
@@ -114,14 +126,7 @@ class OdmPlugin implements IPlugin {
       return $factory->open();
     });
 
-    $appHost->container()->register('IMappingDriver', function(IContainer $container){
-      $instance = new AttributeDriver();
-      $instance->ioc($container);
-      return $instance;
-    });
-
     $appHost->container()->register('IEntityMetaDataFactory', function(IContainer $container){
-
       $instance = new EntityMetaDataFactory($container->get('EventManager'), $container->get('IMappingDriver'));
       $instance->ioc($container);
       return $instance;

@@ -224,7 +224,11 @@ class AuthUserSession implements IAuthSession, \JsonSerializable {
 
   public function isAuthorized(string $provider) : bool
   {
-
+    if(count($this->providerOAuthAccess) == 0)
+      return false;
+return false;
+    //$provider = AuthService::getAuthProvider($this->providerOAuthAccess[0]->getProvider());
+    //return $provider->isAuthorized($this, $this->providerOAuthAccess[0]);
   }
 
   public function onRegistered(IRequest $request, IAuthSession $session, IService $service) : void

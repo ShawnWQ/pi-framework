@@ -36,6 +36,7 @@ class AuthenticateFilterTest extends \PHPUnit_Framework_TestCase {
     $this->repo = $this->host->tryResolve('Pi\Auth\Auth');
     $this->service = $this->host->container()->getService(new \Pi\Auth\AuthService());
   }
+  
   public function testFilterCanReadAuthentication()
   {
     $_SERVER['REQUEST_URI'] = '/test';

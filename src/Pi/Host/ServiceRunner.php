@@ -86,7 +86,7 @@ class ServiceRunner<TRequest>
   {
 
     try {
-      $httpResponse = $this->appHost->tryResolve('IResponse');
+      $httpResponse = $context->response() ?: $this->appHost->tryResolve('IResponse');
       
       /*$this->appHost->callGlobalRequestFilters($context, $httpResponse);
       
@@ -103,7 +103,7 @@ class ServiceRunner<TRequest>
       //$response = call_user_func($instance, $context->dto());
       
 
-      $context->setResponse($response);
+      //$context->setResponse($response);
 
       $res = $this->afterEachRequest($context, $requestDto, $response);
 
