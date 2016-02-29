@@ -9,7 +9,8 @@ namespace Pi\Auth;
  
 class OAuthSignatureMethodPlainText extends OAuthSignatureMethod {
   
-  public function getName() : string {
+  public function getName() : string
+  {
     return "PLAINTEXT";
   }
   /**
@@ -21,10 +22,11 @@ class OAuthSignatureMethodPlainText extends OAuthSignatureMethod {
    * Please note that the second encoding MUST NOT happen in the SignatureMethod, as
    * OAuthRequest handles this!
    */
-  public function buildSignature(Authenticate $request, $consumerSecret, $tokenSecret) : string {
+  public function buildSignature(Authenticate $request, $consumerSecret, $tokenSecret) : string
+  {
     $key_parts = array(
-      $consumerSecret,
-      $token ?: ''
+      $consumerSecret ?: '',
+      $tokenSecret ?: ''
     );
     $key_parts = OAuthUtils::urlencodeRfc3986($key_parts);
     $key = implode('&', $key_parts);

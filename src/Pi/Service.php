@@ -223,11 +223,17 @@ abstract class Service extends EventSubscriber  implements
 	 * @descripion
 	 * Get or create and get the IMessageProducer
 	 */
-	private function getMessageProducer(){
+	private function getMessageProducer()
+	{
 		if(is_null($this->messageProducer)) {
 			$this->messageProducer = $this->getMessageFactory()->createMessageProducer();
 		}
 		return $this->messageProducer;
+	}
+
+	public function redirect(string $url) : void
+	{
+		return HttpResult::redirect($url);
 	}
 
 	public function request() : IRequest{
@@ -239,8 +245,6 @@ abstract class Service extends EventSubscriber  implements
 		return $this->resolve('IResponse');
 		//return is_null($this->request) ? null : $this->request->response();
 	}
-
-
 
 	/**
 	 * @description
@@ -346,10 +350,10 @@ abstract class Service extends EventSubscriber  implements
 		return $req->getSession($reload);
 	}
 
-  public function appConfig()
-  {
-    return $this->appHost->config();
-  }
+	public function appConfig()
+	{
+	return $this->appHost->config();
+	}
 
 	public function isAuthenticated()
 	{

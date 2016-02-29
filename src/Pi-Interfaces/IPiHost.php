@@ -54,6 +54,16 @@ interface IPiHost {
 
   public function globalRequestFilters() : Vector<(function(IRequest, IResponse) : void)>;
 
+  public function globalResponseFilters() : Vector<(function(IRequest, IResponse) : void)>;
+
+  public function requestFilters() : Vector<(function(IRequest, IResponse) : void)>;
+
+  public function responseFilters() : Vector<(function(IRequest, IResponse) : void)>;
+
+  public function actionRequestFilters() : Vector<(function(IRequest, IResponse) : void)>;
+
+  public function actionResponsetFilters() : Vector<(function(IRequest, IResponse) : void)>;
+
   public function callGlobalRequestFilters(IRequest $request, IResponse $response);
 
 

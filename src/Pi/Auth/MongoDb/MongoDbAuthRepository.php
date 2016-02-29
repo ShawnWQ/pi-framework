@@ -50,7 +50,6 @@ class MongoDbAuthRepository extends MongoRepository<TAuth> implements IUserAuthR
     $newUser = new UserAuth();
     if($session == null)
       $session = new AuthUserSession();
-    
     AuthExtensions::populateUserAuthWithSession($newUser, $session);
     $this->insert($newUser);
 
@@ -62,10 +61,12 @@ class MongoDbAuthRepository extends MongoRepository<TAuth> implements IUserAuthR
     $registered = true;
 
     $userAuth = $this->getUserAuth($session, $tokens);
+    
     if($userAuth == null) {
       $registered = false;
       $userAuth = $this->createAuth($session);
       $tokens->setUserId($userAuth->getId());
+      $tokens->setUserAuthId($userAuth->getId());
     }
 
     $authDetails = $this->queryBuilder('Pi\Auth\UserAuthDetails')

@@ -40,6 +40,12 @@ class AttributeDriver extends AbstractMappingDriver implements IMappingDriver{
     $this->mapBaseMappings($entity, $reflClass);
     $methods = $this->getClassMethods($entity);
 
+
+    $attr = $reflClass->getAttribute('Collection');
+    if($attr !== null) {
+      $entity->setCollection($attr[0]);
+    }
+
     foreach ($methods as $method) {
 
       if ($method->getDeclaringClass()->name !== $reflClass->name) {

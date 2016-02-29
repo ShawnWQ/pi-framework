@@ -9,7 +9,7 @@ namespace Pi\Logging;
  * Use Log Manager to log specific types
  *
  */
-class LogMannager {
+class LogManager {
 
   private static $logFactory;
 

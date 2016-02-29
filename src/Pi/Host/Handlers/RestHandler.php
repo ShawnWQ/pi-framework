@@ -9,7 +9,9 @@ use Pi\Host\HostProvider;
 use Pi\ServiceModel\NotFoundRequest;
 use Pi\FileSystem\FileType;
 use Pi\FileSystem\FileExtensions;
-use Pi\Common\ClassUtils;
+use Pi\Common\ClassUtils,
+	Pi\Extensions,
+	Pi\HttpResult;
 
 class RestHandler extends AbstractPiHandler {
 
@@ -33,8 +35,6 @@ class RestHandler extends AbstractPiHandler {
 		if($httpMethod === 'POST' && isset($_SERVER['HTTP_ORIGIN']) && $request->serverName() === $request->httpOrigin()) {
 			$body = json_decode(file_get_contents('php://input'), true);
 		}
-
-		
 
 		foreach($methods as $method)
 	    {
@@ -189,6 +189,17 @@ class RestHandler extends AbstractPiHandler {
 
 		$callback = function($response) use($httpReq, $httpRes, $host){
 			$host->callResponseFilters(-1, $httpReq, $httpRes);
+
+			if(Extensions::requestHasReturnSession($httpReq)) {
+				$dto = (object)$response;
+				$dto->session = $httpReq->getSession();
+				$response = $dto;
+			}
+			if($response instanceof HttpResult) {
+				foreach ($response->headers() as $key => $value) {
+					$httpRes->addHeader($key, $value);
+				}
+			}
 			$httpRes->writeDto($httpReq, $response);
 			$httpRes->endRequest(false);
 

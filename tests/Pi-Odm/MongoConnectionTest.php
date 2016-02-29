@@ -1,7 +1,7 @@
 <?hh
 
 use Pi\Odm\MongoConnection;
-use Pi\Logging\LogMannager;
+use Pi\Logging\LogManager;
 use Mocks\MockEntity;
 use Mocks\OdmContainer;
 use Mocks\BibleHost;
@@ -15,7 +15,7 @@ class MongoConnectionTest
 
   public function setUp()
   {
-    $this->logger = LogMannager::getLogger(get_class($this));
+    $this->logger = LogManager::getLogger(get_class($this));
     $this->appHost = OdmContainer::get();
   }
 

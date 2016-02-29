@@ -15,12 +15,21 @@ use Pi\AppSettings,
 
 
 
-class RedisPlugin implements IPlugin {
+class RedisPlugin implements IPreInitPlugin {
 
 	public function register(IPiHost $host) : void
 	{
+		
+	}
+	public function configure(IPiHost $host) : void
+	{
 		$host->container()->register('IRedisFactory', function(IContainer $ioc){
-			return new RedisFactory();
+			$hydrator = new RedisHydratorFactory(
+				$ioc->get('ClassMetadataFactory'),
+				'Mocks\\Hydrators',
+				sys_get_temp_dir()
+       		);
+			return new RedisFactory($hydrator);
 		});
 		$host->container()->registerAlias('Pi\Redis\Interfaces\IRedisFactory', 'IRedisFactory');
 
@@ -28,7 +37,6 @@ class RedisPlugin implements IPlugin {
 			$factory = $ioc->get('IRedisFactory');
 
 			if(!$factory instanceof IRedisFactory) {
-
 				throw new \Exception('IRedisFactory not registered');
 			}
 

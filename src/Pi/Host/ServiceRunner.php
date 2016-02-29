@@ -10,28 +10,28 @@ use Pi\Interfaces\IMessage;
 use Pi\Interfaces\IContainable;
 use Pi\Interfaces\IContainer;
 use Pi\Host\HostProvider;
-use Pi\Logging\LogMannager;
+use Pi\Logging\LogManager;
 
 /**
  * ServiceRunner execute requests and messages using the registered IMessageService
  * It's used only for internal requests. The HTTP request first received is executed by the AppHost
  * Others requests are executed from the ServiceRunner
  */
-class ServiceRunner<TRequest>
-  implements IServiceRunner<TRequest>{
+class ServiceRunner<TRequest> implements IServiceRunner<TRequest>{
+  
   protected $requestFilters;
 
-
   protected $responseFilters;
+  
   protected $messageFactory;
+  
   protected $logger;
 
-    public function __construct(protected IPiHost &$appHost, protected ActionContext &$context){
+  public function __construct(protected IPiHost &$appHost, protected ActionContext &$context){
     $this->context = $context;
-    $this->logger = LogMannager::getLogger(get_class($this));
+    $this->logger = LogManager::getLogger(get_class($this));
     $this->messageFactory = $appHost->tryResolve('IMessageFactory');
-  // request/response filters are get from context
-
+    // request/response filters are get from context
   }
 
   public function onBeforeExecute(IRequest $requestContext, TRequest $request)

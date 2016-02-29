@@ -83,7 +83,7 @@ class HostConfig
   {
     $bt = debug_backtrace();
     $this->appName = 'Pi';
-    $path = sys_get_temp_dir() . '/pi-tmp';
+    $path = sys_get_temp_dir();
     $this->oAuths = Set{};
     $this->configsPath = $path . '/pi-config.json';
     $this->cacheFolder = $path . '/pi-config.json';

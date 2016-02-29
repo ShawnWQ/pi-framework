@@ -208,7 +208,7 @@ class AuthService extends Service {
     // do logout
   }
 */
-  <<Request,Route('/auth'),Method('GET')>>
+  <<Request,Route('/auth/:provider'),Method('GET')>>
   public function authenticate(Authenticate $request)
   {
     $provider = $request->getProvider() ?: self::$defaultOAuthProvider->getName();
@@ -223,28 +223,12 @@ class AuthService extends Service {
     $session = $this->getSession();
     $response = $this->doAuthenticate($request, $provider, $session, $oauthProvider);
     
+    if($response instanceof HttpResult) {
+      return $response;
+    }
     if($response == null)
       return HttpResult::createCustomError('InvalidLogin', _('InvalidLogin'));
-      
-    $session = $this->getSession();
-
-    // Generate a authentication token
-    $authReq = new AuthAuthorize('', $response->getUserId(), '', 'login');
-    $tokenReq = $this->getAuthorization($authReq);
-    $token = $this->getToken(new AuthToken('', $response->getUserId(), 'read write update', 'login', $tokenReq->getCode()));
     
-    $v = json_encode(array('id' => (string)$response->getUserId(), 'token' => $token->getCode()));
-    setcookie("Authorization", $token->getCode(), time() + 60*60*24*365, '/', $this->appConfig()->domain());
-
-
-    if($response == null)
-      $response = new AuthenticateResponse(
-        $session->getUserId(),
-        $session->getUserAuthName() ?: $session->getUserName() ?: sprintf("{0} {1}", $session->getFirstName(), $sesssion->getLastName()),
-        $session->getId(),
-        $referrerUrl
-      );
-
     return $response;
   }
 

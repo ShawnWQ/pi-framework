@@ -3,12 +3,14 @@
 namespace Pi\Common\Mapping;
 
 use Pi\Interfaces\IContainer,
+    Pi\Interfaces\IContainable,
     Pi\Interfaces\DtoMetadataInterface,
     Pi\EventManager,
     Pi\Odm\Interfaces\IMappingDriver,
+    Pi\Odm\Interfaces\IEntityMetaDataFactory,
     Pi\Odm\Events;
 
-abstract class AbstractMetadataFactory {
+abstract class AbstractMetadataFactory implements IEntityMetaDataFactory, IContainable {
 
 	private $documentManager;
 

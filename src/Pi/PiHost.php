@@ -9,6 +9,8 @@ use Pi\Auth\UserRepository,
     Pi\HttpStatusCode,
     Pi\Container,
     Pi\Common\ClassUtils,
+    Pi\Common\Mapping\Driver\ClassMappingDriver,
+    Pi\Common\Mapping\ClassMetadataFactory,
     Pi\Redis\RedisPlugin,
     Pi\Auth\AuthPlugin,
     Pi\ServerEvents\ServerEventsPlugin,
@@ -47,7 +49,7 @@ use Pi\Auth\UserRepository,
     Pi\Host\Handlers\NotFoundHandler,
     Pi\Logging\DebugLogFactory,
     Pi\Logging\DebugLogger,
-    Pi\Logging\LogMannager,
+    Pi\Logging\LogManager,
     Pi\ServiceModel\DefaultCacheConfig,
     Pi\Message\InMemoryService,
     Pi\Message\InMemoryFactory,
@@ -239,12 +241,15 @@ abstract class PiHost implements IPiHost{
       //throw $ex;
     }});
     $this->registerPlugin(new RedisPlugin());
+    $this->registerPlugin(new AuthPlugin());
+    
+    
     $this->registerPlugin(new WarezPlugin());
     $this->registerPlugin(new SpotEventsPlugin());
     $this->registerPlugin(new ServerEventsPlugin());
 
-    $this->registerPlugin(new SessionPlugin());
-    $this->registerPlugin(new AuthPlugin());
+    
+    
     if(!$this->hasPluginType('Pi\Odm\OdmPlugin')) {
       $this->registerPlugin(new OdmPlugin());
     }
@@ -255,9 +260,10 @@ abstract class PiHost implements IPiHost{
     
     $rm = $this->routes = new RoutesManager($this);
     $this->routes = $rm;
+
     HostProvider::catchAllHandlers()->add(function(string $httpMethod, string $pathInfo, string $filePath) use($rm){
       $handler = new RestHandler();
-      $httpResponse->headers()->add(Pair{'Content-Type', 'application/json'});
+      //$httpResponse->headers()->add(Pair{'Content-Type', 'application/json'});
       //$handler->processRequestAsync($httpRequest, $httpResponse, $route->requestType());
       return $handler;
     });
@@ -275,9 +281,7 @@ abstract class PiHost implements IPiHost{
     });
 
     $this->registerValidator(new ApplicationCreateRequest(), new ApplicationCreateValidator());
-    $this->runPreInitPluginConfiguration();
-
-
+   
     $this->container()->registerRepository(new UserEntity(), new UserRepository());
 
     $this->container()->register('Pi\ServiceInterface\OfferCreateBusiness', function(IContainer $ioc){
@@ -303,7 +307,7 @@ abstract class PiHost implements IPiHost{
      * This implementation is used by all Mapping implementations that don't implement their own IEntityMetadataFactory instance
      */
     $this->container()->register('ClassMetadataFactory', function(IContainer $container){
-      $instance = ClassMetadataFactory::create(array(), $container->get('EventManager'), $container->get('ClassMappingDriver'));
+      $instance = new ClassMetadataFactory($container->get('EventManager'), $container->get('ClassMappingDriver'));
       $instance->ioc($container);
       return $instance;
     });
@@ -345,12 +349,19 @@ abstract class PiHost implements IPiHost{
         return new RedisPiQueue($logger, $redis);
     });
 
+    $this->runPreInitPluginConfiguration();
+    $this->preConfigure($this->container);
     $this->runPluginRegistration();
     $this->configure($this->container);
     $this->registerServices();
   }
 
   public abstract function configure(IContainer $container);
+
+  public function preConfigure(IContainer $container)
+  {
+
+  }
 
   public abstract function afterInit();
 
@@ -619,22 +630,11 @@ abstract class PiHost implements IPiHost{
     $this->serviceController->registerService($service);
   }
 
-  public function callActionResponseFilters(IRequest $request, IResponse $response)
+  public function actionRequestFilters() : Vector<(function(IRequest, IResponse) : void)>
   {
-    if(count($this->actionResponseFilters) === 0) {
-      return false;
-    }
-
-    foreach($this->actionResponseFilters as $k => $fn){
-      $fn($request, $response);
-
-      if($response->isClosed()){
-        break;
-      }
-    }
-
-    return $response->isClosed();
+    return $this->actionRequestFilters;
   }
+
   public function callActionRequestFilters(IRequest $request, IResponse $response)
   {
     if(count($this->actionRequestFilters) === 0) {
@@ -651,6 +651,34 @@ abstract class PiHost implements IPiHost{
 
     return $response->isClosed();
   }
+
+  public function actionResponsetFilters() : Vector<(function(IRequest, IResponse) : void)>
+  {
+    return $this->actionResponsetFilters;
+  }
+
+  public function callActionResponseFilters(IRequest $request, IResponse $response)
+  {
+    if(count($this->actionResponseFilters) === 0) {
+      return false;
+    }
+
+    foreach($this->actionResponseFilters as $k => $fn){
+      $fn($request, $response);
+
+      if($response->isClosed()){
+        break;
+      }
+    }
+
+    return $response->isClosed();
+  }
+
+  public function requestFilters() : Vector<(function(IRequest, IResponse) : void)>
+  {
+    return $this->requestFilters;
+  }
+
   public function callRequestFilters($priority = -1, IRequest $request, IResponse $response)
   {
     if(count($this->requestFilters) === 0) {
@@ -666,6 +694,11 @@ abstract class PiHost implements IPiHost{
     }
 
     return $response->isClosed();
+  }
+
+  public function responseFilters() : Vector<(function(IRequest, IResponse) : void)>
+  {
+    return $this->responseFilters;
   }
 
   public function callResponseFilters($priority = -1, IRequest $request, IResponse $response)
@@ -687,8 +720,9 @@ abstract class PiHost implements IPiHost{
 
   public function globalRequestFilters() : Vector<(function(IRequest, IResponse) : void)>
   {
-    return $this->globalResponseFilters;
+    return $this->globalRequestFilters;
   }
+  
   public function callGlobalRequestFilters(IRequest $request, IResponse $response)
   {
     if(count($this->globalRequestFilters) === 0) {
@@ -704,6 +738,11 @@ abstract class PiHost implements IPiHost{
     }
 
     return $response->isClosed();
+  }
+
+  public function globalResponseFilters() : Vector<(function(IRequest, IResponse) : void)>
+  {
+    return $this->globalResponseFilters;
   }
 
   public function callGlobalResponseFilters(IRequest $request, IResponse $response)
@@ -954,11 +993,6 @@ abstract class PiHost implements IPiHost{
   public function requestFiltersClasses()
   {
     return $this->requestFiltersClasses;
-  }
-
-  public function requestFilters()
-  {
-    return $this->requestFilters;
   }
 
   public function preRequestFilters()

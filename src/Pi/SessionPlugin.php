@@ -26,6 +26,7 @@ use Pi\Auth\AuthService,
  	const string PermanentSessionId = 'X-Pi-Pid';
  	const string RequestItemsSessionKey = "__session";
   const string SessionOptsPermant = 'perm';
+  const string RequestItemsReturnSessionKey = "__returnsessin";
 
    public static function getSessionKey(?string $sessionId)
    {
@@ -71,8 +72,24 @@ use Pi\Auth\AuthService,
       return self::populateSessionFromRequest($req, $res);
     });
  	}
+  
+  protected static function getRequestParam(IRequest $request)
+  {
+    return $request->items()->get($sessionKey)
+      ?: $request->cookies()->get($sessionKey)
+      ?: $request->headers()->get($sessionKey)
+      ?: null;
+  }
 
-  static function populateSessionFromRequest(IRequest $req, IResponse $res)
+  public static function returnSessionFilterRequest(IRequest $req, IResponse $res)
+  {
+    $param = self::getRequestParam($req);
+    if($param != null) {
+      $req->items()[self::RequestItemsReturnSessionKey] = true;
+    }
+  }
+
+  public static function populateSessionFromRequest(IRequest $req, IResponse $res)
   {
     if(AuthService::populateFromRequestIfHasSessionId($req, $req->dto()))
         return;

@@ -1,20 +1,25 @@
 <?hh
 
 namespace Pi\Redis;
-use Pi\Interfaces\IContainable;
-use Pi\Interfaces\IContainer;
-use Pi\Redis\Interfaces\IRedisClient;
 
-class RedisClient
-  extends \Redis
-  implements IContainable, IRedisClient {
+use Pi\Interfaces\IContainable,
+    Pi\Interfaces\IContainer,
+    Pi\Interfaces\HydratorFactoryInterface,
+    Pi\Redis\Interfaces\IRedisClient;
+
+
+
+
+class RedisClient extends \Redis implements IContainable, IRedisClient {
 
   public $client;
   private $socket;
 
   public function ioc(IContainer $container){}
 
-  public function __construct(string $hostname = 'localhost', int $port = 6067)
+  public function __construct(
+    protected HydratorFactoryInterface $hydratorFactory,
+    protected string $hostname = 'localhost', int $port = 6067)
   {
     $this->client =  new \Redis();
     $this->client->connect($hostname);
@@ -30,15 +35,30 @@ class RedisClient
 
   }
 
+  public function expire(string $key, int $seconds) : void
+  {
+    $this->client->expire($key, $seconds);
+  }
+
   public function get($key)
   {
     return $this->client->get($key);
   }
 
+  public function getAs(string $key, string $className)
+  {
+    $hydrated = $this->get($key);
+    if($hydrated == null)
+      return null;
+
+    return $this->hydratorFactory->getInstanceOf($className, unserialize($hydrated));
+  }
+
   public function set($key, $value)
   {
-    if($value instanceof \JsonSerializable) {
-      $value = json_encode($value->jsonSerialize());
+    if(is_object($value)) {
+      $hydrator = $this->hydratorFactory->getHydratorForClass($value);
+      $value = serialize($hydrator->extract($value));
     }
     return $this->client->set($key, $value); //ini_get('session.gc_maxlifetime')
   }
@@ -88,9 +108,9 @@ class RedisClient
     return $this->client->lrange($key, $start, $stop);
   }
 
-  public function gc($maxlifetime) {
-      // Handled by $redis->set(..., ini_get('session.gc_maxlifetime'))
-      return 0;
+  public function gc($maxlifetime) 
+  {
+      return 0; // Handled by $redis->set(..., ini_get('session.gc_maxlifetime'))
   }
 
   public function delete(string $key)

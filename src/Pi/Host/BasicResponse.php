@@ -13,8 +13,7 @@ use Pi\Interfaces\IHttpResponse;
 use Pi\Interfaces\IContainable;
 use Pi\Interfaces\IContainer;
 
-class BasicResponse
-  implements IResponse{
+class BasicResponse implements IResponse{
 
     protected $isClosed = false;
 
@@ -23,6 +22,12 @@ class BasicResponse
     protected int $statusCode = 200;
 
     protected string $statusDescription;
+
+    protected Map<string,string> $headers = Map{};
+
+    protected Map<string,string> $cookies = Map{};
+
+    protected $headersSent = false;
 
     static function createSessionIds(IResponse $res, IRequest $request)
     {
@@ -68,6 +73,31 @@ class BasicResponse
       return \Pi\Common\RandomString::generate();
     }
 
+    public function endRequest($skipHeaders = true) : void
+    {
+      if(!$skipHeaders) {
+      //  $this->setHeaders();
+      }
+
+      HostProvider::instance()->endRequest();
+    }
+
+      public function headers() : Map<string,string>
+    {
+      return $this->headers;
+    }
+
+    public function addHeader(string $key, mixed $value)
+    {
+      
+      $this->headers->add(Pair{$key, (string)$value});
+    }
+
+    public function cookies() : Map<string,string>
+    {
+      return $this->cookies;
+    }
+
     public function getStatusCode() : int
     {
       return $this->statusCode;
@@ -93,14 +123,17 @@ class BasicResponse
 
     }
 
-    public function write($text, $responseStatus = 200) : void
+    public function write($text, int $responseStatus = 200) : void
     {
       if(Extensions::testingMode()) {
         return;
       }
-        http_response_code($responseStatus);
-        echo nl2br($text);
-
+      
+      $this->setHeaders();
+      $this->setCookies();
+      
+      http_response_code($responseStatus);
+      echo nl2br($text);
     }
 
     public function writeDto(IRequest $httpRequest, $dto) : void
@@ -108,7 +141,10 @@ class BasicResponse
       if(Extensions::testingMode()) {
         return;
       }
+      $this->setHeaders();
+      $this->setCookies();
       $output = ob_get_contents();
+      
       if(!empty($output)){
         throw new \Exception('Should not have output');
       }
@@ -142,5 +178,55 @@ class BasicResponse
     public function memoryStream()
     {
       return is_null($this->memoryStream) ? new MemoryStream() : $this->memoryStream;
+    }
+
+    protected function setCookies()
+    {
+      if(Extensions::testingMode()) return;
+
+      foreach ($this->cookies as $key => $value) {
+        $domain = HostProvider::instance()->config()->domain();
+        setcookie($key, $value, time() + 60*60*24*365, '/', $domain);
+      }
+    }
+
+    public function setHeaders()
+    {
+      if(Extensions::testingMode()) return;
+      
+      $this->assertHeadersPristine();   
+      
+      if(isset($_SERVER['HTTP_ORIGIN'])) {
+        $this->processCrossOrigin();
+      }
+
+          if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+              $this->processOptions();
+          }
+      
+      foreach($this->headers as $key => $value) {
+         header($key . ': ' . $value);
+      }
+      $this->headersSent = true;
+    }
+
+    protected function assertHeadersPristine() : void
+    {
+      if($this->headersSent) {
+        throw new \Exception('Headers already sent and shouldnt');
+      }
+    }
+
+    protected function processOptions()
+    {
+      $this->addHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
+      $this->addHeader('Access-Control-Allow-Headers', "{$_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS']}");
+    }
+
+    protected function processCrossOrigin()
+    {
+      $this->addHeader('Access-Control-Allow-Origin', "{$_SERVER['HTTP_ORIGIN']}");
+      $this->addHeader('Access-Control-Allow-Credentials', 'true');
+      $this->addHeader('Access-Control-Max-Age', '86400'); // one day
     }
 }

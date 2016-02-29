@@ -75,6 +75,8 @@ class AuthTokens implements IAuthTokens, \JsonSerializable {
 
   protected string $requestTokenSecret = '';
 
+  protected $userAuthId;
+
 
 
   <<Collection>>
@@ -324,6 +326,7 @@ class AuthTokens implements IAuthTokens, \JsonSerializable {
 		$this->timeZone = $value;
 	}
 
+	<<Id>>
 	public function getId()
 	{
 		return $this->id;
@@ -358,6 +361,16 @@ class AuthTokens implements IAuthTokens, \JsonSerializable {
   public function setUserId($value) : void
   {
     $this->userId = $value;
+  }
+
+  public function getUserAuthId()
+  {
+    return $this->userAuthId;
+  }
+
+  public function setUserAuthId($value) : void
+  {
+    $this->userAuthId = $value;
   }
 
   public function getAccessToken() : string

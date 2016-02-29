@@ -18,7 +18,7 @@ use Pi\Service;
 use Pi\Interfaces\IServiceBase;
 use Pi\Host\ServiceMeta;
 use Pi\Interfaces\IHasFactory;
-use Pi\Logging\LogMannager;
+use Pi\Logging\LogManager;
 use Pi\Interfaces\IRequiresRequest;
 use Pi\Interfaces\IMessageFactory;
 use Pi\Interfaces\IReturn;
@@ -117,7 +117,7 @@ class ServiceController
     if(is_null($this->messageFactory)){
       throw new \Exception('A Message Factory should be registered before ServiceController init is called');
     }
-    $this->log = LogMannager::getLogger(get_class($this));
+    $this->log = LogManager::getLogger(get_class($this));
     $this->appHost->log()->debug(
       sprintf('Initialiazing ServiceController for PiHost %s', $this->appHost->getName())
     );

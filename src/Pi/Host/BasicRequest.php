@@ -10,7 +10,9 @@ use Pi\Interfaces\IRequest;
 use Pi\Host\HostProvider;
 use Pi\Interfaces\IContainable;
 use Pi\Interfaces\IContainer,
-    Pi\Interfaces\HasSessionIdInterface;
+    Pi\Interfaces\HasSessionIdInterface,
+    Pi\Auth\Interfaces\IAuthSession,
+    Pi\Cache\RedisCacheProvider;
 use Pi\ServiceModel\AuthUserAccount;
 use Pi\ServiceModel\Types\Author;
 
@@ -364,12 +366,35 @@ class BasicRequest implements IRequest, HasSessionIdInterface {
     }
 
     public function serverName() : string
-  {
-    return $this->serverName;
-  }
+    {
+      return $this->serverName;
+    }
 
-  public function serverPort() : int
-  {
-    return $this->serverPort;
-  }
+    public function serverPort() : int
+    {
+      return $this->serverPort;
+    }
+
+    public function saveSession(IAuthSession $session, ?\DateTime $expiresIn = null)
+    {
+      $this->onSaveSession($this, $session, $expiresIn);
+    }
+
+    public function onSaveSession(IRequest $httpReq, IAuthSession $session, ?\DateTime $expiresIn = null)
+    {
+      if($httpReq == null) return;
+
+      $sessionId = $this->getSessionId();
+      $sessionKey = SessionPlugin::getSessionKey($sessionId);
+      $session = (is_null($sessionKey) ? $cache->get($sessionKey) : null)
+          ? : SessionPlugin::createNewSession($this, $sessionId);
+      
+      $session->setLastModified(new \DateTime('now'));
+      $cache = $this->tryResolve('ICacheProvider');
+      $cache->set($sessionId, $session);
+      if($cache instanceof RedisCacheProvider) {
+        $cache->expire($sessionId, 3600);
+      }
+      $this->items[SessionPlugin::RequestItemsSessionKey] = $session;
+    }
 }

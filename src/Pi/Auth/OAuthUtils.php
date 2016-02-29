@@ -10,11 +10,18 @@ use Pi\Common\Http\HttpMessage,
 
 class OAuthUtils {
 
-	public static function urlencodeRfc3986(string $input) : string {
+	public static function urlencodeRfc3986(mixed $input) : mixed 
+	{
 		if (is_array($input)) {
-			return array_map(array('OAuthUtils', 'urlencodeRfc3986'), $input);
+			return array_map('self::urlencodeRfc3986', $input);
 		}
 		else if (is_scalar($input)) {
+			return rawurlencode($input);
+			return str_replace(
+				array('+', '~', '='),
+				array(' ', '%7E', '%3D'),
+				rawurlencode($input)
+			);
 			return str_replace(
 			  '+', 
 			  ' ', 
@@ -26,11 +33,13 @@ class OAuthUtils {
 		}
 	}
 
-	public static function getNormalizedHttpMethod(string $method) : string {
+	public static function getNormalizedHttpMethod(string $method) : string 
+	{
 		return strtoupper($method);
 	}
 
-	public static function getNormalizedHttpUrl(string $httpUrl) {
+	public static function getNormalizedHttpUrl(string $httpUrl) 
+	{
 		$parts = parse_url($httpUrl);
 		$scheme = (isset($parts['scheme'])) ? $parts['scheme'] : 'http';
 	    $port = (isset($parts['port'])) ? $parts['port'] : (($scheme == 'https') ? '443' : '80');
@@ -40,9 +49,11 @@ class OAuthUtils {
 	        || ($scheme == 'http' && $port != '80')) {
 	      $host = "$host:$port";
 	    }
+
+	    return "$scheme://$host$path";
 	}
 
-	public static function buildHttpQuery(string $params) {
+	public static function buildHttpQuery($params) {
 		if (!$params) {
 		    return '';
 		  }
@@ -76,7 +87,8 @@ class OAuthUtils {
 		return implode('&', $pairs);
 	}
 
-	public static function getSignableParameters($params) {
+	public static function getSignableParameters($params) 
+	{
 		// Remove oauth_signature if present
 	    // Ref: Spec: 9.1.1 ("The oauth_signature parameter MUST be excluded.")
 	    if (isset($params['oauth_signature'])) {
@@ -84,6 +96,4 @@ class OAuthUtils {
 	    }
 	    return self::buildHttpQuery($params);
 	}
-
-	
 }

@@ -52,7 +52,7 @@ class AppSettings implements IContainable, AppSettingsInterface {
 		return $this->provider->exists($key);
 	}
 
-	public function getString(string $name) : string
+	public function getString(string $name) : ?string
 	{
 		return $this->provider->getString($name);
 	}
@@ -67,6 +67,10 @@ class AppSettings implements IContainable, AppSettingsInterface {
 		return $this->provider->getMap($key);
 	}
 
+	public function set(string $key, mixed $value) : void
+	{
+		$this->provider->set($key, $value);
+	}
 	public function setString(string $name, string $value) : void
 	{
 		return $this->provider->setString($name, $value);

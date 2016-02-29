@@ -33,7 +33,7 @@ use Pi\Host\Handlers\FileSystemHandler;
 use Pi\Host\Handlers\NotFoundHandler;
 use Pi\Logging\DebugLogFactory;
 use Pi\Logging\DebugLogger;
-use Pi\Logging\LogMannager;
+use Pi\Logging\LogManager;
 use Pi\Message\InMemoryService;
 use Pi\Message\InMemoryFactory;
 use Pi\FileSystem\FileGet;

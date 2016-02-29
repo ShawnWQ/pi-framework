@@ -62,6 +62,11 @@ class HttpResult implements IIsStreamWriter {
       return $this->headers;
   }
 
+  public function headers()
+  {
+    return $this->headers;
+  }
+
   public function writeTo($responseStream)
   {
     echo 'writting to output';

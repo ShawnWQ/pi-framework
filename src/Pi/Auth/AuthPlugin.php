@@ -26,8 +26,8 @@ class AuthPlugin implements IPostInitPlugin, IPlugin {
 		$this->authEvents = Set{};
 	}
 
-	public function register(IPiHost $appHost) : void {
-		
+	public function register(IPiHost $appHost) : void
+	{	
 		$appHost->container->register('Pi\Auth\Interfaces\ICryptorProvider', function(IContainer $container) {
 			return new Md5CryptorProvider();
 		});
@@ -44,9 +44,11 @@ class AuthPlugin implements IPostInitPlugin, IPlugin {
 		$s = new AuthService();
 		$provider = $appHost->container->get('Pi\Auth\Interfaces\ICryptorProvider');
 		$this->session = new AuthUserSession();
-		$s->init(array
-				(new CredentialsAuthProvider($appHost->appSettings(), '/realm', CredentialsAuthProvider::name, $provider)),
-				$this->session);
+		$s->init(array(
+				new CredentialsAuthProvider($appHost->appSettings(), '/realm', CredentialsAuthProvider::name, $provider),
+				new FacebookAuthProvider($appHost->appSettings())
+			),
+			$this->session);
 		
 		$appHost->registerService($s);
 

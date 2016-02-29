@@ -1,15 +1,16 @@
 <?hh
 namespace Mocks;
 
-use Pi\Interfaces\IService;
-use Pi\Auth\Interfaces\IAuthSession;
-use Pi\Auth\Interfaces\IAuthTokens;
-use Pi\Interfaces\IHostConfig;
-use Pi\Auth\Interfaces\IOAuthProvider,
+use Pi\Interfaces\IService,
+    Pi\Auth\Interfaces\IAuthSession,
+    Pi\Auth\Interfaces\IAuthTokens,
+    Pi\Interfaces\AppSettingsInterface,
+    Pi\Auth\Interfaces\IOAuthProvider,
     Pi\Auth\Interfaces\IUserAuth,
+    Pi\Auth\Authenticate,
     Pi\Auth\UserAuth,
-    Pi\Auth\UserAuthDetails;
-use Facebook\Facebook;
+    Pi\Auth\UserAuthDetails,
+    Pi\Auth\OAuthProvider;
 
 class MockAuthProvider extends OAuthProvider implements IOAuthProvider {
 
@@ -21,10 +22,15 @@ class MockAuthProvider extends OAuthProvider implements IOAuthProvider {
 
   protected $fbClient;
 
-
-  public function __construct(IHostConfig $appSettings)
+  public function __construct(AppSettingsInterface $appSettings)
   {
     $this->provider = self::name;
+    $this->accessTokenUrl = 'http://term.ie/oauth/example/access_token.php';
+    $this->authorizeUrl = 'http://term.ie/oauth/example/request_token.php';
+    $this->requestTokenUrl = 'http://term.ie/oauth/example/request_token.php';
+    $this->callbackUrl = 'http://localhost/auth';
+    $this->consumerKey = 'key';
+    $this->consumerSecret = 'secret';
     parent::__construct($appSettings, 'realm', 'mock');
   }
 

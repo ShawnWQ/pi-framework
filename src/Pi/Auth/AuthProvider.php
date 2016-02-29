@@ -4,6 +4,7 @@ namespace Pi\Auth;
 
 use Pi\Service,
     Pi\EventManager,
+    Pi\Logging\LogManager,
     Pi\Interfaces\AppSettingsInterface,
     Pi\Interfaces\IService,
     Pi\Interfaces\IRequest,
@@ -39,14 +40,17 @@ abstract class AuthProvider {
 
   protected $provider;
 
-  protected $callbackUrl;
+  protected $callbackUrl = '';
 
-  protected $redirectUrl;
+  protected $redirectUrl = '';
 
   protected ?IAuthEvents $authEvents;
+
+  protected $log;
   
   public function __construct(AppSettingsInterface $appSettings, string $authRealm, string $oAuthProvider)
   {
+    $this->log = LogManager::getLogger(get_class($this));
     $this->authRealm = is_null($appSettings) || !$appSettings->exists('OAuthRealm') ? $authRealm : $appSettings->getString('OAuthRealm', $authRealm);
     $this->provider = $oAuthProvider;
 
@@ -69,10 +73,7 @@ abstract class AuthProvider {
     return $this->authEvents;
   } 
 
-  public function loadUserAuthInfo(AuthUserSession $userSession, IAuthTokens $tokens, Map<string,string> $authInfo)
-  {
-
-  }
+  public function loadUserAuthInfo(AuthUserSession $userSession, IAuthTokens $tokens, Map<string,string> $authInfo) { }
 
   public function getOAuthRealm()
   {
@@ -197,14 +198,54 @@ abstract class AuthProvider {
     $service->removeSession();
   }
 
-  public function onAuthenticated(IService $authService, IAuthSession $session, IAuthTokens $tokens, array $authInfo = null)
+  public function onAuthenticated(IService $authService, IAuthSession $session, IAuthTokens $tokens, Map<string,string> $authInfo = null)
   {
+    $authRepo = $authService->tryResolve('Pi\Auth\Interfaces\IAuthRepository');
+    $hasTokens = $tokens != null && $authInfo != null;
 
+    if($hasTokens && $session instanceof AuthUserSession) {
+      $this->loadUserAuthInfo($session, $tokens, $authInfo);
+
+      foreach ($authInfo as $key => $value) {
+        $tokens->addItem((string)$key, (string)$value);
+      }
+
+      $userDetails = $authRepo->createOrMergeAuthSession($session, $tokens);
+      //$session->setUserId($user->getId());
+      $session->setUserId($userDetails->getUserId());
+
+      foreach ($session->getProviderOAuthAccess() as $oAuthToken) {
+        $provider = AuthService::getAuthProvider($oAuthToken->getProvider());
+        if($provider == null)
+          continue;
+
+        if($provider instanceof OAuthProvider) {
+          $provider->loadUserOAuthProvider($session, $oAuthToken);
+        }
+      }     
+    }
+
+    $httpRes = $authService->request()->response();
+    if($httpRes != null) {
+      // add cookie HeadersUserAuthId, session.UserAuthId
+      $httpRes->cookies()->add(Pair{self::xPiUserAuthId, $session->getUserId()});
+    }
+
+    $session->setIsAuthenticated(true);
+     if($tokens == null) {
+      $tokens = new AuthTokens();
+    }
+    $session->onAuthenticated($authService, $session, $tokens, $authInfo);
+    // AuthEvents
+
+    $expire = new \DateTime('now');
+    $expire->modify('+1 day');
+    $authService->saveSession($session, $expire); 
+    return null;
   }
 
   public function saveUserAuth(IService $authService, IAuthSession $session, IAuthRepository $authRepo, ?IAuthTokens $tokens = null) : void
   {
-
     if($authRepo == null) return;
     if($tokens != nul)  {
       $user = $authRepo->createOrMergeAuthSession($sessio, $tokens);
@@ -212,6 +253,18 @@ abstract class AuthProvider {
     }
 
     $authRepo->loadUserAuth($session, $tokens);
+
+    foreach ($session->getProviderOAuthAccess() as $oAuthToken) {
+      $provider = AuthService::getAuthProvider($oAuthToken->getProvider());
+      if($provider == null)
+        continue;
+
+      if($provider instanceof OAuthProvider) {
+        $provider->loadUserOAuthProvider($session, $oAuthToken);
+      }
+    }
+    $authRepo->saveUserAuth($session);
+
     $httpRes = $authService->request()->response();
     if($httpRes instanceof IHttpResponse) {
       // add cookies

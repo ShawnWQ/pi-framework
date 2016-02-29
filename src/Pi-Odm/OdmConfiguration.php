@@ -8,7 +8,7 @@ use Pi\Interfaces\IContainable;
 
 class OdmConfiguration implements IContainable {
 
-  protected $hydratorDir = '/tmp/pi-tmp';
+  protected $hydratorDir = '/tmp';
 
   protected $hydratorNamespace;
 

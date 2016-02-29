@@ -8,6 +8,7 @@ use Pi\EventManager,
     Pi\Interfaces\IContainer,
     Pi\Interfaces\DtoMetadataInterface,
     Pi\Odm\MappingType,
+    Pi\Odm\Interfaces\IMappingDriver,
     Pi\Common\Mapping\ClassFieldMapping,
     Pi\Common\ClassUtils,
     Pi\Host\HostProvider;
@@ -15,7 +16,7 @@ use Pi\EventManager,
 
 
 
-abstract class AbstractMappingDriver implements IContainable {
+abstract class AbstractMappingDriver implements IContainable, IMappingDriver {
 
     
   public function __construct(protected array $paths = array(), EventManager $em, ICacheProvider $cache)
@@ -25,10 +26,6 @@ abstract class AbstractMappingDriver implements IContainable {
 
 	public function loadMetadataForClass(string $className, DtoMetadataInterface $entity)
 	{
-		if(!$entity instanceof Operation) {
-		    throw new \Excepion('OperationDriver only handles Operation as class Metadata object');
-		}
-
 		$reflClass = $entity->getReflectionClass();
 		$parent =  $reflClass->getParentClass();
 		$this->mapBaseMappings($entity, $reflClass);
@@ -153,12 +150,6 @@ abstract class AbstractMappingDriver implements IContainable {
 
     $attrs = $this->getClassAttributes($entity);
     
-    $attr = $reflClass->getAttribute('Collection');
-    if($attr !== null) {
-
-      $entity->setCollection($attr[0]);
-    }
-
     if(!is_null($reflClass->getAttribute('DiscriminatorField'))) {
       $type = is_null($reflClass->getAttribute('InheritanceType')) ? 'Single' : $reflClass->getAttribute('InheritanceType')[0];
       $value = is_null($reflClass->getAttribute('DefaultDiscriminatorValue')) ? 'default' : $reflClass->getAttribute('DefaultDiscriminatorValue')[0];

@@ -25,6 +25,8 @@ class AuthUserSession implements IAuthSession, \JsonSerializable {
 
   protected $email = '';
 
+  protected $primaryEmai;
+
   /**
    * @var Pi\Auth\Interfaces\IAuthTokens OAuth tokens
    */
@@ -43,6 +45,18 @@ class AuthUserSession implements IAuthSession, \JsonSerializable {
   protected $isAuthenticated = false;
 
   protected string $userAuthName = '';
+
+  protected ?string $facebookUserId;
+
+  protected ?string $facebookUsername;
+
+  protected ?string $facebookEmail;
+
+  protected ?string $facebookFirstName;
+
+  protected ?string $facebookLastName;
+
+  protected ?string $facebookDisplayName;
 
   public function jsonSerialize()
   {
@@ -72,7 +86,7 @@ class AuthUserSession implements IAuthSession, \JsonSerializable {
     $this->id = $id;
   }
 
-  public function getUserId() : ?\MongoId
+  public function getUserId()
   {
     return $this->userId;
   }
@@ -140,6 +154,16 @@ class AuthUserSession implements IAuthSession, \JsonSerializable {
   public function setEmail(string $value)  : void
   {
     $this->email = $value;
+  }
+
+  public function getPrimaryEmail() : ?string
+  {
+    return $this->primaryEmail;
+  }
+
+  public function setPrimaryEmail(string $value)  : void
+  {
+    $this->primaryEmail = $value;
   }
 
   public function getProviderOAuthAccess() : array
@@ -220,6 +244,56 @@ class AuthUserSession implements IAuthSession, \JsonSerializable {
   public function hasPermission(string $permission) : bool
   {
     return array_key_exists($permission, $this->permissions);
+  }
+
+  public function getFacebookUserId() : ?string
+  {
+    return $this->facebookUserId;
+  }
+
+  public function setFacebookUserId(string $value)  : void
+  {
+    $this->facebookUserId = $value;
+  }
+
+  public function getFacebookEmail() : ?string
+  {
+    return $this->facebookEmail;
+  }
+
+  public function setFacebookEmail(string $value)  : void
+  {
+    $this->facebookEmail = $value;
+  }
+
+  public function getFacebookDisplayName() : ?string
+  {
+    return $this->facebookDisplayName;
+  }
+
+  public function setFacebookDisplayName(string $value)  : void
+  {
+    $this->displayName = $value;
+  }
+
+  public function getFacebookFirstName() : ?string
+  {
+    return $this->facebookFirstName;
+  }
+
+  public function setFacebookFirstName(string $value)  : void
+  {
+    $this->facebookFirstName = $value;
+  }
+
+  public function getFacebookLastName() : ?string
+  {
+    return $this->facebookLastName;
+  }
+
+  public function setFacebookLastName(string $value)  : void
+  {
+    $this->facebookLastName = $value;
   }
 
   public function isAuthorized(string $provider) : bool

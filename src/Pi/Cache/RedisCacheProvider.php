@@ -41,6 +41,11 @@ class RedisCacheProvider implements ICacheProvider, IContainable {
     $this->redis->set($this->redisSet() . $key, $value);
   }
 
+  public function expire($key, int $seconds)
+  {
+    $this->redis->expire($this->redisSet() . $key, $seconds);
+  }
+
   public function push($key, $value)
   {
     $this->redis->push($this->redisSet(). $key, $value);

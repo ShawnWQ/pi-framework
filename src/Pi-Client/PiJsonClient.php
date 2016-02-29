@@ -3,8 +3,8 @@
 namespace Pi\Client;
 use Pi\Interfaces\IMessage;
 
-class PiJsonClient
-  extends ServiceClientBase {
+
+class PiJsonClient extends ServiceClientBase {
 
     protected $ch;
     protected $hostname;

@@ -1,11 +1,22 @@
 <?hh
 namespace Pi\Auth;
 
-use Pi\Auth\Interfaces\IOAuthProvider;
+use Pi\Interfaces\IService,
+    Pi\Interfaces\AppSettingsInterface,
+    Pi\Auth\Interfaces\IOAuthProvider,
+    Pi\Auth\Interfaces\IAuthSession,
+    Pi\Auth\Interfaces\IAuthTokens;
 
 
 
 abstract class OAuthProvider extends AuthProvider  {
+
+  public function __construct(AppSettingsInterface $appSettings, string $authRealm, string $oAuthProvider)
+  {
+    parent::__construct($appSettings, $authRealm, $oAuthProvider);
+    $this->callbackUrl = $appSettings->getString(sprintf("auth.%s.callbackUrl", $oAuthProvider)) ?: 'http://localhost/auth/facebook';
+    $this->accessTokenUrl = $appSettings->getString(sprintf('auth.%s.accessTokenUrl', $oAuthProvider)) ?: $this->getRealm() . '/oauth/access_token';
+  }
 
   protected string $consumerKey;
 
@@ -62,24 +73,22 @@ abstract class OAuthProvider extends AuthProvider  {
     $this->accessTokenUrl = $value;
   }
 
-  public function init(IService $authService, IAuthSession &$session, Auth $request) : IAuthTokens
+  public function init(IService $authService, IAuthSession &$session, Authenticate $request) : IAuthTokens
   {
     $requestUri = $authService->request()->requestUri();
-    if((!empty($this->callbackUrl))) {
+    if((empty($this->callbackUrl))) {
       $this->callbackUrl = $requestUri;
     }
 
     $ac = $session->getProviderOAuthAccess();
-    $tokens = !array_key_exists($this->provider, $ac) ? $ac : null;
+    $tokens = array_key_exists($this->provider, $ac) ? $ac[$this->provider] : null;
     if(is_null($tokens)) {
-      $tokens = new OAuthTokens();
+      $tokens = new AuthTokens();
       $session->addProviderOAuthAccess($tokens);
     }
 
     return $tokens;
   }
 
-  public function ladUserOAuthProvider(IAuthSession $authSession, IAuthTokens $tokens) {
-    
-  }
+  public function loadUserOAuthProvider(IAuthSession $authSession, IAuthTokens $tokens)  { }
 }

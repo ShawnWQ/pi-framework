@@ -2,12 +2,13 @@
 
 namespace Pi\Auth;
 
-use Pi\Interfaces\HasSessionIdInterface;
+use Pi\Response,
+	Pi\Interfaces\HasSessionIdInterface;
 
 
 
 
-class AuthenticateResponse implements HasSessionIdInterface {
+class AuthenticateResponse extends Response implements HasSessionIdInterface {
 	
 	public function __construct(
 

@@ -6,12 +6,9 @@
  */
 
 class PHP_Token_SELECT {
-    public function __toString()
-    {
-
-        return 'dumb';
-    }
+    public function __toString() { return 'dumb'; }
 }
+
 if(!class_exists('MongoCursorException')) {
 	class MongoCursorException extends \Exception { }
 }
@@ -19,12 +16,13 @@ if(!class_exists('MongoCursorException')) {
 if(!class_exists('PHP_Token_XHP_REQUIRED')) {
 	class PHP_Token_XHP_REQUIRED {}
 }
+
 if(!class_exists('PHP_Token_ASYNC')) {
 	class PHP_Token_ASYNC extends \PHP_Token { }
 }
 
 if(!class_exists('PHP_Token_WHERE')) {
-class PHP_Token_WHERE extends \PHP_Token {}
+	class PHP_Token_WHERE extends \PHP_Token {}
 }
 
 if(!class_exists('PHP_Token_ENUM')) {
@@ -32,7 +30,7 @@ if(!class_exists('PHP_Token_ENUM')) {
 }
 
 if(!class_exists('PHP_Token_ONUMBER')) {
-class PHP_Token_ONUMBER extends \PHP_Token {}
+	class PHP_Token_ONUMBER extends \PHP_Token {}
 }
 
 error_reporting(E_ALL);
@@ -46,4 +44,5 @@ spl_autoload_register(function ($class_name) {
 	}
     return false;
 });
+
 date_default_timezone_set('Europe/Lisbon');

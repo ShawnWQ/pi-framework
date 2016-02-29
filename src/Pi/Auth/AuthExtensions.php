@@ -28,17 +28,17 @@ class AuthExtensions {
 
 	public static function populateUserAuthWithSession(IUserAuth &$userAuth, IAuthSession &$session)
 	{
-		if($userAuth->getDisplayName() != null)
-			$session->setDisplayName($userAuth->getDisplayName());
-		if($userAuth->getFirstName() != null)
-	    	$session->setFirstName($userAuth->getFirstName());
-	    if($userAuth->getLastName() != null)
-	    	$session->setLastName($userAuth->getLastName());
-	    if($userAuth->getEmail() != null)
-	    	$session->setEmail($userAuth->getEmail());
+		if($session->getDisplayName() != null)
+			$userAuth->setDisplayName($session->getDisplayName());
+		if($session->getFirstName() != null)
+	    	$userAuth->setFirstName($session->getFirstName());
+	    if($session->getLastName() != null)
+	    	$userAuth->setLastName($session->getLastName());
+	    if($session->getEmail() != null || $session->getPrimaryEmail() != null)
+	    	$userAuth->setEmail($session->getEmail() ?: $session->getPrimaryEmail());
 	    $session->setCreatedAt(new \DateTime('now'));
-	    if($userAuth->getModifiedDate() != null)
-	    	$session->setModifiedDate($userAuth->getCreatedDate());
+	    //if($session->getModifiedDate() != null)
+	    //	$userAuth->setModifiedDate($userAuth->getCreatedDate());
 	}
 
 	public static function populateSessionWithUserAuth(IAuthSession &$session, IUserAuth &$userAuth, ?array $authTokens = null)

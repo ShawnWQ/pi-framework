@@ -28,6 +28,10 @@ class Authenticate {
 
   protected array $meta;
 
+  protected ?string $requestTokenUrl;
+
+  protected ?string $accessTokenUrl;
+
   public function getProvider() : ?string
   {
     return $this->provider;
@@ -68,7 +72,7 @@ class Authenticate {
     $this->oAuthVerifier = $value;
   }
 
-  public function getUserName() : string
+  public function getUserName() : ?string
   {
     return $this->username;
   }
@@ -135,6 +139,26 @@ class Authenticate {
   public function setEmail(string $pw) : void
   {
     $this->email = $pw;
+  }
+
+  public function getAccessTokenUrl() : ?string
+  {
+    return $this->accessTokenUrl;
+  }
+
+  public function setAccessTokenUrl(string $pw) : void
+  {
+    $this->accessTokenUrl = $pw;
+  }
+
+  public function getRequestTokenUrl() : ?string
+  {
+    return $this->requestTokenUrl;
+  }
+
+  public function setRequestTokenUrl(string $pw) : void
+  {
+    $this->requestTokenUrl = $pw;
   }
 
 
