@@ -1,0 +1,92 @@
+<phpunit bootstrap="tests/bootstrap.php"
+    colors="true"
+    convertErrorsToExceptions="true"
+    convertNoticesToExceptions="true"
+    convertWarningsToExceptions="true"
+    processIsolation="false">
+    <testsuites>
+        <testsuite name="Playground">
+          <directory>tests/playground</directory>
+        </testsuite>
+        <testsuite name="Integration">
+          <directory>tests/integration/Pi</directory>
+        </testsuite>
+        <testsuite name="PiHost">
+          <file>tests/Pi/PiHostTest.php</file>
+        </testsuite>
+        <testsuite name="MultiTenant">
+          <directory>tests/MultiTenant</directory>
+        </testsuite>
+        <testsuite name="SpotEvents">
+          <directory>tests/SpotEvents</directory>
+        </testsuite>
+        <testsuite name="Core">
+            <directory>tests/Pi/</directory>
+        </testsuite>
+        <testsuite name="MarkdownView">
+          <directory>tests/MarkdownView</directory>
+        </testsuite>
+        <testsuite name="Logging">
+          <directory>tests/Pi/Logging</directory>
+        </testsuite>
+        <testsuite name="Route">
+          <file>tests/Pi/RouteTest.php</file>
+        </testsuite>
+        <testsuite name="PiQueue">
+          <directory>tests/Pi-Queue</directory>
+        </testsuite>
+        <testsuite name="Cache">
+          <directory>tests/Pi/Cache</directory>
+        </testsuite>
+        <testsuite name="EventManager">
+          <file>tests/Pi/EventTest.php</file>
+        </testsuite>
+        <testsuite name="Message">
+          <directory>tests/Pi/Message</directory>
+        </testsuite>
+        <testsuite name="MessagePack">
+          <directory>tests/Pi-MessagePack</directory>
+        </testsuite>
+        <testsuite name="Rabbit">
+          <directory>tests/Pi-AmqbRabbit</directory>
+        </testsuite>
+        <testsuite name="Host">
+          <directory>tests/Pi/Host</directory>
+        </testsuite>
+        <testsuite name="ODM">
+          <directory>tests/Pi-Odm</directory>
+        </testsuite>
+        <testsuite name="Validation">
+          <directory>tests/Pi-Validation</directory>
+        </testsuite>
+        <testsuite name="Common">
+          <directory>tests/Pi-Common</directory>
+        </testsuite>
+        <testsuite name="RedisDb">
+          <directory>tests/Pi-Redis</directory>
+        </testsuite>
+        <testsuite name="VirtualPath">
+          <directory>tests/Pi-VirtualPath</directory>
+        </testsuite>
+        <testsuite name="Auth">
+          <directory>tests/Pi/Auth</directory>
+        </testsuite>
+        <testsuite name="Warez">
+          <directory>tests/Warez</directory>
+        </testsuite>
+        <testsuite name="Collaboration">
+          <directory>tests/Collaboration</directory>
+        </testsuite>
+        <testsuite name="Sitemap">
+          <directory>tests/Pi-Sitemap</directory>
+        </testsuite>
+    </testsuites>
+    <php>
+        <server name="REQUEST_URI" value="/test" />
+        <server name="REQUEST_METHOD" value="GET" />
+        <server name="HTTP_X_FORWARDED_FOR" value="" />
+        <server name="SERVER_NAME" value="localhost" />
+        <server name="SERVER_PORT" value="80" />
+        <const name="PHPUNIT_PI_DEBUG" value="true"/>
+    </php>
+</phpunit>

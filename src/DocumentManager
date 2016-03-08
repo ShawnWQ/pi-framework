@@ -1,0 +1,149 @@
+<?hh
+
+namespace Pi\Odm;
+
+use Pi\Interfaces\IContainable;
+use Pi\Interfaces\IContainer;
+use Pi\EventManager;
+use Pi\Odm\Interfaces\IEntity;
+use Pi\Odm\Interfaces\IDocumentMannager;
+use Pi\Odm\Repository\RepositoryFactory;
+use Pi\Odm\Query\QueryType;
+use Pi\Odm\Query\QueryBuilder;
+use Pi\Odm\Query\UpdateQueryBuilder;
+
+
+/**
+ * DocumentMannager is a object managed by Container, and so responsible for creating classMetaDafaFactory, hydratorFactory, etc. All related to ODM
+ *
+ */
+class DocumentManager implements IDocumentMannager, IContainable {
+
+	protected $ioc;
+
+	protected $hydratorFactory;
+
+	protected $connection;
+
+
+	protected $repositories;
+
+	protected $classMetaDataFactory;
+
+	protected $repositoryFactory;
+
+	protected $documentCollections;
+
+	protected $documentDatabases;
+
+	private $closed = false;
+
+	public function __construct(protected UnitWork $unitWork, protected EventManager $eventManager)
+	{
+		$this->classMetaDataFactory = $unitWork->classMetaDataFactory();
+		$this->repositoryFactory = new RepositoryFactory($unitWork, $this, $this->eventManager);
+		$this->documentCollections = array();
+		$this->documentDatabases = array();
+		//$this->connection = $this->unitWork->connection();
+	}
+
+	public function ioc(IContainer $ioc)
+	{
+		$this->connection = $ioc->get('IDbConnection');
+	}
+
+	public function unitWork()
+	{
+		return $this->unitWork;
+	}
+
+
+	public function queryBuilder($className)
+	{
+		if(!is_string($className)) {
+			$className = get_class($className);
+		}
+		return new UpdateQueryBuilder($className, $this);
+	}
+
+	public function updateBuilder($entity)
+	{
+		return new UpdateQueryBuilder($entity, $this);
+	}
+
+	public function persist(IEntity $document)
+	{
+		$this->unitWork->persist($document);
+	}
+
+
+
+	public function getClassMetadata(string $className)
+	{
+		return $this->classMetaDataFactory->getMetadataFor(ltrim($className, '\\'));
+
+	}
+
+	public function execute()
+	{
+
+	}
+
+	public function flush($document = null, array $options = array())
+	{
+		$this->unitWork->commit($document, $options);
+	}
+
+	public function getRepository($document)
+	{
+		return $this->repositoryFactory->getRepository(get_class($document));
+	}
+
+	public function getDocumentDatabase($className)
+	{
+		$className = ltrim($className, '\\');
+	    if (isset($this->documentDatabases[$className])) {
+	        return $this->documentDatabases[$className];
+	    }
+	    $metadata = $this->classMetaDataFactory->getMetadataFor($className);
+	    $db = $metadata->getDatabase();
+	    $db = $db ? $db : $this->unitWork->configuration()->getDefaultDB();
+	    $db = $db ? $db : 'pi';
+	    $this->documentDatabases[$className] = $this->connection->selectDatabase($db);
+
+	    return $this->documentDatabases[$className];
+	}
+
+	public function getDocumentCollection(string $className)
+	{
+		$className = ltrim($className, '\\');
+
+        $metadata = $this->classMetaDataFactory->getMetadataFor($className);
+        $collectionName = $metadata->getCollection();
+
+        if ( ! $collectionName) {
+            throw new \Exception('documentNotMappedToCollection: ' . $className);
+        }
+
+        if ( ! isset($this->documentCollections[$className])) {
+            $db = $this->getDocumentDatabase($className);
+
+            $this->documentCollections[$className] = $metadata->isFile()
+                ? $db->getGridFS($collectionName)
+                : $db->selectCollection($collectionName);
+        }
+
+        $collection = $this->documentCollections[$className];
+
+        if ($metadata->slaveOkay !== null) {
+            $collection->setSlaveOkay($metadata->slaveOkay);
+        }
+
+        return $this->documentCollections[$className];
+	}
+
+	public function createQueryBuilder($documentName = null)
+	{
+		return new QueryBuilder($this, $documentName);
+	}
+}
