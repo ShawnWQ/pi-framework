@@ -33,7 +33,7 @@ class ApplicationService extends Service {
 	public ApplicationRepository $appRepo;
 	public AbstractMailProvider $mailProvider;
 
-	<<Request,Route('/asdnfxvc213123nedzkjcxnvkxcvcxv'),Method('GET')>>
+/*	<<Request,Route('/asdnfxvc213123nedzkjcxnvkxcvcxv'),Method('GET')>>
 	public function defaultAccount(BasicRegisterRequest $req)
 	{
 		$appId = $this->request()->appId() ?: new \MongoId();
@@ -47,7 +47,7 @@ class ApplicationService extends Service {
 
 		}
 	}
-
+*/
 	protected function getCacheAppBootKey(\MongoId $appId) : string
 	{
 		return sprintf('app::%s::boot', (string)$appId);

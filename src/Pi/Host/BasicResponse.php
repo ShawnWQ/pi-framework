@@ -2,16 +2,16 @@
 
 namespace Pi\Host;
 
+use Pi\Extensions,
+    Pi\HttpResult,
+    Pi\SessionPlugin,
+    Pi\Interfaces\IResponse,
+    Pi\Interfaces\IRequest,
+    Pi\Interfaces\IContainable,
+    Pi\Interfaces\IContainer;
 
-use Pi\Extensions;
-use Pi\HttpResult;
-use Pi\SessionPlugin;
-use Pi\Interfaces\IResponse;
-use Pi\Interfaces\IRequest;
-use Pi\Interfaces\IHttpRequest;
-use Pi\Interfaces\IHttpResponse;
-use Pi\Interfaces\IContainable;
-use Pi\Interfaces\IContainer;
+
+
 
 class BasicResponse implements IResponse{
 
@@ -45,7 +45,7 @@ class BasicResponse implements IResponse{
     {
       $sessionId = self::createRandomSessionId();
 
-      if($res instanceof IHttpResponse) {
+      if($res instanceof IResponse) {
         $res->cookies()->add(Pair{SessionPlugin::SessionId, $sessionId});
         $res->headers()->add(Pair{SessionPlugin::SessionId, $sessionId});
       }
@@ -58,7 +58,7 @@ class BasicResponse implements IResponse{
     {
       $sessionId = self::createRandomSessionId();
 
-      if($res instanceof IHttpResponse) {
+      if($res instanceof IResponse) {
         $res->cookies()->add(Pair{SessionPlugin::PermanentSessionId, $sessionId});
         $res->headers()->add(Pair{SessionPlugin::PermanentSessionId, $sessionId});
       }
@@ -76,10 +76,11 @@ class BasicResponse implements IResponse{
     public function endRequest($skipHeaders = true) : void
     {
       if(!$skipHeaders) {
-      //  $this->setHeaders();
+        $this->setHeaders();
       }
-
+//      die();
       HostProvider::instance()->endRequest();
+
     }
 
       public function headers() : Map<string,string>
@@ -123,7 +124,7 @@ class BasicResponse implements IResponse{
 
     }
 
-    public function write($text, int $responseStatus = 200) : void
+    public function write($text, ?int $responseStatus = null) : void
     {
       if(Extensions::testingMode()) {
         return;
@@ -131,8 +132,15 @@ class BasicResponse implements IResponse{
       
       $this->setHeaders();
       $this->setCookies();
+
+        
+      if(!empty($output)){
+        throw new \Exception('Should not have output');
+      }
       
-      http_response_code($responseStatus);
+      ob_end_clean();
+      
+      http_response_code($responseStatus ?: $this->statusCode);
       echo nl2br($text);
     }
 
@@ -155,6 +163,7 @@ class BasicResponse implements IResponse{
         http_response_code($dto->status());
         echo json_encode($dto->response());
       } else if(!is_null($dto)) {
+        http_response_code($this->statusCode);
         echo json_encode($dto);
       } else {
         return;
@@ -197,12 +206,12 @@ class BasicResponse implements IResponse{
       $this->assertHeadersPristine();   
       
       if(isset($_SERVER['HTTP_ORIGIN'])) {
-        $this->processCrossOrigin();
+//        $this->processCrossOrigin();
       }
 
-          if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
-              $this->processOptions();
-          }
+      if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+  //        $this->processOptions();
+      }
       
       foreach($this->headers as $key => $value) {
          header($key . ': ' . $value);
@@ -213,7 +222,7 @@ class BasicResponse implements IResponse{
     protected function assertHeadersPristine() : void
     {
       if($this->headersSent) {
-        throw new \Exception('Headers already sent and shouldnt');
+     //   throw new \Exception('Headers already sent and shouldnt');
       }
     }
 
@@ -225,7 +234,7 @@ class BasicResponse implements IResponse{
 
     protected function processCrossOrigin()
     {
-      $this->addHeader('Access-Control-Allow-Origin', "{$_SERVER['HTTP_ORIGIN']}");
+      $this->addHeader('Access-Control-Allow-Origin', "*");
       $this->addHeader('Access-Control-Allow-Credentials', 'true');
       $this->addHeader('Access-Control-Max-Age', '86400'); // one day
     }

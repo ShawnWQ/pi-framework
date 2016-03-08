@@ -14,6 +14,6 @@ class CorsPlugin implements IPlugin {
 
 	public function register(IPiHost $host)
 	{
-		$host->addPreInitRequestFilterclass(new CorsRequestFilter());
+		$host->addPreRequestFilterClass(new CorsRequestFilter());
 	}
 }

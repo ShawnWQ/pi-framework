@@ -2,7 +2,12 @@
 
 namespace Pi\Validation;
 
-class ValidationResponse {
+use Pi\Response;
+
+
+
+
+class ValidationResponse extends Response {
 
 	public function __construct(protected ?Vector<ValidationFailure> $failures = null)
 	{

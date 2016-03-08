@@ -28,11 +28,18 @@ abstract class AbstractValidator implements IHasAppHost {
      */
     protected IPiHost $appHost;
 
+    protected ?\ReflectionClass $reflClass;
+
     public function __construct($type = null)
     {
         if($type !== null) {
             $this->type = $type;
         }
+    }
+
+    public static function use()
+    {
+        return new static;
     }
 
     /** 
@@ -58,7 +65,10 @@ abstract class AbstractValidator implements IHasAppHost {
      */
     public function ruleFor(string $propertyName)
     {
-        $rule = PropertyRule::create($propertyName);
+        if($this->reflClass == null) {
+            $this->reflClass = new \ReflectionClass($this->type);
+        }
+        $rule = PropertyRule::create($this->reflClass->getProperty($propertyName));
         $this->addRule($rule);
         $ruleBuilder = new RuleBuilder($rule);
         return $ruleBuilder;

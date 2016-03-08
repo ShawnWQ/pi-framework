@@ -2,7 +2,7 @@
 
 namespace Pi\Validation;
 
-class ValidationFailure {
+class ValidationFailure implements \JsonSerializable {
 	
 	public function __construct(
 		protected string $propertyName, 
@@ -10,6 +10,11 @@ class ValidationFailure {
 		protected ?string $attemptedValue = null)
 	{
 
+	}
+
+	public function jsonSerialize()
+	{
+		return get_object_vars($this);
 	}
 
 	public function getPropertyName() : string

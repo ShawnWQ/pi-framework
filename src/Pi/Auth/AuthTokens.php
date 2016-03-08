@@ -151,7 +151,7 @@ class AuthTokens implements IAuthTokens, \JsonSerializable {
 	}
 
 	<<String>>
-  public function getEmail() : string
+  public function getEmail() : ?string
 	{
 		return $this->email;
 	}
@@ -353,6 +353,7 @@ class AuthTokens implements IAuthTokens, \JsonSerializable {
     $this->provider = $value;
   }
 
+  <<String>>
   public function getUserId()
   {
     return $this->userId;

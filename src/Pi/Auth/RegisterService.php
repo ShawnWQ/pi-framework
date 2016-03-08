@@ -15,7 +15,9 @@ use Pi\ServiceModel\RegistrationAvailabilityRequest;
 use Pi\ResponseUtils;
 use Pi\HttpResult;
 use Pi\ServiceInterface\Events\NewUserRegisterArgs,
-	Pi\Auth\Interfaces\ICryptorProvider;
+	Pi\Auth\Interfaces\ICryptorProvider,
+	Pi\ServiceInterface\AbstractMailProvider,
+	Pi\Common\RandomString;
 
 
 
@@ -27,6 +29,12 @@ class RegisterService extends Service {
     public RegistrationAvailabilityService $availableService;
 
     public ICryptorProvider $cryptor;
+
+    public AbstractMailProvider $mailProvider;
+
+    const REDIS_CONFIRM_TOKEN = 'mailtoken::';
+
+    const INVALID_EMAIL_TOKEN = 'invalid-email-token';
 
 
 	<<Request,Route('/user/:id'),Method('GET')>>
@@ -42,13 +50,12 @@ class RegisterService extends Service {
 	}
 
 	<<Request,Route('/register'),Method('POST')>>
-	public function basicRegistration(BasicRegisterRequest $request)
+	public function register(BasicRegisterRequest $request)
 	{
-
 		$r = new RegistrationAvailabilityRequest();
 	    $r->setEmail($request->email());
 	    if($this->availableService->verifyEmail($r)->isAvailable() === false) {
-	        return HttpResult::createCustomError(AuthServiceError::EmailAlreadyRegistered, gettext(AuthServiceError::EmailAlreadyRegistered));
+	        return HttpResult::createCustomError(AuthServiceError::EmailAlreadyRegistered, _(AuthServiceError::EmailAlreadyRegistered));
 	    }
 
 		$account = $this->mapBasicRequestToUserEntity($request);
@@ -57,9 +64,9 @@ class RegisterService extends Service {
 		$this->redisClient()->hset('user::' . (string)$account->id(), 'name', $account->getDisplayName());
 
 		$user = new UserDto();
+		$this->mapUserEntityToUserDto($account, $user);
 		$event = new NewUserRegisterArgs($user);
-
-		$user->id($account->id());
+		
 		$this->eventManager()->dispatch('Pi\ServiceInterface\Events\NewUserRegisterArgs', $event);
 		$response = new BasicRegisterResponse();
 		$response->setId($account->id());
@@ -67,13 +74,53 @@ class RegisterService extends Service {
 		return $response;
 	}
 
-	<<Request,Route('/account/confirm'),Method('POST')>>
-	public function confirmEmail(ConfirmEmailRequest $request)
+	public static function mapUserEntityToUserDto(UserEntity $entity, UserDto $dto)
 	{
-
+		$dto->id($entity->id());
+		$dto->setDisplayName($entity->displayName());
+		$dto->setEmail($entity->getEmail());
 	}
 
-	protected function mapBasicRequestToUserEntity(BasicRegisterRequest $dto)
+	<<Subscriber('Pi\ServiceInterface\Events\NewUserRegisterArgs')>>
+	public function onNewUserRegistered(CreateAccountConfirmationToken $request)
+	{
+		$token = RandomString::generate();
+		$email = (string)$request->getUser()->getEmail();
+		$id = (string)$request->getUser()->id();
+		$displayName = $request->getUser()->getDisplayName();
+		$redisKey = self::REDIS_CONFIRM_TOKEN . $id;
+
+		$this->cache()->set($redisKey, $token);
+		$this->cache()->expire($redisKey, 3600);
+		$body = $this->getMailConfirmationBody($token, $displayName, $email, $id);
+		$this->mailProvider->send($displayName, $email, _('Account Confirmation'), $body);	
+	}
+
+	protected function getMailConfirmationBody(string $token, string $displayName, $email, $id)
+	{
+		$link = $this->appConfig()->absoluteUrl() . '/account/confirm?token=' . $token . '&id=' . $id;
+		$code = sprintf(_('You have to confirm your email.<br>Follow this link: <a href="%s">%s</a>'), $link, $link);
+		return $code;
+	}
+
+	<<Request,Route('/account/confirm'),Method('GET')>>
+	public function confirmEmail(ConfirmEmailRequest $request)
+	{
+		if($this->cache()->get(self::REDIS_CONFIRM_TOKEN . (string)$request->getId()) != $request->getToken()) {
+			return HttpResult::createCustomError(self::INVALID_EMAIL_TOKEN, _(self::INVALID_EMAIL_TOKEN));
+		}
+
+		$r = $this->userRep->queryBuilder()
+			->update()
+			->field('_id')->eq($request->getId())
+			->field('state')->set(3)
+			->getQuery()
+			->execute();
+
+		return $r;
+	}
+
+	public function mapBasicRequestToUserEntity(BasicRegisterRequest $dto)
 	{
 		$entity = new UserEntity();
 		if(\MongoId::isValid($dto->id())) {
@@ -86,8 +133,8 @@ class RegisterService extends Service {
 		$hash = $this->cryptor->encrypt($dto->password());
 		//$entity->password($hash);
 		$entity->setPasswordHash($hash);
-		$entity->setUsername($dto->email());
-		$entity->displayName($dto->displayName());
+		$entity->setUsername($dto->getUsername() ?: $dto->email());
+		$entity->displayName($dto->displayName() ?: $dto->firstName().' '.$dto->lastName());
 		$entity->setCulture('pt-pt');
 		$entity->setCountry('Portugal');
 

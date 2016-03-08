@@ -1,26 +1,30 @@
 <?hh
 
-use Pi\Host\ServiceRunner;
-use Pi\Host\ActionContext;
-use Pi\Message\InMemoryFactory;
-use Pi\Interfaces\IContainer;
-use Pi\HostConfig;
-use Mocks\TestHost;
-use Mocks\BibleHost;
-use Mocks\BibleTestService;
-use Mocks\VerseCreateRequest;
-use Mocks\HttpRequestMock;
-use Pi\Host\PhpResponse;
+use Pi\Host\ServiceRunner,
+    Pi\Host\ActionContext,
+    Pi\Message\InMemoryFactory,
+    Pi\Interfaces\IContainer,
+    Pi\HostConfig,
+    Mocks\TestHost,
+    Mocks\BibleHost,
+    Mocks\BibleTestService,
+    Mocks\VerseCreateRequest,
+    Mocks\HttpRequestMock,
+    Pi\Host\BasicResponse;
 
-class ServiceRunnerTest
-  extends \PHPUnit_Framework_TestCase {
+
+
+
+class ServiceRunnerTest extends \PHPUnit_Framework_TestCase {
 
     protected $host;
+
     public function setUp()
     {
       $this->host = new BibleHost(new HostConfig());
       $this->host->setMessageFactory(new InMemoryFactory());
     }
+
     public function testCreateAndAutoWireService()
     {
       $s = new BibleTestService();
@@ -41,7 +45,7 @@ class ServiceRunnerTest
 
       $dto = new VerseCreateRequest();
       $httpReq = new HttpRequestMock($dto);
-      $res = new PhpResponse();
+      $res = new BasicResponse();
       $this->host->init();
       $res = $runner->executeOneWay($httpReq, $res, $dto);
 

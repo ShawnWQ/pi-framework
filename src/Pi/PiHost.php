@@ -68,6 +68,9 @@ use Pi\Auth\UserRepository,
     Pi\Queue\RedisPiQueue,
     Pi\Queue\PiQueue;
 
+
+
+
 /**
  * Base Application Host
  *
@@ -154,6 +157,8 @@ abstract class PiHost implements IPiHost{
 
   protected Map<string, IHasRequestFilter> $requestFiltersClasses;
 
+  protected Map<string, IHasRequestFilter> $preRequestFiltersClasses;
+
   protected Map<string, IHasPreInitFilter> $preInitRequestFiltersClasses;
 
   protected Vector<(function(IRequest, IResponse) : void)> $preRequestFilters;
@@ -205,6 +210,7 @@ abstract class PiHost implements IPiHost{
     $this->actionRequestFilters = Vector{};
     $this->actionResponseFilters = Vector{};
     $this->preInitRequestFiltersClasses = Map {};
+    $this->preRequestFiltersClasses = Map{};
     $this->requestFiltersClasses = Map{};
     $this->responseFilters = Vector{};
     $this->preRequestFilters = Vector{};
@@ -234,6 +240,13 @@ abstract class PiHost implements IPiHost{
    // $this->exceptionHandler->add(function(IRequest $request, $dto, \Exception $ex){
 
     //});
+    //
+    $this->exceptionHandler->add(Pair {'Pi\Validation\ValidationException', function(IRequest $request, IResponse $response, $ex){    
+      $response->setStatusCode(HttpStatusCode::BadRequest);
+      $response->writeDto($request, $ex->getResult());
+      $response->endRequest();
+      //throw $ex;
+    }});
     $this->exceptionHandler->add(Pair {'Pi\UnauthorizedException', function(IRequest $request, IResponse $response, $ex){
 
       $response->write('Unauthorized Request: ' . get_class($request->dto()), 401);
@@ -389,17 +402,15 @@ abstract class PiHost implements IPiHost{
 
     //$this->routes = new RoutesManager($this);
 
-    $this->container->register('IResponse', function(IContainer $ioc) {
-      return new PhpResponse();
-    });
-
     $this->container->register('IRequest', function(IContainer $ioc) {
-      $req = new PhpRequest();
-      $req->setResponse($ioc->get('IResponse'));
+      $req = new BasicRequest();
+      //$req->setResponse($ioc->get('IResponse'));
       return $req;
     });
 
-
+    $this->container->register('IResponse', function(IContainer $ioc) {
+      return $ioc->tryResolve('IRequest')->response();
+    });
 
     if(!$this->container->isRegistered('IServiceSerializer')) {
       $this->container->register('IServiceSerializer', function(IContainer $ioc){
@@ -525,7 +536,7 @@ abstract class PiHost implements IPiHost{
 
       $response = $this->tryResolve('IResponse');
       $response->write('<html><head><title>Pi Stacktrace</title></head><body><h1>Error: ' . $ex->getMessage() . '</h1>' . $ex->getTraceAsString() . '</body>', 500);
-        $response->endRequest(false);
+      $response->endRequest(true);
 
   }
 
@@ -873,6 +884,27 @@ abstract class PiHost implements IPiHost{
     }
   }
 
+  public function addPreRequestFilterClass(IHasRequestFilter $filter) : void
+  {
+    $this->preRequestFiltersClasses[get_class($filter)] = $filter;
+  }
+
+  public function callPreRequestFiltersClasses(IRequest $request, IResponse $response)
+  {
+    if(count($this->preRequestFiltersClasses) === 0) {
+      return false;
+    }
+    foreach($this->preRequestFiltersClasses as $key => $filter) {
+      $filter->setAppHost($this);
+      $this->container()->autoWireService($filter);
+      $filter->execute($request, $response);
+
+      if($response->isClosed()){
+        break;
+      }
+    }
+  }
+
   public function mapRouteDto(Route $route)
   {
     $type = $route->requestType();
@@ -901,6 +933,9 @@ abstract class PiHost implements IPiHost{
   {
     if(!defined('PHPUNIT_PI_DEBUG') === 1) {
       exit(0);
+    }
+    if(!Extensions::testingMode()) {
+      die();
     }
   }
 

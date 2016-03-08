@@ -9,7 +9,6 @@ use Pi\Service,
     Pi\Interfaces\IService,
     Pi\Interfaces\IRequest,
     Pi\Interfaces\IResponse,
-    Pi\Interfaces\IHttpResponse,
     Pi\Auth\Interfaces\IAuthSession,
     Pi\Auth\Interfaces\IAuthTokens,
     Pi\Auth\Interfaces\IUserAuth,
@@ -248,7 +247,7 @@ abstract class AuthProvider {
   {
     if($authRepo == null) return;
     if($tokens != nul)  {
-      $user = $authRepo->createOrMergeAuthSession($sessio, $tokens);
+      $user = $authRepo->createOrMergeAuthSession($session, $tokens);
       $session->setUserId($user->getUserId());
     }
 
@@ -266,7 +265,7 @@ abstract class AuthProvider {
     $authRepo->saveUserAuth($session);
 
     $httpRes = $authService->request()->response();
-    if($httpRes instanceof IHttpResponse) {
+    if($httpRes instanceof IResponse) {
       // add cookies
     }
     $this->onSaveUserAuth($authService, $session);

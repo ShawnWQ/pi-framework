@@ -13,15 +13,13 @@ use Pi\Cache\LocalCacheProvider;
 use Pi\Interfaces\ICacheProvider;
 use Pi\Interfaces\IRequest;
 use Pi\Interfaces\IResponse;
-use Pi\Interfaces\IHttpRequest;
-use Pi\Interfaces\IHttpResponse;
 use Pi\Html\HtmlHelper;
 
 use Pi\Interfaces\IViewEngine;
 
 class PSHViewEngine implements IViewEngine {
 
-	public function hasView(string $viewName, IHttpRequest $request = null) : bool
+	public function hasView(string $viewName, IRequest $request = null) : bool
 	{
 		return $viewName === 'test';
 	}
@@ -31,7 +29,7 @@ class PSHViewEngine implements IViewEngine {
 		echo 'test';
 	}
 
-	public function processHttpRequest(IHttpRequest $request, IHttpResponse $response, $dto)
+	public function processHttpRequest(IRequest $request, IResponse $response, $dto)
 	{
 
 	}

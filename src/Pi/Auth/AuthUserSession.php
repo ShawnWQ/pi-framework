@@ -246,6 +246,7 @@ class AuthUserSession implements IAuthSession, \JsonSerializable {
     return array_key_exists($permission, $this->permissions);
   }
 
+  <<String>>
   public function getFacebookUserId() : ?string
   {
     return $this->facebookUserId;
@@ -256,6 +257,7 @@ class AuthUserSession implements IAuthSession, \JsonSerializable {
     $this->facebookUserId = $value;
   }
 
+  <<String>>
   public function getFacebookEmail() : ?string
   {
     return $this->facebookEmail;
@@ -266,6 +268,7 @@ class AuthUserSession implements IAuthSession, \JsonSerializable {
     $this->facebookEmail = $value;
   }
 
+  <<String>>
   public function getFacebookDisplayName() : ?string
   {
     return $this->facebookDisplayName;
@@ -276,6 +279,7 @@ class AuthUserSession implements IAuthSession, \JsonSerializable {
     $this->displayName = $value;
   }
 
+  <<String>>
   public function getFacebookFirstName() : ?string
   {
     return $this->facebookFirstName;
@@ -286,6 +290,7 @@ class AuthUserSession implements IAuthSession, \JsonSerializable {
     $this->facebookFirstName = $value;
   }
 
+  <<String>>
   public function getFacebookLastName() : ?string
   {
     return $this->facebookLastName;

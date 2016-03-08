@@ -80,6 +80,18 @@ class UserAuth implements IEntity, IUserAuth {
 
 	protected array $meta = array();
 
+	protected ?string $facebookUserId;
+
+	protected ?string $facebookUsername;
+
+	protected ?string $facebookEmail;
+
+	protected ?string $facebookFirstName;
+
+	protected ?string $facebookLastName;
+
+	protected ?string $facebookDisplayName;
+
 	<<String>>
 	public function getUserName() : string
 	{
@@ -505,4 +517,59 @@ class UserAuth implements IEntity, IUserAuth {
         if($value === null) return $this->state;
         $this->state = $value;
     }
+
+    <<String>>
+  public function getFacebookUserId() : ?string
+  {
+    return $this->facebookUserId;
+  }
+
+  public function setFacebookUserId(string $value)  : void
+  {
+    $this->facebookUserId = $value;
+  }
+
+  <<String>>
+  public function getFacebookEmail() : ?string
+  {
+    return $this->facebookEmail;
+  }
+
+  public function setFacebookEmail(string $value)  : void
+  {
+    $this->facebookEmail = $value;
+  }
+
+  <<String>>
+  public function getFacebookDisplayName() : ?string
+  {
+    return $this->facebookDisplayName;
+  }
+
+  public function setFacebookDisplayName(string $value)  : void
+  {
+    $this->displayName = $value;
+  }
+
+  <<String>>
+  public function getFacebookFirstName() : ?string
+  {
+    return $this->facebookFirstName;
+  }
+
+  public function setFacebookFirstName(string $value)  : void
+  {
+    $this->facebookFirstName = $value;
+  }
+
+  <<String>>
+  public function getFacebookLastName() : ?string
+  {
+    return $this->facebookLastName;
+  }
+
+  public function setFacebookLastName(string $value)  : void
+  {
+    $this->facebookLastName = $value;
+  }
 }

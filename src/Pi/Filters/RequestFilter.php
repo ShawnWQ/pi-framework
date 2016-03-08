@@ -1,17 +1,20 @@
 <?hh
 
 namespace Pi\Filters;
-use Pi\Interfaces\IHasRequestFilter;
-use Pi\ApplyTo;
-use Pi\Interfaces\IRequest;
-use Pi\Interfaces\IResponse;
-use Pi\ServiceInterface\RequestExtensions;
-use Pi\Interfaces\IContainable;
-use Pi\Interfaces\IContainer;
-use Pi\Host\HostProvider;
 
-abstract class RequestFilter
-  implements IHasRequestFilter {
+use Pi\Interfaces\IHasRequestFilter,
+    Pi\ApplyTo,
+    Pi\Interfaces\IRequest,
+    Pi\Interfaces\IResponse,
+    Pi\ServiceInterface\RequestExtensions,
+    Pi\Interfaces\IContainable,
+    Pi\Interfaces\IContainer,
+    Pi\Host\HostProvider;
+
+
+
+
+abstract class RequestFilter implements IHasRequestFilter {
 
     protected $applyTo;
 

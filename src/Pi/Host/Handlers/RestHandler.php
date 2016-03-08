@@ -3,8 +3,6 @@
 namespace Pi\Host\Handlers;
 use Pi\Interfaces\IRequest;
 use Pi\Interfaces\IResponse;
-use Pi\Interfaces\IHttpRequest;
-use Pi\Interfaces\IHttpResponse;
 use Pi\Host\HostProvider;
 use Pi\ServiceModel\NotFoundRequest;
 use Pi\FileSystem\FileType;
@@ -30,12 +28,16 @@ class RestHandler extends AbstractPiHandler {
 		$route = $this->appHost->routes()->getByRequest($requestType);
 
 
-		$httpMethod = $request instanceof IHttpRequest ? $request->httpMethod() : 'GET';
+		$httpMethod = $request instanceof IRequest ? $request->httpMethod() : 'GET';
 
 		if($httpMethod === 'POST' && isset($_SERVER['HTTP_ORIGIN']) && $request->serverName() === $request->httpOrigin()) {
 			$body = json_decode(file_get_contents('php://input'), true);
 		}
 
+		if($body == null) {
+			$body = $_POST;
+		}
+		
 		foreach($methods as $method)
 	    {
             $n = ClassUtils::getMethodName($method->name);
@@ -141,8 +143,8 @@ class RestHandler extends AbstractPiHandler {
 			}
 
 		}
+	   
 	   }
-
 		return $req;
 		// continua a popular a resposta.
 	}
@@ -173,13 +175,16 @@ class RestHandler extends AbstractPiHandler {
 		$httpRes->addHeader('Content-Type', 'text/json');
 		
 		$host = $this->appHost;
-
 		if($this->appHost->callPreRequestFilters($httpReq, $httpRes)) {
 			return null;
 		}
 
 		$request = $this->createRequest($httpReq, $operationName);
 
+		if($this->appHost->callPreInitRequestFiltersClasses($httpReq, $httpRes, $request)) {
+			return null;
+		}
+		
 		$host->callRequestFiltersClasses($httpReq, $httpRes, $request);
 		$host->callRequestFiltersClasses($httpReq, $httpRes, $request);
 		$host->callRequestFiltersClasses($httpReq, $httpRes, $request);

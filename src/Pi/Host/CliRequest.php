@@ -2,13 +2,11 @@
 
 namespace Pi\Host;
 use Pi\Interfaces\IRequest;
-use Pi\Interfaces\IHttpRequest;
-use Pi\Interfaces\IHttpResponse;
 use Pi\Interfaces\IResponse;
 use Pi\Interfaces\IContainer;
 use Pi\HttpMethod;
 
-class CliRequest extends BasicRequest implements IHttpRequest {
+class CliRequest extends BasicRequest implements IRequest {
 
   protected $httpMethod;
 
@@ -191,7 +189,7 @@ class CliRequest extends BasicRequest implements IHttpRequest {
 
   }
 
-  public function httpResponse() : IHttpResponse
+  public function httpResponse() : IResponse
   {
     return $this->httpResponse;
   }

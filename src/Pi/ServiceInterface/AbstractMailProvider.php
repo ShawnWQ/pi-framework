@@ -52,8 +52,8 @@ abstract class AbstractMailProvider {
 		$this->ssl = $this->cache->get(self::KEY_MAILPROVIDER_SSL);
 		$this->bodyHeader = $this->cache->get(self::KEY_MAILPROVIDER_HEADER);
 		$this->bodyFooter = $this->cache->get(self::KEY_MAILPROVIDER_FOOTER);
-		$this->username = $this->cache->get(self::KEY_MAILPROVIDER_USERNAME);
-		$this->password = $this->cache->get(self::KEY_MAILPROVIDER_PASSWORD);
+		$this->username = $this->cache->get(self::KEY_MAILPROVIDER_USERNAME) ?: '';
+		$this->password = $this->cache->get(self::KEY_MAILPROVIDER_PASSWORD)?: '';
 	}
 
 	public function isCached() : bool

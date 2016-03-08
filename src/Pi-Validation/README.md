@@ -17,7 +17,7 @@ class TestRequestValidator
 
     public function __construct()
     {
-
+    	$this->ruleFor('name')->notEmpty();
     }
   }
 ````

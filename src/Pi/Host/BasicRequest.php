@@ -2,29 +2,64 @@
 
 namespace Pi\Host;
 
-use Pi\Auth\AuthUserSession;
-use Pi\SessionPlugin;
-use Pi\Interfaces\IMessage;
-use Pi\Interfaces\ICacheClient ;
-use Pi\Interfaces\IRequest;
-use Pi\Host\HostProvider;
-use Pi\Interfaces\IContainable;
-use Pi\Interfaces\IContainer,
+use Pi\Auth\AuthUserSession,
+    Pi\SessionPlugin,
+    Pi\Interfaces\IMessage,
+    Pi\Interfaces\ICacheClient,
+    Pi\Interfaces\IRequest,
+    Pi\Host\HostProvider,
+    Pi\Interfaces\IContainable,
+    Pi\Interfaces\IContainer,
     Pi\Interfaces\HasSessionIdInterface,
     Pi\Auth\Interfaces\IAuthSession,
-    Pi\Cache\RedisCacheProvider;
-use Pi\ServiceModel\AuthUserAccount;
-use Pi\ServiceModel\Types\Author;
+    Pi\Cache\RedisCacheProvider,
+    Pi\ServiceModel\AuthUserAccount,
+    Pi\ServiceModel\Types\Author;
+
+
+
 
 class BasicRequest implements IRequest, HasSessionIdInterface {
 
-    protected $cookies;
+    protected Map<string,string> $cookies;
 
-    protected $items;
+    /**
+     * User data accessed by filters and services
+     * @var [type]
+     */
+    protected Map<string,string> $items;
 
     protected $message;
 
+    /**
+     * The Request DTO after has been deserialized
+     * @var [type]
+     */
+    
+    /**
+     * QueryString parameters from the Request URI
+     * @var [type]
+     */
+    protected Map<string,string> $parameters;
+
+    protected Map<string,string> $headers;
+    
+    /**
+     * [$dto description]
+     * @var [type]
+     */
     protected $dto;
+
+    protected $xRealIp;
+
+    protected $requestUri;
+
+    protected $scriptName;
+
+    protected $physicalPath;
+
+
+    protected $httpProtocol;
 
     protected $originalResponse;
 
@@ -49,16 +84,16 @@ class BasicRequest implements IRequest, HasSessionIdInterface {
 
     protected $isSecureConnection;
 
-    protected $queryString; // named value
-
-    protected $headers;
-
     protected $files;
 
     protected $hasExplicityResponseContentType;
 
     protected $responseType;
 
+    /**
+     * The request ContentType
+     * @var [type]
+     */
     protected $contentType;
 
     protected $isLocal;
@@ -73,8 +108,39 @@ class BasicRequest implements IRequest, HasSessionIdInterface {
 
     protected $userId;
 
+    const contentTypeDefault = 'text\json';
+
     public function __construct()
     {
+      $this->httpMethod = isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : 'GET';
+      $this->requestUri = $requestUri = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '/'; // <-- "/foo/bar?test=abc" or "/foo/index.php/bar?test=abc"
+      $this->scriptName = $scriptName = isset($_SERVER['SCRIPT_NAME']) ? $_SERVER['SCRIPT_NAME'] : ''; // <-- "/foo/index.php"
+
+      if(array_key_exists('HTTP_X_FORWARDED_FOR', $_SERVER) && $_SERVER['HTTP_X_FORWARDED_FOR'] != ''){
+        $this->xRealIp = $_SERVER['REMOTE_ADDR'];
+      }
+    
+      if(isset($_SERVER['HTTP_ORIGIN'])) {
+        $this->httpOrigin = $_SERVER['HTTP_ORIGIN'];
+      }
+
+      $physicalPath = '';
+      if (strpos($this->requestUri, $this->scriptName) !== false) {
+          $physicalPath = $this->scriptName; // <-- Without rewriting
+      } else {
+          $physicalPath = str_replace('\\', '', dirname($this->scriptName)); // <-- With rewriting
+      }
+      $this->physicalPath = rtrim($physicalPath, '/'); // <-- Remove trailing slashes
+
+      //Input stream (readable one time only; not available for multipart/form-data requests)
+      $rawInput = @file_get_contents('php://input');
+      if (!$rawInput) {
+          $rawInput = '';
+      }
+      $this->rawInput = $rawInput;
+
+      $this->httpProtocol = empty($_SERVER['HTTPS']) || $_SERVER['HTTPS'] === 'off' ? 'http' : 'https';
+
       if(is_null($this->response))
         $this->response = new BasicResponse();
       
@@ -92,27 +158,98 @@ class BasicRequest implements IRequest, HasSessionIdInterface {
           return $out; 
         } 
       }
-
-      $this->reset();
       $this->serverName = isset($_SERVER['SERVER_NAME']) ? $_SERVER['SERVER_NAME'] : 'localhost';
       $this->serverPort = isset($_SERVER['SERVER_PORT']) ? $_SERVER['SERVER_PORT'] : 80;
       $this->items = Map{};
-      $this->cookies = Map{};
-    }
-
-     protected function reset()
-    {
-
+      //$this->cookies = Map{};
       $headers = apache_request_headers();
       $cookies = $_COOKIE;
       $this->headers = Map {};
-      $this->cookies = array();
+      $this->cookies = Map{};
+      $this->parameters = Map{};
+
+      // Set headers
       foreach($headers as $key => $value) {
         $this->headers[$key] = $value;
       }
-
+      // Set cookies
       foreach($cookies as $key => $value) {
         $this->cookies[$key] = $value;
+      }
+      // Set QueryString
+      $route = HostProvider::routesManager()->get($this->requestUri);
+      $parts = parse_url($this->requestUri);
+      $this->parameters = Map {};
+      if(array_key_exists('query', $parts))
+      {
+        parse_str($parts['query'], $p);
+        if(is_array($p)) {
+          foreach($p as $key => $value) {
+            $this->parameters->add(Pair{$key, $value});
+          }
+        }
+      }
+      if($route === null || $route->params() === null) {
+
+      } else {
+        foreach($route->params() as $k => $v)
+        $this->parameters->add(Pair { $k, $v});
+      }
+    }
+
+    public function requestUri() : string
+    {
+      return $this->requestUri;
+    }
+
+    public function httpOrigin() : ?string
+    {
+      return $this->httpOrigin;
+    }
+
+    public function isPost()
+    {
+      return $this->httpMethod === HttpMethod::POST;
+    }
+
+    public function isGet()
+    {
+      return $this->httpMethod === HttpMethod::GET;
+    }
+
+    public function isPut()
+    {
+      return $this->httpMethod === HttpMethod::PUT;
+    }
+
+    public function isDelete()
+    {
+      return $this->httpMethod === HttpMethod::DELETE;
+    }
+
+    public function isPatch()
+    {
+      return $this->httpMethod === HttpMethod::PATCH;
+    }
+
+    public function isOptions()
+    {
+        return $this->httpMethod === HttpMethod::OPTIONS;
+    }
+
+    public function isHead()
+    {
+      return $this->httpMethod === HttpMethod::HEAD;
+    }
+
+    public function isAjax()
+    {
+      if($this->parameters->contains('ajax')) {
+        return true;
+      } else if($this->headers->contains('X_REQUESTED_WITH') && $this->headers->get('X_REQUESTED_WITH') === 'XMLHttpRequest'){
+        return true;
+      } else {
+        return false;
       }
     }
 
@@ -126,26 +263,11 @@ class BasicRequest implements IRequest, HasSessionIdInterface {
       return HostProvider::tryResolve($name);
     }
 
-    public function getTemporarySessionId() : ?string
+    public function queryString() : Map<string,string>
     {
-      return $this->getSessionParam(SessionPlugin::SessionId);
-      //return isset($this->items[SessionPlugin::SessionId])
-      //? $this->items[SessionPlugin::SessionId] : null;
+      return $this->queryString;
     }
 
-    public function getPermanentSessionId() : ?string
-    {
-      return $this->getSessionParam(SessionPlugin::PermanentSessionId);
-      //return isset($this->items[SessionPlugin::PermanentSessionId])
-      //? $this->items[SessionPlugin::PermanentSessionId] : null;
-    }
-
-    protected function getSessionParam(string $sessionKey) : ?string { 
-      return $this->items->get($sessionKey)
-        ?: $this->cookies->get($sessionKey)
-        ?: $this->headers->get($sessionKey)
-        ?: null;
-    }
 
     public function isPermanentSession() : bool
     {
@@ -229,33 +351,9 @@ class BasicRequest implements IRequest, HasSessionIdInterface {
         ? : SessionPlugin::createNewSession($this, $sessionId);
 
       //$session = new AuthUserSession();
-      $this->items[SessionPlugin::RequestItemsSessionKey] = $session;
+      $this->items[SessionPlugin::RequestItemsSessionKey] = $session; // @todo remove if have any
 
       return $session;
-      /*
-      if (httpReq == null) return null;
-
-            object oSession = null;
-            if (!reload)
-                httpReq.Items.TryGetValue(SessionFeature.RequestItemsSessionKey, out oSession);
-
-            if (oSession != null)
-                return (IAuthSession)oSession;
-
-            using (var cache = httpReq.GetCacheClient())
-            {
-                var sessionId = httpReq.GetSessionId();
-                var sessionKey = SessionFeature.GetSessionKey(sessionId);
-                var session = (sessionKey != null ? cache.Get<IAuthSession>(sessionKey) : null)
-                    ?? SessionFeature.CreateNewSession(httpReq, sessionId);
-
-                if (httpReq.Items.ContainsKey(SessionFeature.RequestItemsSessionKey))
-                    httpReq.Items.Remove(SessionFeature.RequestItemsSessionKey);
-
-                httpReq.Items.Add(SessionFeature.RequestItemsSessionKey, session);
-                return session;
-            }
-            */
     }
 
     public function ioc(IContainer $ioc)
@@ -304,6 +402,32 @@ class BasicRequest implements IRequest, HasSessionIdInterface {
       return $this->dto;
     }
 
+    public function addCookie(string $name, string $value, ?\DateTime $expiration = null, ?string $domain = null)
+    {
+      //$this->cookies[$name] = array($name, $value, $expiration, $domain);
+      $this->cookies->add(Pair{$name, $value.','.$expiration.','.$domain});
+    }
+
+    public function getCookie(string $name) : ?Cookie
+    {
+      return array_key_exists($name, $this->cookies) ? $this->cookies[$name] : null;
+    }
+
+    public function getCookies() : array
+    {
+      return $this->cookies;
+    }
+
+    public function headers() : Map<string,string>
+    {
+      return $this->headers;
+    }
+
+    public function parameters()
+    {
+      return $this->parameters;
+    }
+
     public function getRawBody()
     {
       throw new \Pi\NotImplementedException();
@@ -317,6 +441,11 @@ class BasicRequest implements IRequest, HasSessionIdInterface {
     public function inputStream()
     {
       throw new \Pi\NotImplementedException();
+    }
+
+    public function contentType() : string
+    {
+      return $this->contentType;
     }
 
     public function contentLong()
@@ -335,6 +464,11 @@ class BasicRequest implements IRequest, HasSessionIdInterface {
 
     public function setDto($dto){
       $this->dto = $dto;
+    }
+
+    public function httpMethod() : string
+    {
+      return $this->httpMethod;
     }
 
     public function httpMethodAsApplyTo()
@@ -396,5 +530,27 @@ class BasicRequest implements IRequest, HasSessionIdInterface {
         $cache->expire($sessionId, 3600);
       }
       $this->items[SessionPlugin::RequestItemsSessionKey] = $session;
+    }
+
+    public function getTemporarySessionId() : ?string
+    {
+      return $this->getSessionParam(SessionPlugin::SessionId);
+      //return isset($this->items[SessionPlugin::SessionId])
+      //? $this->items[SessionPlugin::SessionId] : null;
+    }
+
+    public function getPermanentSessionId() : ?string
+    {
+      return $this->getSessionParam(SessionPlugin::PermanentSessionId);
+      //return isset($this->items[SessionPlugin::PermanentSessionId])
+      //? $this->items[SessionPlugin::PermanentSessionId] : null;
+    }
+
+    protected function getSessionParam(string $sessionKey) : ?string 
+    { 
+      return $this->items->get($sessionKey)
+        ?: $this->cookies->get($sessionKey)
+        ?: $this->headers->get($sessionKey)
+        ?: null;
     }
 }

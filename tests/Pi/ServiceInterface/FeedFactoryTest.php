@@ -1,16 +1,19 @@
 <?hh
 
-use Mocks\MockHostProvider;
-use Mocks\BibleHost;
-use Mocks\AuthMock;
-use Pi\PiContainer;
-use Pi\ServiceInterface\FeedFactory;
-use Pi\ServiceModel\Types\FeedAction;
-use Pi\Interfaces\IContainer;
-use Pi\Interfaces\IRequest;
-use Pi\Interfaces\IResponse;
-use Pi\Host\BasicRequest;
-use Pi\Host\BasicResponse;
+use Mocks\MockHostProvider,
+    Mocks\BibleHost,
+    Mocks\AuthMock,
+    Pi\PiContainer,
+    Pi\ServiceInterface\FeedFactory,
+    Pi\ServiceModel\Types\FeedAction,
+    Pi\Interfaces\IContainer,
+    Pi\Interfaces\IRequest,
+    Pi\Interfaces\IResponse,
+    Pi\Host\BasicRequest,
+    Pi\Host\BasicResponse;
+
+
+
 
 class FeedFactoryTest extends \PHPUnit_Framework_TestCase {
 

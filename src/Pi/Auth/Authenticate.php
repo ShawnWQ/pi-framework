@@ -22,7 +22,7 @@ class Authenticate {
 
   protected ?bool $rememberMe;
 
-  protected string $continue;
+  protected ?string $continue;
 
   protected string $uri;
 
@@ -92,7 +92,7 @@ class Authenticate {
     $this->rememberMe = $value;
   }
 
-  public function getContinue() : string
+  public function getContinue() : ?string
   {
     return $this->continue;
   }

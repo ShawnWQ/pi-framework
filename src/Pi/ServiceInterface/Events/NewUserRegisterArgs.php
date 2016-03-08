@@ -14,7 +14,7 @@ class NewUserRegisterArgs extends EventArgs {
 
 	public function getUserId() : \MongoId
 	{
-		return $this->user->id();
+		return $this->getUser()->id();
 	}
 
 	public function getUser() : UserDto

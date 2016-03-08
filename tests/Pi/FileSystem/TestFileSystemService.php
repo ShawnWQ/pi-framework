@@ -1,9 +1,13 @@
 <?hh
+
 use Mocks\BibleHost,
     Mocks\MockHostProvider,
     Pi\FileSystem\FileSystemService,
     Pi\FileSystem\FileFind,
     Pi\FileSystem\FileEntity;
+
+
+
 
 class TestFileSystem extends \PHPUnit_Framework_TestCase {
 
@@ -37,7 +41,7 @@ class TestFileSystem extends \PHPUnit_Framework_TestCase {
     $req = new FileFind();
     $req->setLimit(1);
     $res = MockHostProvider::execute($req);
-    die(print_r($res));
+    //die(print_r($res));
     $this->assertTrue(count($res->getFiles()) ==  1);
 
   }

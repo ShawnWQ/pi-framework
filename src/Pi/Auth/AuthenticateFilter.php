@@ -6,7 +6,6 @@ use Pi\SessionPlugin,
     Pi\Filters\RequestFilter,
     Pi\Interfaces\IRequest,
     Pi\Interfaces\IResponse,
-    Pi\Interfaces\IHttpRequest,
     Pi\Auth\Interfaces\ICryptorProvider,
     Pi\Auth\AuthService,
     Pi\ServiceModel\AuthUserAccount;
@@ -42,9 +41,7 @@ class AuthenticateFilter extends RequestFilter {
     $res = $req->response();
     SessionPlugin::populateSessionFromRequest($req, $res);
 
-    if(!$req instanceof IHttpRequest) {
-      throw new \Exception('Authenticate filter is not ready for non IHttpReques');
-    } else if(isset($_SERVER['HTTP_AUTHORIZATION'])) {
+    if(isset($_SERVER['HTTP_AUTHORIZATION'])) {
         $token = $this->getTokenFromHeaders($req);
         
         if(!is_null($token))
@@ -82,12 +79,12 @@ class AuthenticateFilter extends RequestFilter {
 
   }
 
-  public function getTokenFromHeaders(IHttpRequest $req)
+  public function getTokenFromHeaders(IRequest $req)
   {
     return $_SERVER['HTTP_AUTHORIZATION'];
   }
 
-  public function getTokenFromParameters(IHttpRequest $req)
+  public function getTokenFromParameters(IRequest $req)
   {
     return $req->parameters()['Authorization'];
   }

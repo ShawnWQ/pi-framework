@@ -20,7 +20,7 @@ class HttpAsyncHandler implements IPiHandler {
 
     }
 
-    public function beginProcessRequest(IHttpRequest $context, $asyncCallback, $dto)
+    public function beginProcessRequest(IRequest $context, $asyncCallback, $dto)
     {
 
     }

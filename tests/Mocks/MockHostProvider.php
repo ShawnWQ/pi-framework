@@ -1,15 +1,18 @@
 <?hh
 namespace Mocks;
 
-use Pi\Host\PhpRequest;
-use Pi\Host\HostProvider;
-use Pi\Host\OperationDriver;
+use Pi\Host\BasicRequest,
+	Pi\Host\HostProvider,
+	Pi\Host\OperationDriver;
+
+
+
 
 class MockHostProvider {
 	
 	public static function execute($dto)
 	{
-		$r = new PhpRequest();
+		$r = new BasicRequest();
 		$r->setDto($dto);
 		return HostProvider::execute($dto, $r);
 	}
@@ -23,7 +26,7 @@ class MockHostProvider {
 	{
 		$host = new WarezHost();
 		$host->init();
-		$r = new PhpRequest();
+		$r = new BasicRequest();
 		$r->setDto($dto);
 		return HostProvider::execute($dto, $r);
 	}

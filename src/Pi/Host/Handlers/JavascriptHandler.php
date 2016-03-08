@@ -3,7 +3,6 @@
 namespace Pi\Host\Handlers;
 use Pi\Interfaces\IRequest;
 use Pi\Interfaces\IResponse;
-use Pi\Interfaces\IHttpRequest;
 use Pi\Host\HostProvider;
 use Pi\ServiceModel\NotFoundRequest;
 use Pi\FileSystem\FileType;

@@ -2,7 +2,7 @@
 
 namespace Pi\Interfaces\Host\Handlers;
 
-use Pi\Interfaces\IHttpRequest;
+use Pi\Interfaces\IRequest;
 
 interface IHttpHandler {
 
@@ -14,5 +14,5 @@ interface IHttpHandler {
 	/**
 	 * Enables processing of HTTP Web requests by a custom HttpHandler that implements the IHttpHandler interface.
 	 */
-	public function processRequest(IHttpRequest $context) : void;
+	public function processRequest(IRequest $context) : void;
 }

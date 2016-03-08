@@ -84,25 +84,57 @@ class FacebookAuthProvider extends OAuthProvider implements IOAuthProvider {
     $hasError = $errors != null || !empty($errors);
     if($hasError) {
       $this->log->error(sprintf('Facebok error callback. %s', print_r($httpReq->parameters(), true)));
+      return;
     }
 
     // Request Token
     $code = $httpReq->parameters()->get('code');
-    $isPreAuthCallback = $code != null && !empty($code);
+    $accessToken = $httpReq->parameters()->get('accessToken');
+    $isPreAuthCallback = ($code != null && !empty($code)) || ($accessToken != null && !empty($accessToken));
     $permissions = implode(',', $this->permissions);
+
     if(!$isPreAuthCallback) {
       $preAuthUrl = sprintf('%s?client_id=%s&redirect_uri=%s&scope=%s', self::preAuthUrl, $this->appId, OAuthUtils::urlencodeRfc3986($this->callbackUrl), $permissions);
+      if($request->getContinue() != null) { // state parameter is usedy by Facebook API as an arbitrary unique string created an app to guard against Cross-site Request Forgery
+        $preAuthUrl .= '&state=' . OAuthUtils::urlencodeRfc3986($request->getContinue());
+      }
+
       $authService->saveSession($session);
       return $authService->redirect($preAuthUrl);
     }
 
-    // Access Token
-    $accessTokenUrl = sprintf('%soauth/access_token?client_id=%s&redirect_uri=%s&client_secret=%s&code=%s', $this->getRealm(), $this->appId, OAuthUtils::urlencodeRfc3986($this->callbackUrl), $this->appSecret, $code);
-    $httpReq = new HttpRequest($accessTokenUrl, 'GET');
-    $msg = $httpReq->send();
-    $accessToken = substr($msg->getBody(), 13);
-    // validate access token
 
+    $requestFbAccessToken = function(string $code) {
+        $accessTokenUrl = sprintf('%soauth/access_token?client_id=%s&redirect_uri=%s&client_secret=%s&code=%s', self::realm, $this->appId, OAuthUtils::urlencodeRfc3986($this->callbackUrl), $this->appSecret, $code);
+        $httpReq = new HttpRequest($accessTokenUrl, 'GET');
+        $msg = $httpReq->send();
+        return substr($msg->getBody(), 13);
+    };
+
+    if($accessToken != null && !empty($accessToken)) {
+      $httpReq = new HttpRequest(self::realm . '/me?access_token=' . $authService->request()->parameters()->get('accessToken'));
+      try {
+        $msg = $httpReq->send();
+        $json = $authService->request()->parameters()->get('accessToken');
+        $obj = json_decode($json);
+        if($obj == null || property_exists($obj, 'error')) {
+          throw new \Exception('Error returned from Access Token validation.');
+        }
+        $accessToken = $obj->accessToken;
+      }
+      catch(\Exception $ex) {
+        $this->log->error('Error validating the Facebook Access Token: ' . $ex->getMessage());
+        // validate access token
+      } 
+    } else {
+        $accessToken = $this->requestFbAccessToken();
+    }
+
+    if(empty($accessToken)) {
+      throw new \Exception('Couldnt obtain access token');
+    }
+
+    
     if($tokens == null) {
       $tokens = new AuthTokens();
     }
@@ -111,6 +143,10 @@ class FacebookAuthProvider extends OAuthProvider implements IOAuthProvider {
     $session->setIsAuthenticated(true);
     $response = $this->onAuthenticated($authService, $session, $tokens, new Map(Pair{'access_token', $accessToken}));
     
+    if($authService->request()->parameters()->contains('state')) {
+      $redirectUri = $authService->request()->parameters()->get('state');
+      return $authService->redirect($redirectUri);
+    }
     
     $referrerUrl = '/';
     return new AuthenticateResponse(
@@ -159,19 +195,23 @@ class FacebookAuthProvider extends OAuthProvider implements IOAuthProvider {
     $tokens->setDisplayName($obj->name);
     $tokens->setFirstName($obj->first_name);
     $tokens->setLastName($obj->last_name);
-    $tokens->setEmail($obj->email);
+    
+    if(property_exists($obj, 'email')) {
+      $tokens->setEmail($obj->email);
+    }
+    
 
     $this->loadUserOAuthProvider($userSession, $tokens);
   }
 
   public function loadUserOAuthProvider(IAuthSession $authSession, IAuthTokens $tokens) 
   {
-    //$authSession->setFacebookUserId($tokens->getUserId() ?: $authSession->getFacebookUserId());
+    $authSession->setFacebookUserId($tokens->getUserId() ?: $authSession->getFacebookUserId());
     //$authSession->setFacebookUserName($tokens->getUserName() ?: $authSession->getFacebookUserName());
     $authSession->setDisplayName($tokens->getDisplayName() ?: $authSession->getDisplayName());
     $authSession->setFirstName($tokens->getFirstName() ?: $authSession->getFirstName());
     $authSession->setLastName($tokens->getLastName() ?: $authSession->getLastName());
-    $authSession->setPrimaryEmail($tokens->getEmail() ?: $authSession->getPrimaryEmail() ?: $authSession->getEmail());
+    $authSession->setPrimaryEmail($tokens->getEmail() ?: $authSession->getPrimaryEmail() ?: $authSession->getEmail() ?: '');
   }
 
   public function logout(IService $service, Authenticate $request)

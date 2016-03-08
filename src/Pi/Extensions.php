@@ -124,9 +124,7 @@ class Extensions {
     if ($result->isValid()) {
       return $result;
     }
-
-    $result = HttpResult::createFromValidation($result);
-    throw new ValidationException('Request not validated: '.print_r($result));
+    throw new ValidationException($result);
   }
 
   public static function assertId($id) : void

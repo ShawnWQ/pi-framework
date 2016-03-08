@@ -142,7 +142,7 @@ class AuthService extends Service {
   /**
    * Generates a token by email and password
    */
-  <<Request,Route('/login'),Method('POST')>>
+  <<Request,Route('/logiasdn'),Method('POST')>>
   public function basicAuthenticate(BasicAuthenticateRequest $request)
   {
     $r = new Authenticate();
@@ -208,7 +208,7 @@ class AuthService extends Service {
     // do logout
   }
 */
-  <<Request,Route('/auth/:provider'),Method('GET')>>
+  <<Request,Route('/auth/:provider'),Method('POST', 'GET')>>
   public function authenticate(Authenticate $request)
   {
     $provider = $request->getProvider() ?: self::$defaultOAuthProvider->getName();
@@ -221,7 +221,13 @@ class AuthService extends Service {
     // if request.remember me add request.addsessionptions
     // check if the request provider is logout, then call the logout method on the $oauthProvider
     $session = $this->getSession();
-    $response = $this->doAuthenticate($request, $provider, $session, $oauthProvider);
+    try {
+      $response = $this->doAuthenticate($request, $provider, $session, $oauthProvider);  
+    }
+    catch(\Exception $ex) {
+      return HttpResult::createCustomError('InvalidAuthentication', _('InvalidAuthentication'));
+    }
+    
     
     if($response instanceof HttpResult) {
       return $response;
@@ -229,6 +235,9 @@ class AuthService extends Service {
     if($response == null)
       return HttpResult::createCustomError('InvalidLogin', _('InvalidLogin'));
     
+    if($request->getContinue() != null) {
+      return $this->redirect($request->getContinue());
+    }
     return $response;
   }
 

@@ -290,6 +290,7 @@ class EventsService extends Service {
     <<Request,Method('POST'),Route('/event'),Auth>>
     public function create(CreateEvent $request)
     {
+        
         $event = new EventEntity();
         ClassUtils::mapDto($request, $event);
 

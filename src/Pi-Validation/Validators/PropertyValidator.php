@@ -14,6 +14,12 @@ use Pi\Validation\ValidationFailure;
 
 abstract class PropertyValidator implements IValidationProperty{
 
+    protected string $errorMessage = 'Invalid input.';
+    public static function use()
+    {
+        return new static;
+    }
+    
     public function validate(PropertyValidatorContext $context)
     {
         if(!$this->isValid($context)) {
@@ -26,7 +32,7 @@ abstract class PropertyValidator implements IValidationProperty{
 
     protected function createValidationError(PropertyValidatorContext $context)
     {
-        $failure = new ValidationFailure($context->getPropertyName(), 'default', $context->getPropertyValue());
+        $failure = new ValidationFailure($context->getPropertyName(), $this->errorMessage, $context->getPropertyValue());
         return $failure;
     }
 

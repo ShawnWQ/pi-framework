@@ -47,7 +47,7 @@ class AlbumService extends Service implements IEventSubscriber {
 	<<Subscriber('Pi\ServiceInterface\Events\NewUserRegisterArgs')>>
 	public function onNewUserRegistered(NewUserRegisterArgs $request)
 	{
-		$id = $request->getUser()->id();
+		$id = $request->getUserId();
 		$req = new PostAlbumRequest();
 		$req->setType(AlbumType::Profile);
 		$req->setUserId($id);

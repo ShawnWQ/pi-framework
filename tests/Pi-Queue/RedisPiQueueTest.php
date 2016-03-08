@@ -33,9 +33,11 @@ class RedisPiQueueTest extends \PHPUnit_Framework_TestCase {
 		$provider = $this->host->container()->get('Pi\ServiceInterface\AbstractMailProvider');
 		$piQueue = $this->getPiQueue();
 		$dto = new RedisPiQueueServiceTRequest();
-		$count = $this->redis->llen('queue::default');
-		$piQueue->push('default', json_encode(array('class' => 'Mocks\RedisPiQueueServiceT', 'request' => 'default', 'dto' => json_encode($dto))));
-		$this->assertTrue($count === ($this->redis->llen('queue::default') - 1));
+		$count = $this->redis->llen('queue::default') ?: 0;
+
+		$piQueue->push('default', array('class' => 'Mocks\RedisPiQueueServiceT', 'request' => 'default', 'dto' => json_encode($dto)));
+		$len = $this->redis->llen('queue::default') ?: 0;
+		$this->assertEquals($count, ($len - 1));
 	}
 
 	public function testCanPopItem()

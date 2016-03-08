@@ -33,7 +33,7 @@ class HttpResult implements IIsStreamWriter {
   {
     if(is_null($statusCode)) 
     {
-      $statusCode = 401;
+      $statusCode = HttpStatusCode::BadRequest;
     }
     $response = array('errorCode' => $errorCode, 'errorMessage' => $errorMessage);
     return new HttpResult($response, $statusCode);
@@ -41,7 +41,7 @@ class HttpResult implements IIsStreamWriter {
 
   public static function createFromValidation(ValidationResponse $response)
   {
-    return new HttpResult($response, 500);
+    return new HttpResult($response, HttpStatusCode::BadRequest);
   }
 
   public static function redirect(string $redirectUri, HttpStatusCode $statusCode = HttpStatusCode::Found)

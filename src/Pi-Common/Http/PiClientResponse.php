@@ -7,8 +7,6 @@ use Pi\HttpResult;
 use Pi\SessionPlugin;
 use Pi\Interfaces\IResponse;
 use Pi\Interfaces\IRequest;
-use Pi\Interfaces\IHttpRequest;
-use Pi\Interfaces\IHttpResponse;
 use Pi\Interfaces\IContainable;
 use Pi\Interfaces\IContainer;
 

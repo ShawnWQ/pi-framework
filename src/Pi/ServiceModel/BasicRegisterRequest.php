@@ -10,11 +10,13 @@ class BasicRegisterRequest {
 
 	protected $lastName;
 
-	protected $displayName;
+	protected ?string $displayName;
 
 	protected $email;
 
 	protected $password;
+
+	protected $passwordConfirm;
 
 	protected string $city;
 
@@ -60,6 +62,13 @@ class BasicRegisterRequest {
 	{
 		if($value === null) return $this->password;
 		$this->password = $value;
+	}
+
+	<<String>>
+	public function passwordConfirm($value = null)
+	{
+		if($value === null) return $this->password;
+		$this->passwordConfirm = $value;
 	}
 
 	<<String>>

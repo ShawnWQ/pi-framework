@@ -1,8 +1,7 @@
 <?hh
 
 namespace Pi\Auth;
-use Pi\Interfaces\IHttpRequest;
-use Pi\Interfaces\IHttpResponse,
+use Pi\Interfaces\IRequest,
 	Pi\Auth\Interfaces\IAuthSession,
 	Pi\Auth\Interfaces\IUserAuth;
 use Pi\UnauthorizedException;
@@ -12,7 +11,7 @@ use Pi\UnauthorizedException;
  */
 class AuthExtensions {
 
-	public static function getAuthTokenFromBearerRequest(IHttpRequest $request)
+	public static function getAuthTokenFromBearerRequest(IRequest $request)
 	{
 
 	}
@@ -37,6 +36,8 @@ class AuthExtensions {
 	    if($session->getEmail() != null || $session->getPrimaryEmail() != null)
 	    	$userAuth->setEmail($session->getEmail() ?: $session->getPrimaryEmail());
 	    $session->setCreatedAt(new \DateTime('now'));
+	    if($session->getFacebookUserId() != null)
+	    	$userAuth->setFacebookUserId($session->getFacebookUserId());
 	    //if($session->getModifiedDate() != null)
 	    //	$userAuth->setModifiedDate($userAuth->getCreatedDate());
 	}
@@ -46,9 +47,11 @@ class AuthExtensions {
 		$session->setId((string)$userAuth->getId());
 		$session->setUserId($userAuth->getId());
 		$session->setEmail($userAuth->getEmail());
-
 		if($authTokens != null) {
-			    $session->setProviderOAuthAccess($tokens);
+			$session->setProviderOAuthAccess($tokens);
+		}
+		if($userAuth->getFacebookUserId() != null) {
+			$session->setFacebookUserId($userAuth->getFacebookUserId());
 		}
 	}
 

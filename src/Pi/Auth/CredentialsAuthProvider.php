@@ -61,7 +61,7 @@ class CredentialsAuthProvider extends AuthProvider {
 
   public function authenticate(IService $authService, IAuthSession $session, Authenticate $request) : ?AuthenticateResponse
   {
-      $userAuth = $this->tryAuthenticate($authService, $request->getUserName(), $request->getPassword());
+      $userAuth = $this->tryAuthenticate($authService, $request->getUserName() ?: $request->getEmail(), $request->getPassword());
 
       if(!$userAuth) {
         throw new \Exception('Not authenticated with email' . $request->getUserName() . '___' . $request->getPassword());

@@ -9,9 +9,7 @@ namespace MarkdownView;
 
 use Pi\Host\Handlers\AbstractPiHandler;
 use Pi\Interfaces\IRequest;
-use Pi\Interfaces\IHttpRequest;
 use Pi\Interfaces\IResponse;
-use Pi\Interfaces\IHttpResponse;
 use Pi\Interfaces\IViewEngine;
 use Pi\Interfaces\IAppHost;
 use Pi\Host\HostProvider;
@@ -61,12 +59,12 @@ class MarkdownHandler extends AbstractPiHandler implements IViewEngine {
 
 	}
 
-	protected function findPage(IHttpRequest $request, $model)
+	protected function findPage(IRequest $request, $model)
 	{
 
 	}
 
-	public function hasView(string $viewName, IHttpRequest $request = null) : bool
+	public function hasView(string $viewName, IRequest $request = null) : bool
 	{
 		$view = !array_key_exists(self::VIEW_KEY, $request->items()) ?: $request->items()[self::VIEW_KEY];
 	}
@@ -76,7 +74,7 @@ class MarkdownHandler extends AbstractPiHandler implements IViewEngine {
 
 	}
 
-	public function processHttpRequest(IHttpRequest $request, IHttpResponse $response, $dto)
+	public function processHttpRequest(IRequest $request, IResponse $response, $dto)
 	{
 
 	}

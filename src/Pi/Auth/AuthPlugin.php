@@ -11,7 +11,8 @@ use Pi\Interfaces\PIPiHost;
 use Pi\EventManager;
 use Pi\Auth\MongoDb\MongoDbAuthRepository;
 use Pi\Auth\MongoDbAuthUserRepository,
-	Pi\Auth\MongoDb\MongoDbAuthDetailsRepository;
+	Pi\Auth\MongoDb\MongoDbAuthDetailsRepository,
+	Pi\Auth\Validators\BasicRegistrationValidator;
 
 class AuthPlugin implements IPostInitPlugin, IPlugin {
 
@@ -80,6 +81,7 @@ class AuthPlugin implements IPostInitPlugin, IPlugin {
 		$appHost->container()->registerRepository(new UserAuthDetails(), $detailsRepo);
 		$appHost->container()->registerRepository(new UserEntity(), $repo);
 		$appHost->container()->registerRepository(new UserAuth(), $repo);
+		$appHost->registerValidator('Pi\ServiceModel\BasicRegisterRequest', BasicRegistrationValidator::use());
 
 		//$appHost->container()->registerRepository(new UserEntity(), new UserRepository());
 	}

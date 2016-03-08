@@ -1,10 +1,13 @@
 <?hh
 
 namespace Mocks;
-use Pi\Host\PhpRequest;
 
-class HttpRequestMock
-  extends PhpRequest {
+use Pi\Host\BasicRequest;
+
+
+
+
+class HttpRequestMock extends BasicRequest {
 
   	public function __construct($request)
   	{

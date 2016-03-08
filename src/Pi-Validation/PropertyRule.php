@@ -23,7 +23,7 @@ class PropertyRule implements IValidationRule {
 		protected $expression = null// Lambda expression used to create the rule
 		) 
 	{
-        $this->setName($reflProperty);
+        $this->setName($reflProperty->getName());
 		// resolve $name and $displayName
 	}
 
@@ -126,9 +126,11 @@ class PropertyRule implements IValidationRule {
 
 	protected function doValidateProperty(ValidationContext $context, IValidationProperty $validator, string $propertyName)
 	{
+
         $propertyContext = new PropertyValidatorContext($context, $this, $propertyName);
-        //$this->reflProperty->setAccessible(true);
-        $propertyContext->setPropertyValue($context->getObjectToValidate()->$propertyName);
+        $this->reflProperty->setAccessible(true);
+        $val = $this->reflProperty->getValue($context->getObjectToValidate());
+        $propertyContext->setPropertyValue($val, $propertyName);
         return $validator->validate($propertyContext);
 	}
 }

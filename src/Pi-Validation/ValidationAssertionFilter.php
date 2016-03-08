@@ -22,6 +22,6 @@ class ValidationAssertionFilter extends RequestFilter {
 		if($validator === null) {
 			return;
 		}
-		Extensions::assertValidation($validator, $requestDto);
+		return Extensions::assertValidation($validator, $requestDto);
 	}
 }

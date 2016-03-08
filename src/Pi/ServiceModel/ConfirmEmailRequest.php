@@ -3,16 +3,34 @@
 namespace Pi\ServiceModel;
 
 class ConfirmEmailRequest {
-	
-	protected $email;
 
-	public function getEmail()
+	protected \MongoId $id;
+		protected ?string $token;
+	public function __construct(
+		
+	)
 	{
-		return $this->email;
+
 	}
 
-	public function setEmail($value)
+	public function getToken(): ?string
 	{
-		$this->value = $value;
+		return $this->token;
+	}
+
+	public function setToken(string $token)
+	{
+		return $this->token;
+	}
+
+	<<Id,ObjectId>>
+	public function getId() 
+	{
+		return $this->id;
+	}
+
+	public function setId($value)
+	{
+		$this->id = $value;
 	}
 }

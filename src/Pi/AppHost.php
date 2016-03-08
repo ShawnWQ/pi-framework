@@ -44,8 +44,9 @@ use Pi\Host\Handlers\StaticHandler;
 use Pi\Host\Handlers\HtmlGet;
 
 
-abstract class AppHost
-  extends PiHost {
+
+
+abstract class AppHost extends PiHost {
 
     protected $appId;
 
@@ -153,13 +154,8 @@ abstract class AppHost
       }
 
       $dto = $this->mapRouteDto($route);
-
-
-      //$httpRequest = new PhpRequest($dto);
-      $httpRequest = $this->container->get('IRequest');
-      $httpResponse = $this->container->get('IResponse');
-
-      //$httpResponse = new PhpResponse();
+      $httpRequest = $this->container->get('IRequest') ?: new BasicRequest();;
+      $httpResponse = $this->container->get('IResponse') ?: $httpRequest->response();
 
       foreach (HostProvider::catchAllHandlers() as $key => $handlerFn) {
         $handler = $handlerFn($method, $uri, $uri);

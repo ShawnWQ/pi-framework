@@ -42,7 +42,8 @@ use SpotEvents\ServiceModel\Types\NutritionSerie;
 use SpotEvents\ServiceModel\Types\Workout;
 use SpotEvents\ServiceModel\Types\WorkoutSerie;
 use SpotEvents\ServiceModel\Types\EventCategory;
-use SpotEvents\ServiceModel\PaymentReceiveRequest;
+use SpotEvents\ServiceModel\PaymentReceiveRequest,
+    SpotEvents\ServiceModel\CreateEventValidator;
 use SpotEvents\ServiceInterface\EventLikesProvider;
 
 class SpotEventsPlugin  implements IPlugin {
@@ -78,6 +79,7 @@ class SpotEventsPlugin  implements IPlugin {
         $container->register('SpotEvents\ServiceInterface\Interfaces\IPaymentProvider', function(IContainer $ioc){
             return new IfThenPaymentProvider();
         });
+        $container->registerValidator('SpotEvents\ServiceModel\CreateEvent', CreateEventValidator::use());
 
         $appHost->registerSubscriber('SpotEvents\ServiceModel\PaymentReceiveRequest', 'SpotEvents\ServiceModel\EventPaymentReceiveRequest');
     }

@@ -67,7 +67,10 @@ class PiContainer implements IContainer, IResolver{
 
   public function registerValidator($instance, AbstractValidator $validator)
   {
-    $this->validatorsRegistered[get_class($instance)] = $validator;
+    if(!is_string($instance)) {
+      $instance = get_class($instance);
+    }
+    $this->validatorsRegistered[$instance] = $validator;
   }
 
   public function tryResolve(string $alias) : ?IContainable

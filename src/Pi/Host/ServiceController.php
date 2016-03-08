@@ -324,7 +324,8 @@ class ServiceController
     $verbs = array('GET');
 
     if(array_key_exists('Method', $attrs)){
-      $v = $rc->getMethod($name)->getAttribute('Method')[0];
+      $v = $rc->getMethod($name)->getAttribute('Method');
+
       $verbs = is_array($v) ? $v : array($v);
     } else if(in_array(strtolower($name), array('get', 'post', 'put', 'delete'))){
       $verbs = array(strtoupper($name));

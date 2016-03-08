@@ -97,7 +97,7 @@ class AuthServiceTest extends \PHPUnit_Framework_TestCase {
     $request->password('123_123123');
 
     $service = $this->host->container->getService(new RegisterService());
-    $response = $service->basicRegistration($request);
+    $response = $service->register($request);
     return $request;
   }
 }

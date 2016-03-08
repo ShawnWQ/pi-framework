@@ -4,8 +4,7 @@ namespace MultiTenant;
 
 use Pi\Filters\PreInitRequestFilter;
 use Pi\Interfaces\IRequest,
-	Pi\Interfaces\IHttpRequest;
-use Pi\Interfaces\IResponse;
+	Pi\Interfaces\IResponse;
 use Pi\ServiceInterface\Data\ApplicationRepository;
 use Pi\Host\HostProvider;
 use Pi\Extensions;
@@ -25,7 +24,7 @@ class TenantResolverFilter extends PreInitRequestFilter {
 		$app = $this->appRepo = HostProvider::instance()->tryResolve('Pi\ServiceInterface\Data\ApplicationRepository');
 		$this->nullthrows($app, 'ApplicationRepository isnt injected in TenantResolveFilter');
 
-		if(!$req instanceof IHttpRequest) {
+		if(!$req instanceof IRequest) {
 			throw new \Exception('MultiTenant not available for CLI');
 		}
 		$config = HostProvider::instance()->config();

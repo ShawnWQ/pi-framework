@@ -23,4 +23,11 @@ class RuleBuilder {
 		$this->rule->addValidator($validator);
         return $this;
 	}
+
+	public function setValidators(array $validators)
+	{
+		foreach ($validators as $key => $value) {
+			$this->rule->addValidator($value);
+		}
+	}
 }

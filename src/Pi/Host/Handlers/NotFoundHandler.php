@@ -1,9 +1,11 @@
 <?hh
 
 namespace Pi\Host\Handlers;
-use Pi\Interfaces\IRequest;
-use Pi\Interfaces\IResponse;
-use Pi\ServiceModel\NotFoundRequest;
+
+use Pi\HttpStatusCode,
+    Pi\Interfaces\IRequest,
+    Pi\Interfaces\IResponse,
+    Pi\ServiceModel\NotFoundRequest;
 
 class NotFoundHandler extends RestHandler {
 
@@ -18,6 +20,8 @@ class NotFoundHandler extends RestHandler {
 
     $httpReq->setDto($request);
     $response = $this->getResponse($httpReq, $request);
+    $httpRes->setStatusCode(HttpStatusCode::NotFound);
+    
     
     $callback = function($response) use($httpReq, $httpRes){
       $httpRes->writeDto($httpReq, $response);

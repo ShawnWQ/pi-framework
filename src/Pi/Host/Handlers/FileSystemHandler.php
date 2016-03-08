@@ -3,7 +3,6 @@
 namespace Pi\Host\Handlers;
 use Pi\Interfaces\IRequest;
 use Pi\Interfaces\IResponse;
-use Pi\Interfaces\IHttpRequest;
 use Pi\Host\HostProvider;
 use Pi\ServiceModel\NotFoundRequest;
 use Pi\FileSystem\FileType;
@@ -22,7 +21,7 @@ class FileSystemHandler extends AbstractPiHandler {
 
 	public function createRequest(IRequest $request, string $operationName)
 	{
-		if(!$request instanceof IHttpRequest) {
+		if(!$request instanceof IRequest) {
 			throw new \Exception('File system should be handled with FileSystem handler');
 		}
 

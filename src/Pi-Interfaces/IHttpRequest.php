@@ -2,9 +2,9 @@
 
 namespace Pi\Interfaces;
 
-interface IHttpRequest  extends IRequest {
+interface IHttpRequest extends IRequest {
 
-  public function httpResponse() : IHttpResponse;
+  public function httpResponse() : IResponse;
 
   public function httpMethod() : string;
 

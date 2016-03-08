@@ -94,7 +94,7 @@ class HostConfig
     $this->hydratorDir = $path;
     $this->hydratorNamespace = 'Mocks\\Hydrators';
     $this->smtpHost = 'localhost';
-    $this->smtpPort = 456;
+    $this->smtpPort = 26;
     $this->smtpFromName = 'Guilherme Cardoso';
     $this->smtpFromEmail = 'email@guilhermecardoso.pt';
     $this->smtpUsername = null;
@@ -210,6 +210,11 @@ class HostConfig
   public function get(string $key, ?string $default = null)
   {
     return !is_null($default) ? $default : '';
+  }
+
+  public function absoluteUrl() : string
+  {
+    return $this->protocol . '://' . $this->domain;
   }
 
   public function protocol($value = null)

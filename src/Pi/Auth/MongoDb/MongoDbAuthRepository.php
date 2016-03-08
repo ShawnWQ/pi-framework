@@ -45,11 +45,32 @@ class MongoDbAuthRepository extends MongoRepository<TAuth> implements IUserAuthR
     return $newUser;
   }
 
+  protected function assertNoExistingUser(IUserAuth $user)
+  {
+    $query = $this->queryBuilder()
+      ->find();
+
+    if($user->getEmail() != null) {
+      $query->field('email')->eq($user->getEmail());
+    }
+    //if($user->getFacebookUserId() != null) {
+    //  $query->field('facebookUserId')->eq($user->getFacebookUserId());
+    //}
+
+    $count = $query
+      ->getQuery()
+      ->execute();
+    if($count != null || $count > 0) {
+      throw new \Exception("Email $email already registered");
+    }
+  }
+
   public function createAuth(?IAuthSession $session) : IUserAuth 
   {
     $newUser = new UserAuth();
     if($session == null)
       $session = new AuthUserSession();
+    // Assert no existing user
     AuthExtensions::populateUserAuthWithSession($newUser, $session);
     $this->insert($newUser);
 
@@ -66,7 +87,6 @@ class MongoDbAuthRepository extends MongoRepository<TAuth> implements IUserAuthR
       $registered = false;
       $userAuth = $this->createAuth($session);
       $tokens->setUserId($userAuth->getId());
-      $tokens->setUserAuthId($userAuth->getId());
     }
 
     $authDetails = $this->queryBuilder('Pi\Auth\UserAuthDetails')
@@ -80,7 +100,7 @@ class MongoDbAuthRepository extends MongoRepository<TAuth> implements IUserAuthR
     if(is_null($authDetails)) {
       $authDetails = new UserAuthDetails();
       $authDetails->setProvider($tokens->getProvider());
-      $authDetails->setUserId($tokens->getUserId());
+      $authDetails->setUserId($userAuth->getId());
       $this->authDetails->insert($authDetails);
       
     }
@@ -112,12 +132,23 @@ class MongoDbAuthRepository extends MongoRepository<TAuth> implements IUserAuthR
   {
     if(!is_null($session->getUserId())) {
       $userAuth = $this->getUserAuthById($session->getUserId());
-      if(!is_null($userAuth)) return $userAuth;
+      if($userAuth != null) {
+        return $userAuth;
+      }
     }
 
     if(!empty($session->getUserAuthName())) {
       $userAuth = $this->getUserAuthByUserName($session->getUserAuthName());
-      if(!is_null($userAuth)) return $userAuth;
+      if($userAuth != null) {
+        return $userAuth;
+      }
+    }
+
+    if($session->getFacebookUserId() != null) {
+      $userAuth = $this->getUserAuthByFacebookId($session->getFacebookUserId());
+      if($userAuth != null) {
+        return $userAuth;
+      }
     }
 
     if(is_null($tokens) || empty($tokens->getProvider()) || empty($tokens->getUserId()))
@@ -144,6 +175,16 @@ class MongoDbAuthRepository extends MongoRepository<TAuth> implements IUserAuthR
     
   }
 
+  public function getUserAuthByFacebookId(string $facebookUserId) : ?IUserAuth
+  {
+    return $this->queryBuilder()
+      ->find()
+      ->hydrate()
+      ->field('facebookUserId')->eq($facebookUserId)
+      ->getQuery()
+      ->getSingleResult();
+  }
+
   public function getUserAuthByUserName(string $userNameOrEmail) : ?IUserAuth
   {
     return $this->queryBuilder()
@@ -153,7 +194,6 @@ class MongoDbAuthRepository extends MongoRepository<TAuth> implements IUserAuthR
       ->getQuery()
       ->getSingleResult();
   }
-
 
   public function getUserAuthDetails($userAuthId) : array
   {
