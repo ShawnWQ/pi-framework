@@ -94,7 +94,7 @@ class PiWorker {
 		return $pids;
 	}
 
-	public function workingOn(WorkerJob $job)
+	public function workingOn(PiJob $job)
 	{
 		$job->setWorker($this);
 		$this->currentJob = $job;
@@ -170,7 +170,6 @@ class PiWorker {
 			$this->logger->info('starting work on $job');
 			$this->workingOn($job);
 			$this->perform($job);
-
 		}
 
 	}
@@ -204,7 +203,7 @@ class PiWorker {
 			if(!is_array($payload)) {
 				continue;
 			}
-			$job = new PibJob($this->piQueue, $queue, $payload);
+			$job = new PiJob($this->piQueue, $queue, $payload);
 			$this->logger->info('Found job $job');
 			return $job;
 		}

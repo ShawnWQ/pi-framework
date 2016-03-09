@@ -75,7 +75,7 @@ class RedisClient extends \Redis implements IContainable, IRedisClient {
 
   public function hset(string $hash, string $field, $value)
   {
-    $this->client->hset($hash, $field, $value);
+    return $this->client->hset($hash, $field, $value);
   }
 
   public function hgetAll(string $hash)
@@ -90,17 +90,27 @@ class RedisClient extends \Redis implements IContainable, IRedisClient {
 
   public function incr(string $key, $incryBy = 1)
   {
-    $this->client->incr($key, $incryBy);
+    return $this->client->incr($key, $incryBy);
   }
 
   public function lpush(string $key, $value)
   {
-    $this->client->lpush($key, $value);
+    return $this->client->lpush($key, $value);
+  }
+
+  public function lpop(string $key)
+  {
+    return $this->client->lpop($key);
   }
 
   public function llen(string $key)
   {
-    $this->client->llen($key);
+    return $this->client->llen($key);
+  }
+
+  public function rpush(string $key, $value)
+  {
+    return $this->client->rpush($key, $value);
   }
 
   public function lrange(string $key, int $start, int $stop)
@@ -115,7 +125,7 @@ class RedisClient extends \Redis implements IContainable, IRedisClient {
 
   public function delete(string $key)
   {
-    $this->client->delete($key);
+    return $this->client->delete($key);
   }
   
   public function del(string $key)
@@ -126,6 +136,11 @@ class RedisClient extends \Redis implements IContainable, IRedisClient {
   public function srem(string $set, $key)
   {
     return $this->client->srem($set, $key);
+  }
+
+  public function rpoplpush(string $origin, $destination)
+  {
+    return $this->client->rpoplpush($origin, $destination);
   }
 
   public function client()

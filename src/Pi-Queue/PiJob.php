@@ -45,7 +45,7 @@ class PiJob {
 	{
 		try {
 			$svc = $this->getService();
-			die('call svc request');
+			//die('call svc request');
 		}
 		catch(PiJobDontPerformException $ex) {
 					// beforePerform/setUp have said don't perform this job. Return.

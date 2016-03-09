@@ -82,6 +82,17 @@ class RedisClientTest extends \PHPUnit_Framework_TestCase {
   	$this->assertEquals('abc', $this->client->get($key));
   }
 
+  public function testCanCountList()
+  {
+    $key = RandomString::generate();
+    $count = $this->client->llen($key);
+    $this->assertEquals($count, 0);
+    $this->client->rpush($key, 'now');
+    $this->client->rpush($key, 'before');
+    $count = $this->client->llen($key);
+    $this->assertEquals($count, 2);
+  }
+
   public function testPushListAndGetRange()
   {
     $key = RandomString::generate();
