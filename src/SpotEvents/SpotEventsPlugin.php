@@ -79,7 +79,7 @@ class SpotEventsPlugin  implements IPlugin {
         $container->register('SpotEvents\ServiceInterface\Interfaces\IPaymentProvider', function(IContainer $ioc){
             return new IfThenPaymentProvider();
         });
-        $container->registerValidator('SpotEvents\ServiceModel\CreateEvent', CreateEventValidator::use());
+        $container->registerValidator('SpotEvents\ServiceModel\CreateEvent', CreateEventValidator::instance());
 
         $appHost->registerSubscriber('SpotEvents\ServiceModel\PaymentReceiveRequest', 'SpotEvents\ServiceModel\EventPaymentReceiveRequest');
     }

@@ -16,23 +16,23 @@ class CreateEventValidator extends AbstractValidator {
 	{
 		parent::__construct('SpotEvents\ServiceModel\CreateEvent');
 		$this->ruleFor('title')->setValidators(array(
-			NotNullValidator::use(),
-			MinLengthValidator::use(10),
-			MaxLengthValidator::use(120)
+			NotNullValidator::instance(),
+			MinLengthValidator::instance(10),
+			MaxLengthValidator::instance(120)
 			)
 		);
 		$this->ruleFor('excerpt')->setValidators(array(
-			NotNullValidator::use(),
-			MinLengthValidator::use(15),
-			MaxLengthValidator::use(120)
+			NotNullValidator::instance(),
+			MinLengthValidator::instance(15),
+			MaxLengthValidator::instance(120)
 			)
 		);
 		$this->ruleFor('title')->setValidators(array(
-			NotNullValidator::use(),
-			MinLengthValidator::use(20)
+			NotNullValidator::instance(),
+			MinLengthValidator::instance(20)
 			)
 		);
-		$this->ruleFor('doorTime')->setValidator(NotNullValidator::use());
-		$this->ruleFor('endDate')->setValidator(NotNullValidator::use());
+		$this->ruleFor('doorTime')->setValidator(NotNullValidator::instance());
+		$this->ruleFor('endDate')->setValidator(NotNullValidator::instance());
 	}
 }

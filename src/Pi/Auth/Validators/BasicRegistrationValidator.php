@@ -14,26 +14,26 @@ class BasicRegistrationValidator extends AbstractValidator {
 	{
 		parent::__construct('Pi\ServiceModel\BasicRegisterRequest');
 		$this->ruleFor('firstName')->setValidators(array(
-			NotNullValidator::use(),
-			MinLengthValidator::use(3),
-			MaxLengthValidator::use(120)
+			NotNullValidator::instance(),
+			MinLengthValidator::instance(3),
+			MaxLengthValidator::instance(120)
 			)
 		);
 		$this->ruleFor('lastName')->setValidators(array(
-			NotNullValidator::use(),
-			MinLengthValidator::use(3),
-			MaxLengthValidator::use(120)
+			NotNullValidator::instance(),
+			MinLengthValidator::instance(3),
+			MaxLengthValidator::instance(120)
 			)
 		);
-		$this->ruleFor('email')->setValidator(EmailValidator::use());
+		$this->ruleFor('email')->setValidator(EmailValidator::instance());
 		$this->ruleFor('password')->setValidators(array(
-			MinLengthValidator::use(6),
-			MaxLengthValidator::use(120)
+			MinLengthValidator::instance(6),
+			MaxLengthValidator::instance(120)
 			)
 		);
 		$this->ruleFor('passwordConfirm')->setValidators(array(
-			MinLengthValidator::use(6),
-			MaxLengthValidator::use(120)
+			MinLengthValidator::instance(6),
+			MaxLengthValidator::instance(120)
 			)
 		);
 	}

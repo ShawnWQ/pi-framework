@@ -37,7 +37,7 @@ abstract class AbstractValidator implements IHasAppHost {
         }
     }
 
-    public static function use()
+    public static function instance()
     {
         return new static;
     }

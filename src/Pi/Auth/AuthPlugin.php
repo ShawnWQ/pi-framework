@@ -81,7 +81,7 @@ class AuthPlugin implements IPostInitPlugin, IPlugin {
 		$appHost->container()->registerRepository(new UserAuthDetails(), $detailsRepo);
 		$appHost->container()->registerRepository(new UserEntity(), $repo);
 		$appHost->container()->registerRepository(new UserAuth(), $repo);
-		$appHost->registerValidator('Pi\ServiceModel\BasicRegisterRequest', BasicRegistrationValidator::use());
+		$appHost->registerValidator('Pi\ServiceModel\BasicRegisterRequest', BasicRegistrationValidator::instance());
 
 		//$appHost->container()->registerRepository(new UserEntity(), new UserRepository());
 	}
