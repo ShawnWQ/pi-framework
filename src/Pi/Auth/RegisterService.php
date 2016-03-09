@@ -55,7 +55,7 @@ class RegisterService extends Service {
 		$r = new RegistrationAvailabilityRequest();
 	    $r->setEmail($request->email());
 	    if($this->availableService->verifyEmail($r)->isAvailable() === false) {
-	        return HttpResult::createCustomError(AuthServiceError::EmailAlreadyRegistered, _(AuthServiceError::EmailAlreadyRegistered));
+	        return HttpResult::createCustomError(AuthServiceError::EmailAlreadyRegistered, gettext(AuthServiceError::EmailAlreadyRegistered));
 	    }
 
 		$account = $this->mapBasicRequestToUserEntity($request);
@@ -93,13 +93,13 @@ class RegisterService extends Service {
 		$this->cache()->set($redisKey, $token);
 		$this->cache()->expire($redisKey, 3600);
 		$body = $this->getMailConfirmationBody($token, $displayName, $email, $id);
-		$this->mailProvider->send($displayName, $email, _('Account Confirmation'), $body);	
+		$this->mailProvider->send($displayName, $email, gettext('Account Confirmation'), $body);	
 	}
 
 	protected function getMailConfirmationBody(string $token, string $displayName, $email, $id)
 	{
 		$link = $this->appConfig()->absoluteUrl() . '/account/confirm?token=' . $token . '&id=' . $id;
-		$code = sprintf(_('You have to confirm your email.<br>Follow this link: <a href="%s">%s</a>'), $link, $link);
+		$code = sprintf(gettext('You have to confirm your email.<br>Follow this link: <a href="%s">%s</a>'), $link, $link);
 		return $code;
 	}
 
@@ -107,7 +107,7 @@ class RegisterService extends Service {
 	public function confirmEmail(ConfirmEmailRequest $request)
 	{
 		if($this->cache()->get(self::REDIS_CONFIRM_TOKEN . (string)$request->getId()) != $request->getToken()) {
-			return HttpResult::createCustomError(self::INVALID_EMAIL_TOKEN, _(self::INVALID_EMAIL_TOKEN));
+			return HttpResult::createCustomError(self::INVALID_EMAIL_TOKEN, gettext(self::INVALID_EMAIL_TOKEN));
 		}
 
 		$r = $this->userRep->queryBuilder()

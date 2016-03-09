@@ -10,7 +10,7 @@ class MaxLengthValidator extends PropertyValidator{
 
 	public function __construct(protected int $maxLength)
 	{
-        $this->errorMessage = sprintf(_('The property cant have more than %s caracthers'), (string)$maxLength);
+        $this->errorMessage = sprintf(gettext('The property cant have more than %s caracthers'), (string)$maxLength);
 	}
 
     public static function instance(int $maxLength)

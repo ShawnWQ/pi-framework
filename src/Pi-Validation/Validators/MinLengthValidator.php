@@ -10,7 +10,7 @@ class MinLengthValidator extends PropertyValidator {
 
 	public function __construct(protected int $minLength)
 	{
-        $this->errorMessage = sprintf(_('The property requires at least %s caracther%s'), (string)$minLength, $minLength == 1 ? '' : 's');
+        $this->errorMessage = sprintf(gettext('The property requires at least %s caracther%s'), (string)$minLength, $minLength == 1 ? '' : 's');
 	}
 
     public static function instance(int $minLength)

@@ -121,7 +121,7 @@ class AuthService extends Service {
   public function getToken(AuthToken $request)
   {
     if(!$this->validateAuthToken($request->getClientId(), $request->getScope(), $request->getCode())){
-      return HttpResult::createCustomError('InvalidToken', _('InvalidToken'));
+      return HttpResult::createCustomError('InvalidToken', gettext('InvalidToken'));
     }
 
     $token = $this->getTokenFromRedis($request->getClientId());
@@ -153,7 +153,7 @@ class AuthService extends Service {
 
     $user = self::$defaultOAuthProvider->authenticate($this, $this->request()->getSession(), $r);
     if(is_null($user) || $user === false)  {
-      return HttpResult::createCustomError('InvalidEmailOrPw', _('InvalidEmailOrPw'));
+      return HttpResult::createCustomError('InvalidEmailOrPw', gettext('InvalidEmailOrPw'));
     }
 
     // Generate a authentication token
@@ -225,7 +225,7 @@ class AuthService extends Service {
       $response = $this->doAuthenticate($request, $provider, $session, $oauthProvider);  
     }
     catch(\Exception $ex) {
-      return HttpResult::createCustomError('InvalidAuthentication', _('InvalidAuthentication'));
+      return HttpResult::createCustomError('InvalidAuthentication', gettext('InvalidAuthentication'));
     }
     
     
@@ -233,7 +233,7 @@ class AuthService extends Service {
       return $response;
     }
     if($response == null)
-      return HttpResult::createCustomError('InvalidLogin', _('InvalidLogin'));
+      return HttpResult::createCustomError('InvalidLogin', gettext('InvalidLogin'));
     
     if($request->getContinue() != null) {
       return $this->redirect($request->getContinue());
