@@ -1,6 +1,6 @@
 # Pi Services -
 
-[![Build Status](https://travis-ci.org/guilhermegeek/pi-framework.png?branch=master)](http://travis-ci.org/guilhermegeek/pi-framework)
+[![Build Status](http://codigo.ovh:8084/buildStatus/icon?job=f)](http://codigo.ovh:8084/job/f/)
 
 This code is being actively developed. Feel free to join with me but dont open issues by now, as im writting on it everyday. It's unstable and simple not ready yet.
 
