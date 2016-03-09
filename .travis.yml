@@ -22,15 +22,18 @@ install:
 script:
   - sh $HPHP_HOME/hphp/tools/hphpize/hphpize && cmake . && make
   - sudo mkdir /etc/hhvm/extensions/
-  - echo hhvm.dynamic_extension_path = /etc/hhvm/extensions  | sudo tee -a /etc/hhvm/php.ini
-  - echo hhvm.dynamic_extensions[mongo] = mongo.so  | sudo tee -a /etc/hhvm/php.ini
-  - echo hhvm.dynamic_extensions[msgpack] = msgpack.so  | sudo tee -a /etc/hhvm/php.ini
   - git clone git://github.com/reeze/msgpack-hhvm.git 
   - cd msgpack-hhvm && hphpize && cmake . && make
   - sudo cp msgpack.so /etc/hhvm/extensions/  && cd ../
   - git clone git://github.com/mongofill/mongofill-hhvm.git
   - cd mongofill-hhvm &&  ./build.sh
   - sudo cp mongo.so /etc/hhvm/extensions/ && cd ../
+  - cat /etc/hhvm/php.ini
+  - echo hhvm.dynamic_extension_path = /etc/hhvm/extensions  | sudo tee -a /etc/hhvm/php.ini
+  - cat /etc/hhvm/php.ini
+  - echo hhvm.dynamic_extensions[mongo] = mongo.so  | sudo tee -a /etc/hhvm/php.ini
+  - cat /etc/hhvm/php.ini
+  - echo hhvm.dynamic_extensions[msgpack] = msgpack.so  | sudo tee -a /etc/hhvm/php.ini
   - phpunit
 
 services:
