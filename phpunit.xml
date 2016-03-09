@@ -82,7 +82,7 @@
         </testsuite>
     </testsuites>
     <php>
-        <server name="REQUEST_URI" value="/test" />
+        <server name="REQUEST_URI" value="/testi" />
         <server name="REQUEST_METHOD" value="GET" />
         <server name="HTTP_X_FORWARDED_FOR" value="" />
         <server name="SERVER_NAME" value="localhost" />
