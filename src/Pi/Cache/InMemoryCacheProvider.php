@@ -2,11 +2,18 @@
 
 namespace Pi\Cache;
 
-use Pi\Interfaces\ICacheProvider;
-use Pi\Interfaces\IContainer;
+use Pi\Interfaces\ICacheProvider,
+    Pi\Interfaces\IContainer;
 
-class InMemoryCacheProvider
-  implements ICacheProvider{
+
+
+
+/**
+ * In Memory Cache Provider
+ * This implementation dont persist the cache data
+ * It's used only for tests
+ */
+class InMemoryCacheProvider implements ICacheProvider {
 
   protected $config;
 

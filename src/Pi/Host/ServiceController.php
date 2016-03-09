@@ -2,45 +2,47 @@
 
 namespace Pi\Host;
 
-use Pi\Extensions;
-use Pi\FileSystem\FileGet;
-use Pi\NotImplementedException;
-use Pi\Interfaces\IRoutesManager;
-use Pi\Interfaces\IRequest;
-use Pi\Interfaces\IService;
-use Pi\Interfaces\IMessage;
-use Pi\Interfaces\ILog;
-use Pi\Interfaces\IPiHost;
-use Pi\Host\RoutesManager;
-use Pi\Host\BasicRequest;
-use Pi\Route;
-use Pi\Service;
-use Pi\Interfaces\IServiceBase;
-use Pi\Host\ServiceMeta;
-use Pi\Interfaces\IHasFactory;
-use Pi\Logging\LogManager;
-use Pi\Interfaces\IRequiresRequest;
-use Pi\Interfaces\IMessageFactory;
-use Pi\Interfaces\IReturn;
-use Pi\Interfaces\IEventSubscriber;
-use Pi\ServiceModel\NotFoundRequest;
-use Pi\ServiceInterface\NotFoundService;
-use Pi\Host\Handlers\RestHandler;
-use Pi\Host\Handlers\HandlerAttribute;
-use Pi\Host\Handlers\NotFoundHandler;
-use Pi\Host\Handlers\AbstractPiHandler;
-use Pi\Host\Handlers\FileSystemHandler;
-use SuperClosure\Serializer;
-use SuperClosure\Analyzer\AstAnalyzer;
-use SuperClosure\Exception\ClosureAnalysisException;
+use Pi\Extensions,
+    Pi\FileSystem\FileGet,
+    Pi\NotImplementedException,
+    Pi\Interfaces\IRoutesManager,
+    Pi\Interfaces\IRequest,
+    Pi\Interfaces\IService,
+    Pi\Interfaces\IMessage,
+    Pi\Interfaces\ILog,
+    Pi\Interfaces\IPiHost,
+    Pi\Host\RoutesManager,
+    Pi\Host\BasicRequest,
+    Pi\Route,
+    Pi\Service,
+    Pi\Interfaces\IServiceBase,
+    Pi\Host\ServiceMeta,
+    Pi\Interfaces\IHasFactory,
+    Pi\Logging\LogManager,
+    Pi\Interfaces\IRequiresRequest,
+    Pi\Interfaces\IMessageFactory,
+    Pi\Interfaces\IReturn,
+    Pi\Interfaces\IEventSubscriber,
+    Pi\ServiceModel\NotFoundRequest,
+    Pi\ServiceInterface\NotFoundService,
+    Pi\Host\Handlers\RestHandler,
+    Pi\Host\Handlers\HandlerAttribute,
+    Pi\Host\Handlers\NotFoundHandler,
+    Pi\Host\Handlers\AbstractPiHandler,
+    Pi\Host\Handlers\FileSystemHandler,
+    SuperClosure\Serializer,
+    SuperClosure\Analyzer\AstAnalyzer,
+    SuperClosure\Exception\ClosureAnalysisException;
+
+
+
 
 /**
  * The Service Controler is responsible for executing services
  * Services are registered in IOC container
  */
 
-class ServiceController
-{
+class ServiceController {
 
 
   protected $reflRequests = Map{};
@@ -104,7 +106,6 @@ class ServiceController
    */
   public function init()
   {
-
     $eventManager = $this->appHost->container()->get('EventManager');
       $this->hydratorFactory = new OperationHydratorFactory(
         $this->appHost->config(),

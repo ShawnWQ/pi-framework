@@ -52,5 +52,8 @@
         "files": [
           "lib/simple_html_dom.php"
         ]
+    },
+    "require-dev": {
+        "johnkary/phpunit-speedtrap": "^1.0"
     }
 }

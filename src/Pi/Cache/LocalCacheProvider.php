@@ -2,36 +2,37 @@
 
 namespace Pi\Cache;
 
-use Pi\Interfaces\ICacheProvider;
-use Pi\Interfaces\IContainer;
+use Pi\Interfaces\ICacheProvider,
+    Pi\Interfaces\IContainer;
 
-class LocalCacheProvider
-  implements ICacheProvider{
+
+
+
+/**
+ * Local Cache Provider
+ * Persists the cache data to a file
+ */
+class LocalCacheProvider implements ICacheProvider{
 
   protected $config;
-
-  public function ioc(IContainer $container)
-  {
-
-  }
 
   public function __construct(protected $filePath)
   {
     if(!is_writable($this->filePath)){
-      //throw new \Exception(
-        //sprintf('The LocalCacheProvider save directory isnt writable. Fix permissions for: %s', $this->filePath));
+      throw new \Exception(
+        sprintf('The LocalCacheProvider save directory isnt writable. Fix permissions for: %s', $this->filePath));
     }
 
     $file = fopen($this->filePath, 'w');
     $size = filesize($filePath);
-    if($size <= 1)
-    {
+    if($size <= 1) {
       $this->createFile();
     } else {
       $this->readFile($file, $this->filePath);
     }
-
   }
+
+  public function ioc(IContainer $container) { }
 
   private function readFile($file, $filePath) : void
   {

@@ -89,4 +89,7 @@
         <server name="SERVER_PORT" value="80" />
         <const name="PHPUNIT_PI_DEBUG" value="true"/>
     </php>
+    <listeners>
+        <listener class="JohnKary\PHPUnit\Listener\SpeedTrapListener" />
+    </listeners>
 </phpunit>

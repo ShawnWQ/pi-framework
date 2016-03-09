@@ -1,14 +1,25 @@
 <?hh
 
 namespace Pi\Cache;
-use Pi\Interfaces\ICacheProvider;
-use Pi\Interfaces\IContainable;
-use Pi\Interfaces\IContainer;
-use Pi\Host\HostProvider;
-use Pi\Common\RandomString;
-use Pi\Redis\Interfaces\IRedisClient;
 
+use Pi\Interfaces\ICacheProvider,
+    Pi\Interfaces\IContainable,
+    Pi\Interfaces\IContainer,
+    Pi\Host\HostProvider,
+    Pi\Common\RandomString,
+    Pi\Redis\Interfaces\IRedisClient;
+
+
+
+
+/**
+ * Redis Cache Provider
+ * Uses a redis Set to store key/value data.
+ * The set is prefixed with RedisCacheProvider::PREFIX
+ */
 class RedisCacheProvider implements ICacheProvider, IContainable {
+
+  const PREFIX = 'app-config::';
 
   public function __construct(
     protected IRedisClient $redis)
@@ -16,25 +27,17 @@ class RedisCacheProvider implements ICacheProvider, IContainable {
 
   }
 
-  public function ioc(IContainer $container)
-  {
-
-
-  }
-
-  protected $configs;
+  public function ioc(IContainer $container) { }
 
   protected function redisSet() : string
   {
-    return 'app-config::';
+    return self::PREFIX;
   }
 
   public function get($key = null)
   {
-
     return is_null($key) ? $this->redis->get($this->redisSet()) :  $this->redis->get($this->redisSet() . $key);
   }
-
 
   public function set($key, $value)
   {
