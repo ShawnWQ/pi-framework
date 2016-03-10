@@ -7,11 +7,6 @@ before_script:
   - cd $HPHP_HOME && git submodule update --init --recursive && export CMAKE_PREFIX_PATH=`pwd`/.. && time TRAVIS=1 ./configure_generic.sh
   - cd hphp/system && make -j8 && cd -
   - cd ..
-  - composer install
-
-before_install:
-  - cat /etc/hhvm/php.ini
-  - echo hhvm.enable_zend_compat=true | sudo tee -a /etc/hhvm/php.ini
 
 install:
   - sudo apt-get install cmake
@@ -20,26 +15,11 @@ install:
   - export HPHP_HOME=`pwd`/hhvm
 
 script:
+  - sudo mkdir /etc/hhvm/extensions
   - sh $HPHP_HOME/hphp/tools/hphpize/hphpize && cmake . && make
-  - sudo mkdir /etc/hhvm/extensions/
   - git clone git://github.com/reeze/msgpack-hhvm.git 
-  - cd msgpack-hhvm && hphpize && cmake . && make
-  - sudo cp msgpack.so /etc/hhvm/extensions/  && cd ../
-  - git clone git://github.com/mongofill/mongofill-hhvm.git
-  - cd mongofill-hhvm &&  ./build.sh
-  - sudo cp mongo.so /etc/hhvm/extensions/ && cd ../
-  - cat /etc/hhvm/php.ini
-  - echo hhvm.dynamic_extension_path = /etc/hhvm/extensions  | sudo tee -a /etc/hhvm/php.ini
-  - cat /etc/hhvm/php.ini
-  - echo hhvm.dynamic_extensions[mongo] = mongo.so  | sudo tee -a /etc/hhvm/php.ini
-  - cat /etc/hhvm/php.ini
-  - echo hhvm.dynamic_extensions[msgpack] = msgpack.so  | sudo tee -a /etc/hhvm/php.ini
-  - phpunit
-
-services:
-  - redis-server
-  - mongodb
+  - cd msgpack-hhvm && hphpize && cmake . && sudo cp msgpack.so /etc/hhvm/extensions/ && cd ../
 
 notifications:
   email:
-    - email@guilhermecardoso.pt
+    - reeze.xia@gmail.com
