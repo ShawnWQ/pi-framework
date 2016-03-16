@@ -1,4 +1,4 @@
-<?hh
+<?notvalid
 
 use Pi\PiContainer;
 use Pi\ContainerFactory;

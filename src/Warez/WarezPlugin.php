@@ -18,9 +18,9 @@ class WarezPlugin implements IPlugin, IHasGlobalAssertion {
 	{
 		$this->assertGlobalEnvironment();
 
-		$appHost->registerService(new MovieService());
-		$appHost->registerService(new FacebookBotService());
-		$appHost->container()->registerRepository(new Movie(), new MovieRepository());
+		$appHost->registerService(MovieService::class);
+		$appHost->registerService(FacebookBotService::class);
+		$appHost->container()->registerRepository(Movie::class, MovieRepository::class);
 	}
 
 	/**

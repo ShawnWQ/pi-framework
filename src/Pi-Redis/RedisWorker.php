@@ -3,7 +3,8 @@
 namespace Pi\Redis;
 
 use Pi\PiHost;
-use Pi\Interfaces\IContainer;
+use Pi\Interfaces\IContainer,
+	Pi\Queue\PiWorker;
 
 
 class RedisWorker extends PiHost {
@@ -47,7 +48,12 @@ class RedisWorker extends PiHost {
 	    socket_listen($this->socket, 100);
 	    $handles = Vector{};
 	    while(is_resource($this->socket)){
-
+	    	$queue = $this->container->get('Pi\Queue\PiQueue');
+	    	$factory = $this->container()->get('Pi\Interfaces\ILogFactory');
+    		$logger = $factory->getLogger(get_class($queue));
+    		$redis = $this->container->get('IRedisClientsManager');
+	    	$worker = new PiWorker($queue, array('default'), $logger, $redis);
+	    	$worker->work(5, false);
 	    }
 	}
 

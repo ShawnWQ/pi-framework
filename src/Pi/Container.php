@@ -6,8 +6,6 @@ use Pi\Interfaces\IContainer;
 /**
  * IOC Container
  */
-class Container
-  extends PiContainer
-  implements IContainer {
+class Container extends StaticContainer implements IContainer {
 
-  }
+ }

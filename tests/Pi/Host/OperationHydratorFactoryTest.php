@@ -5,7 +5,6 @@ use Mocks\MockOdmConfiguration;
 use Mocks\OdmContainer;
 use Mocks\MockEntity;
 use Pi\Odm\UnitWork;
-use Pi\PiContainer;
 use Pi\Interfaces\IContainer;
 use Pi\EventManager;
 use Pi\Host\HostEvents;

@@ -51,35 +51,33 @@ class SpotEventsPlugin  implements IPlugin {
     public function register(IPiHost $appHost) : void
     {
         $container = $appHost->container();
-        $appHost->registerService(new EventsService());
-        $appHost->registerService(new PaymentService());
-        $appHost->registerService(new GymCampaignService());
-        $appHost->registerService(new TicketService());
-        $appHost->registerService(new ModalityService());
-        $appHost->registerService(new NutritionService());
-        $appHost->registerService(new WorkoutService());
-        $appHost->registerService(new OpenWeatherMapService());
-
         $redis = $container->get('IRedisClientsManager');
-        $container->registerRepository(new NutritionPlan(), new NutritionRepository());
-        $container->registerRepository(new NutritionSerie(), new NutritionSerieRepository());
-        $container->registerRepository(new Workout(), new WorkoutRepository());
-        $container->registerRepository(new WorkoutSerie(), new WorkoutSerieRepository());
-        $container->registerRepository(new Ticket(), new TicketRepository());
-        $container->registerRepository(new EventEntity(), new EventRepository(), 'event');
-        $container->registerRepository(new EventAttendantBucket(), new EventAttendantRepository($redis));
-        $container->registerRepository(new EventSportEntity(), new EventSportEntityRepository());
-        $container->registerRepository(new EventSubscription(), new EventSubscriptionRepository());
-        $container->registerRepository(new PaymentEntity(), new PaymentRepository());
-        $container->registerRepository(new GymCampaign(), new GymCampaignRepository());
-        $container->registerRepository(new Modality(), new ModalityRepository());
-        $container->registerRepository(new EventCategory(), new EventCategoryRepository());
-
-        $container->registerInstance(new EventLikesProvider());;
+        $appHost->registerService(EventsService::class);
+        $appHost->registerService(PaymentService::class);
+        $appHost->registerService(GymCampaignService::class);
+        $appHost->registerService(TicketService::class);
+        $appHost->registerService(ModalityService::class);
+        $appHost->registerService(NutritionService::class);
+        $appHost->registerService(WorkoutService::class);
+        $appHost->registerService(OpenWeatherMapService::class);
+        $container->registerRepository(NutritionPlan::class, NutritionRepository::class);
+        $container->registerRepository(NutritionSerie::class, NutritionSerieRepository::class);
+        $container->registerRepository(Workout::class, WorkoutRepository::class);
+        $container->registerRepository(WorkoutSerie::class, WorkoutSerieRepository::class);
+        $container->registerRepository(Ticket::class, TicketRepository::class);
+        $container->registerRepository(EventEntity::class, EventRepository::class, 'event');
+        $container->registerRepository(EventAttendantBucket::class, EventAttendantRepository::class);
+        $container->registerRepository(EventSportEntity::class, EventSportEntityRepository::class);
+        $container->registerRepository(EventSubscription::class, EventSubscriptionRepository::class);
+        $container->registerRepository(PaymentEntity::class, PaymentRepository::class);
+        $container->registerRepository(GymCampaign::class, GymCampaignRepository::class);
+        $container->registerRepository(Modality::class, ModalityRepository::class);
+        $container->registerRepository(EventCategory::class, EventCategoryRepository::class);
+        $container->registerInstance(EventLikesProvider::class);;
         $container->register('SpotEvents\ServiceInterface\Interfaces\IPaymentProvider', function(IContainer $ioc){
             return new IfThenPaymentProvider();
         });
-        $container->registerValidator('SpotEvents\ServiceModel\CreateEvent', CreateEventValidator::instance());
+        //$container->registerValidator('SpotEvents\ServiceModel\CreateEvent', CreateEventValidator::instance::class);
 
         $appHost->registerSubscriber('SpotEvents\ServiceModel\PaymentReceiveRequest', 'SpotEvents\ServiceModel\EventPaymentReceiveRequest');
     }

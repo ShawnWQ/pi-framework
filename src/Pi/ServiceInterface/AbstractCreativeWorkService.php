@@ -68,27 +68,27 @@ use Pi\Service,
 abstract class AbstractCreativeWorkService extends Service {
 
 	protected ?string $articleRepoStr;
-	public ArticleRepository $articleRepo;
-
-	public ArticleCategoryRepository $categoryRepo;
 	protected ?string $categoryRepoStr;
-
-	public ArticleSerieRepository $serieRepo;
 	protected ?string $serieRepoStr;
 
-	public UserFriendBusiness $friendBus;
+	public function __construct(
+		protected ArticleRepository $articleRepo,
+		protected ArticleCategoryRepository $categoryRepo,
+		protected ArticleSerieRepository $serieRepo,
+		protected UserFriendBusiness $friendBus,
+		protected UserFeedBusiness $feedBus
+	)
+	{
+		parent::__construct();
+		$this->init();
+	}
 
-	public UserFeedBusiness $feedBus;
+	
 
 	protected string $customType = 'creative-work';
 	protected string $customTypeShort = 'cw';
 
 	abstract function init();
-
-	public function __construct()
-	{
-		$this->init();
-	}
 
 	public function registerCustomType(string $type, ?string $typeShort = null)
 	{

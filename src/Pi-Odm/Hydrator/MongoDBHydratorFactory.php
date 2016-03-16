@@ -298,8 +298,6 @@ EOF
       throw $ex;
      }
      
-
-    // rename($tmpFileName, $fileName);
     if( copy($tmpFileName, $fileName) ) {
       unlink($tmpFileName);
     }

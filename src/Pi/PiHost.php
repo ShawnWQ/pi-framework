@@ -19,6 +19,7 @@ use Pi\Auth\UserRepository,
     Pi\Interfaces\IContainer,
     Pi\Interfaces\AppSettingsInterface,
     Pi\Interfaces\IMessageFactory,
+    Pi\Interfaces\IMessageService,
     Pi\Interfaces\ICacheProvider,
     Pi\Interfaces\IRoutesManager,
     Pi\Interfaces\IPlugin,
@@ -30,7 +31,7 @@ use Pi\Auth\UserRepository,
     Pi\Interfaces\IHasPreInitFilter,
     Pi\Interfaces\ILog,
     Pi\Interfaces\IFilter,
-    Pi\Cache\LocalCacheProvider,
+    Pi\Cache\MemcachedProvider,
     Pi\Cache\InMemoryCacheProvider,
     Pi\Cache\RedisCacheProvider,
     Pi\Host\HostProvider,
@@ -79,13 +80,13 @@ use Pi\Auth\UserRepository,
  */
 abstract class PiHost implements IPiHost{
 
-  const VERSION = '0.0.2-pi';
+  const VERSION = '0.0.3-pi';
 
   /**
    * An IOC container
    * @var Container
    */
-  public PiContainer $container;
+  public IContainer $container;
 
   /**
    * When the applicaton started
@@ -219,20 +220,21 @@ abstract class PiHost implements IPiHost{
     $this->onEndRequestCallbacks = Vector{};
     $this->customErrorHandlers = Map{};
 
-    $factory = new ContainerFactory();
+    $cacheDirty = true;
+    $this->cacheProvider = new MemcachedProvider(new Map(Pair{'localhost', 11211}));
+
+    $factory = new ContainerFactory($this->cacheProvider);
     $this->container = $factory->createContainer();
+
+    if($cacheDirty) {
+      $this->registerCacheProvider($this->cacheProvider);  
+    }
+    
     $this->startedAt = new \DateTime('now');
     $this->createEventManager();
 
     $this->serviceController = $this->createServiceController(Set{""});
 
-    // Cache Provider
-    if(is_null($this->cacheProvider()))
-    {
-
-      $cacheProvider = new InMemoryCacheProvider();
-      $this->registerCacheProvider($cacheProvider);
-    }
 
     $this->pluginsLoaded = Set{};
     $this->plugins =  array();
@@ -293,13 +295,13 @@ abstract class PiHost implements IPiHost{
 
     });
 
-    $this->registerValidator(new ApplicationCreateRequest(), new ApplicationCreateValidator());
+    //$this->registerValidator(new ApplicationCreateRequest(), new ApplicationCreateValidator());
    
-    $this->container()->registerRepository(new UserEntity(), new UserRepository());
+    $this->container()->registerRepository(UserEntity::class, UserRepository::class);
+
 
     $this->container()->register('Pi\ServiceInterface\OfferCreateBusiness', function(IContainer $ioc){
-        $instance = $ioc->createInstance('Pi\ServiceInterface\OfferCreateBusiness');
-        $ioc->autoWireService($instance);
+        $instance = $ioc->make('Pi\ServiceInterface\OfferCreateBusiness');
         return $instance;
     });
 
@@ -311,7 +313,7 @@ abstract class PiHost implements IPiHost{
      * This implementation is used by all Mapping implementations that don't implement their own IMappingDriver instance
      */
     $this->container()->register('ClassMappingDriver', function(IContainer $container){
-      $instance = new ClassMappingDriver(array(), $container->get('EventManager'), $container->get('ICacheProvider'));
+      $instance = new ClassMappingDriver(array(), $container->get(EventManager::class), $container->get('ICacheProvider'));
       $instance->ioc($container);
       return $instance;
     });
@@ -319,11 +321,12 @@ abstract class PiHost implements IPiHost{
     /**
      * This implementation is used by all Mapping implementations that don't implement their own IEntityMetadataFactory instance
      */
-    $this->container()->register('ClassMetadataFactory', function(IContainer $container){
-      $instance = new ClassMetadataFactory($container->get('EventManager'), $container->get('ClassMappingDriver'));
+    $this->container()->register(ClassMetadataFactory::class, function(IContainer $container){
+      $instance = new ClassMetadataFactory($container->get(EventManager::class), $container->get('ClassMappingDriver'));
       $instance->ioc($container);
       return $instance;
     });
+    $this->container()->registerAlias(ClassMetadataFactory::class, 'ClassMetadataFactory');
 
     $driver = OperationDriver::create(array('../'), $this->event, $this->cacheProvider());
 
@@ -333,25 +336,21 @@ abstract class PiHost implements IPiHost{
     $this->log = $factory->getLogger(get_class($this));
 
     $this->container()->register('Pi\ServiceInterface\UserFriendBusiness', function(IContainer $ioc){
-        $instance = $ioc->createInstance('Pi\ServiceInterface\UserFriendBusiness');
-        $ioc->autoWireService($instance);
+        $instance = $ioc->make('Pi\ServiceInterface\UserFriendBusiness');
         return $instance;
     });
 
     $this->container()->register('Pi\ServiceInterface\LikesProvider', function(IContainer $ioc){
-      $instance = $ioc->createInstance('Pi\ServiceInterface\LikesProvider');
-      $ioc->autoWireService($instance);
+      $instance = $ioc->make('Pi\ServiceInterface\LikesProvider');
       return $instance;
     });
 
     $this->container()->register('Pi\ServiceInterface\UserFollowBusiness', function(IContainer $ioc){
-        $instance = $ioc->createInstance('Pi\ServiceInterface\UserFollowBusiness');
-        $ioc->autoWireService($instance);
+        $instance = $ioc->make('Pi\ServiceInterface\UserFollowBusiness');
         return $instance;
     });
     $this->container()->register('Pi\ServiceInterface\UserFeedBusiness', function(IContainer $ioc){
-        $instance = $ioc->createInstance('Pi\ServiceInterface\UserFeedBusiness');
-        $ioc->autoWireService($instance);
+        $instance = $ioc->make('Pi\ServiceInterface\UserFeedBusiness');
         return $instance;
     });
 
@@ -412,14 +411,14 @@ abstract class PiHost implements IPiHost{
       return $ioc->tryResolve('IRequest')->response();
     });
 
-    if(!$this->container->isRegistered('IServiceSerializer')) {
+    if(!$this->container->hasRegistered('IServiceSerializer')) {
       $this->container->register('IServiceSerializer', function(IContainer $ioc){
         return new PhpSerializerService();
       });
     }
 
     // Message Service
-    $messageFactory = $this->resolve('Pi\Interfaces\IMessageFactory');
+    $messageFactory = $this->tryResolve(IMessageFactory::class);
     if(is_null($messageFactory)){
       $this->setMessageFactory(new InMemoryFactory());
     }
@@ -442,12 +441,10 @@ abstract class PiHost implements IPiHost{
     // if not built
     $cached = $this->cacheProvider()->get('sa');
 
-    if(is_null($cached)) {
-      $this->build();
-      $this->serviceController->build();
-    }
-
+ 
+    $this->build();
     $this->serviceController->init();
+    $this->serviceController->build();
 
     // ServiceController initialization requires that dependencies are already configured
     // by apphost and plugins
@@ -542,18 +539,19 @@ abstract class PiHost implements IPiHost{
 
   public function setMessageFactory(IMessageFactory $instance) : void
   {
-    $this->container->register('IMessageFactory', function(IContainer $container) use($instance) {
+    $this->container->register(IMessageFactory::class, function(IContainer $container) use($instance) {
       //$instance->ioc($this->container);
       return $instance;
     });
-
-    $this->container->register('IMessageService', function(IContainer $container){
-      $factory = $container->get('IMessageFactory');
+    $this->container->registerAlias(IMessageFactory::class, 'IMessageFactory');
+    $this->container->register(IMessageService::class, function(IContainer $container){
+      $factory = $container->get(IMessageFactory::class);
       $service = new InMemoryService($factory);
       $service->setAppHost($this);
 
       return $service;
     });
+    $this->container->registerAlias(IMessageService::class, 'IMessageService');
   }
 
   public function plugins() : array
@@ -636,9 +634,14 @@ abstract class PiHost implements IPiHost{
     return new ServiceRunner($this, $context);
   }
 
-  public function registerService(IService $service)
+  public function registerService(string $service)
   {
     $this->serviceController->registerService($service);
+  }
+
+  public function registerServiceInstance(mixed $instance)
+  {
+    return $this->serviceController->registerServiceInstance($instance);
   }
 
   public function actionRequestFilters() : Vector<(function(IRequest, IResponse) : void)>
@@ -854,7 +857,7 @@ abstract class PiHost implements IPiHost{
 
     foreach($this->preInitRequestFiltersClasses as $key => $filter) {
       $filter->setAppHost($this);
-      $this->container()->autoWireService($filter);
+      $this->container()->autoWire($filter);
         $filter->execute($request, $response, $dto);
 
       if($response->isClosed()){
@@ -875,7 +878,7 @@ abstract class PiHost implements IPiHost{
     }
     foreach($this->requestFiltersClasses as $key => $filter) {
       $filter->setAppHost($this);
-      $this->container()->autoWireService($filter);
+      $this->container()->autoWire($filter);
       $filter->execute($request, $response, $dto);
 
       if($response->isClosed()){
@@ -896,7 +899,7 @@ abstract class PiHost implements IPiHost{
     }
     foreach($this->preRequestFiltersClasses as $key => $filter) {
       $filter->setAppHost($this);
-      $this->container()->autoWireService($filter);
+      $this->container()->autoWire($filter);
       $filter->execute($request, $response);
 
       if($response->isClosed()){
@@ -988,7 +991,7 @@ abstract class PiHost implements IPiHost{
 
   public function tryResolve($dependency)
   {
-    return $this->container->get($dependency);
+    return $this->container->tryResolve($dependency);
   }
 
   /**
@@ -1079,9 +1082,10 @@ abstract class PiHost implements IPiHost{
   {
     $this->event = new EventManager();
     $e = $this->event;
-    $this->container->register('EventManager', function(IContainer $container) use($e){
+    $this->container->register(EventManager::class, function(IContainer $container) use($e){
       return $e;
     });
+    $this->container->registerAlias(EventManager::class, 'EventManager');
   }
 
   public function registerSubscriber(string $eventName, string $requestType)
@@ -1115,7 +1119,7 @@ abstract class PiHost implements IPiHost{
 
   public function getValidator($entity) : ?AbstractValidator
   {
-    return $this->container->getValidator($entity);
+    return $this->container->get(get_class($entity));
   }
 
   public function registerValidator($entity, AbstractValidator $validator)

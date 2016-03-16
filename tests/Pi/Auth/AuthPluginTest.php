@@ -1,7 +1,10 @@
 <?hh
 
-use Mocks\BibleHost;
-use Pi\Auth\AuthenticateFilter;
+use Mocks\BibleHost,
+	Pi\Auth\AuthenticateFilter,
+	Pi\Auth\Interfaces\IAuthRepository;
+
+
 
 
 class AuthPluginTest extends \PHPUnit_Framework_TestCase {
@@ -10,6 +13,7 @@ class AuthPluginTest extends \PHPUnit_Framework_TestCase {
   {
     $host = new BibleHost();
     $host->init();
-    $this->assertTrue($host->requestFiltersClasses()->contains(get_class(new AuthenticateFilter())));
+    $this->assertTrue($host->requestFiltersClasses()->contains(AuthenticateFilter::class));
+    $repo = $host->container()->get(IAuthRepository::class);
   }
 }

@@ -17,11 +17,13 @@ class ValidationAssertionFilter extends RequestFilter {
 	
 	public function execute(IRequest $req, IResponse $res, $requestDto) : void
 	{
+		return null;
 		$validator = $this->appHost->getValidator($requestDto);
 		
 		if($validator === null) {
 			return;
 		}
+
 		return Extensions::assertValidation($validator, $requestDto);
 	}
 }

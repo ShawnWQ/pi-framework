@@ -18,17 +18,17 @@ class LocalCacheProvider implements ICacheProvider{
 
   public function __construct(protected $filePath)
   {
-    if(!is_writable($this->filePath)){
+    if(!is_writable($filePath)){
       throw new \Exception(
         sprintf('The LocalCacheProvider save directory isnt writable. Fix permissions for: %s', $this->filePath));
     }
 
-    $file = fopen($this->filePath, 'w');
+    $file = fopen($filePath, 'w');
     $size = filesize($filePath);
     if($size <= 1) {
       $this->createFile();
     } else {
-      $this->readFile($file, $this->filePath);
+      $this->readFile($file, $filePath);
     }
   }
 

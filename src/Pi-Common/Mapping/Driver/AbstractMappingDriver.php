@@ -21,7 +21,7 @@ abstract class AbstractMappingDriver implements IContainable, IMappingDriver {
     
   public function __construct(protected array $paths = array(), EventManager $em, ICacheProvider $cache)
   {
-
+    $this->paths = array();
   }
 
 	public function loadMetadataForClass(string $className, DtoMetadataInterface $entity)
@@ -34,7 +34,7 @@ abstract class AbstractMappingDriver implements IContainable, IMappingDriver {
 	}
 
   public function ioc(IContainer $container){
-    $this->paths = array();
+    
   }
 
 

@@ -22,8 +22,8 @@ class ServerEventsPlugin implements IPlugin {
   }
   public function register(IPiHost $host)
   {
-    $host->registerService(new ServerEventsSubscribersService());
-    $host->registerService(new ServerEventsUnRegisterService());
+    $host->registerService(ServerEventsSubscribersService::class);
+    $host->registerService(ServerEventsUnRegisterService::class);
 
     $host->container()->register('IServerEvents', function(IContainer $ioc){
       return new InMemoryServerEvents();

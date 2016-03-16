@@ -40,19 +40,21 @@ class RedisPiQueueTest extends \PHPUnit_Framework_TestCase {
 	
 	public function testCanEnqueueDtoAndThenDequeue()
 	{
-		$key = RandomString::generate();
-		$provider = $this->host->container()->get('Pi\ServiceInterface\AbstractMailProvider');
-		$piQueue = $this->getPiQueue();
-		$dto = new RedisPiQueueServiceTRequest();
-		$id = $piQueue->enqueue($key, self::QUEUE_CLASS, $dto);
-		$count = $piQueue->size($key);
-		$this->assertTrue($count == 1);
+		for ($i=0; $i < 50; $i++) { 
+			$key = 'default';
+			$provider = $this->host->container()->get('Pi\ServiceInterface\AbstractMailProvider');
+			$piQueue = $this->getPiQueue();
+			$dto = new RedisPiQueueServiceTRequest();
+			$id = $piQueue->enqueue($key, self::QUEUE_CLASS, $dto);
+			$count = $piQueue->size($key);
+			$this->assertTrue($count == 1);
 
-		$item = $piQueue::createItemArray(self::QUEUE_CLASS, $dto, $id);
-		$counter = $piQueue->removeItems($key, array($item));
-		$this->assertEquals($counter, 1, $id); // removed 1
-		$count = $piQueue->size($key);
-		$this->assertTrue($count == 0);
+			$item = $piQueue::createItemArray(self::QUEUE_CLASS, $dto, $id);
+			$counter = $piQueue->removeItems($key, array($item));
+			$this->assertEquals($counter, 1, $id); // removed 1
+			$count = $piQueue->size($key);
+			$this->assertTrue($count == 0);
+		}
 	}
 
 	public function testCanPushItem()

@@ -19,7 +19,7 @@ class AuthMock {
 						self::$user = $user;
         }
 
-        $service = HostProvider::instance()->container()->getService(new \Pi\Auth\AuthService());
+        $service = HostProvider::instance()->container()->get(\Pi\Auth\AuthService::class);
 
         $_SERVER['REQUEST_URI'] = '/test';
         $_SERVER['REQUEST_METHOD'] = 'POST';

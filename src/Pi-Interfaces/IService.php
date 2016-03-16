@@ -3,8 +3,7 @@
 namespace Pi\Interfaces;
 use Pi\Interfaces\IResolver;
 
-interface IService
-  extends IHasFactory {
+interface IService extends IHasFactory {
 
 public function request() : IRequest;
 
@@ -20,7 +19,7 @@ public function request() : IRequest;
 
   public function globalResolver();
 
-  public function tryResolve(string $name);
+  public function tryResolve(string $name) : object;
 
   public function createInstance();
 

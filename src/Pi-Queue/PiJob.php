@@ -41,7 +41,7 @@ class PiJob {
 		
 	}
 
-	public function perform()
+	public function perform() : Awaitable<void>
 	{
 		try {
 			$svc = $this->getService();
@@ -51,7 +51,6 @@ class PiJob {
 					// beforePerform/setUp have said don't perform this job. Return.
 			return false;
 		}
-		return true;
 	}
 
 	public function getService()

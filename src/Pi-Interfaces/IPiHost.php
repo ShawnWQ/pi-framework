@@ -34,7 +34,7 @@ interface IPiHost {
    */
   public function register($instance) : void;
 
-  public function registerService(IService $instance);
+  public function registerService(string $service);
 
   public function registerSubscriber(string $eventName, string $requestType);
 

@@ -57,6 +57,9 @@ use Mocks\OdmContainer,
 	Pi\Common\RandomString,
 	Pi\PhpUnitUtils;
 
+
+
+
 class ArticleServiceTest extends \PHPUnit_Framework_TestCase {
 
 	protected $ArticleRepo;
@@ -71,6 +74,26 @@ class ArticleServiceTest extends \PHPUnit_Framework_TestCase {
 		$this->ArticleRepo = $container->get('Pi\ServiceInterface\Data\ArticleRepository');
 		$this->categoryRepo = $container->get('Pi\ServiceInterface\Data\ArticleCategoryRepository');
 		$this->serieRepo = $container->get('Pi\ServiceInterface\Data\ArticleSerieRepository');
+	}
+
+
+
+	public function testCanCreateArticle()
+	{
+		$req = $this->createArticleRequest();
+		$category = $this->createCategory();
+		$req->setCategoryId($category->getId());
+
+		$res = MockHostProvider::execute($req);
+		die(print_r($res));
+		$this->assertEquals($res->getArticle()->getName(), $req->getName());
+
+		$dto = $this->ArticleRepo->get($res->getArticle()->getId());
+		
+		$this->assertTrue($dto->getCategory() instanceof ArticleCategoryEmbed);
+		$this->assertEquals($dto->getCategory()->getDisplayName(), $category->getDisplayName());
+		$this->assertTrue($dto->getCreatedDate() > new \DateTime('now'));
+		
 	}
 
 	public function testCanNormalizeAllArticles()
@@ -293,24 +316,6 @@ class ArticleServiceTest extends \PHPUnit_Framework_TestCase {
 		$req->setName('the first words ' . $rand);
 		$res = MockHostProvider::execute($req);
 		$this->assertTrue(count($res->getArticles()) === 1);
-	}
-
-	public function testCanCreateArticle()
-	{
-		$req = $this->createArticleRequest();
-		$category = $this->createCategory();
-		$req->setCategoryId($category->getId());
-
-		$res = MockHostProvider::execute($req);
-
-		$this->assertEquals($res->getArticle()->getName(), $req->getName());
-
-		$dto = $this->ArticleRepo->get($res->getArticle()->getId());
-		
-		$this->assertTrue($dto->getCategory() instanceof ArticleCategoryEmbed);
-		$this->assertEquals($dto->getCategory()->getDisplayName(), $category->getDisplayName());
-		$this->assertTrue($dto->getCreatedDate() > new \DateTime('now'));
-
 	}
 
 	public function testCanUpdateArticle()

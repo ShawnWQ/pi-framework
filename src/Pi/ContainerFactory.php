@@ -1,8 +1,13 @@
 <?hh
 
 namespace Pi;
-use Pi\Interfaces\IContainer;
-use Pi\Container;
+
+use Pi\Interfaces\IContainer,
+	Pi\Interfaces\ICacheProvider,
+	Pi\StaticContainer;
+
+
+
 
 /**
  * Container Factory
@@ -10,7 +15,16 @@ use Pi\Container;
  */
 class ContainerFactory {
 
-  public function createContainer() : IContainer{
-    return new Container();
-  }
+	public function __construct(
+		protected ICacheProvider $cacheProvider
+	)
+	{
+
+	}
+
+	
+	public function createContainer() : IContainer
+	{
+    	return new StaticContainer($this->cacheProvider);
+  	}
 }

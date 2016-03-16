@@ -22,10 +22,10 @@ class CollaborationPlugin implements IPlugin {
 	{
 
 		$container = $host->container();
-		$container->registerRepository(new Meeting(), new MeetingRepository());
-		$container->registerRepository(new Page(), new PageRepository());
-		$host->registerService(new PageService());
-		$host->registerService(new MeetingService());
+		$container->registerRepository('Collaboration\ServiceModel\Types\Meeting', 'Collaboration\ServiceInterface\Data\MeetingRepository');
+		$container->registerRepository('Collaboration\ServiceModel\Types\Page', 'Collaboration\ServiceInterface\Data\PageRepository');
+		$host->registerService('Collaboration\ServiceInterface\PageService');
+		$host->registerService('Collaboration\ServiceInterface\MeetingService');
 	}
 
 	/**
