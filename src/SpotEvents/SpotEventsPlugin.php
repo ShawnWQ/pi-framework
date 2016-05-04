@@ -51,7 +51,6 @@ class SpotEventsPlugin  implements IPlugin {
     public function register(IPiHost $appHost) : void
     {
         $container = $appHost->container();
-        $redis = $container->get('IRedisClientsManager');
         $appHost->registerService(EventsService::class);
         $appHost->registerService(PaymentService::class);
         $appHost->registerService(GymCampaignService::class);

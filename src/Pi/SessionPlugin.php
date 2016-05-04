@@ -68,7 +68,7 @@ use Pi\Auth\AuthService,
   public function register(IPiHost $host) : void
   {
      // Filter that sets an session id provided or create a new
-    $host->globalRequestFilters()->add(function(IRequest $req, IResponse $res) {
+    $host->requestFilters()->add(function(IRequest $req, IResponse $res) {
       return self::populateSessionFromRequest($req, $res);
     });
  	}

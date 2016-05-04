@@ -96,7 +96,6 @@ class ServiceRunner<TRequest> implements IServiceRunner<TRequest>{
       $this->appHost->callPreInitRequestFiltersClasses($context, $httpResponse, $requestDto);
       $this->appHost->callPreRequestFilters($context, $httpResponse);
       $this->appHost->callPreRequestFiltersClasses($context, $httpResponse);
-      $this->appHost->callRequestFiltersClasses($context, $httpResponse, $requestDto);
       $this->onBeforeExecute($context, $requestDto);
       $context->setDto($requestDto);
       $a  =  $instance();

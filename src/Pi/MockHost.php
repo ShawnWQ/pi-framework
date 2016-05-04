@@ -44,73 +44,16 @@ use Pi\Host\Handlers\StaticHandler;
 use Pi\Host\Handlers\HtmlGet;
 
 
-abstract class MockHost
-  extends PiHost {
+abstract class MockHost extends PiHost {
 
-    protected $appId;
+  public function init() : void
+  {
+    parent::init();
+    parent::build();
+  }
+  public function afterInit() : void
+  {
 
-    /**
-     * HHVM extensions required by plugins and also the core
-     * Extension name - minimal version
-     */
-    protected Map<string, string> $requiredHhvmExtensions = Set{};
-    
-    protected $viewEngines;
-
-
-    public function __construct(protected HostConfig $config = null)
-    {
-      parent::__construct($config);
-    }
-    public function registerViewEngine(IViewEngine $engine)
-    {
-      $this->viewEngines[] = $engine;
-    }
-
-    protected function resolveAppId()
-    {
-
-    }
-
-    public function getAppId()
-    {
-      return $this->appId;
-    }
-
-    protected function handleHtmlRequest()
-    {
-
-      $contextRequest = $this->container->get('IRequest');
-
-      $dto = new HtmlGet($_SERVER['REQUEST_URI']);
-      $contextRequest->setDto($dto);
-
-      $response = $this->container->get('IResponse');
-
-      $handler = new StaticHandler($this->config()->staticFolder());
-      return $handler->processRequest($contextRequest, $response, get_class($dto));
-    }
-
-    protected function removeTrailSlash(string $uri) : string
-    {
-        return substr($uri, -1) == '/' ? substr($uri, 0, -1) : $uri;
-    }
-
-    protected function removeQueryParameters(string $uri) : string
-    {
-      $arr = explode('?', $uri);
-      return is_array($arr) ? $arr[0] :
-        (is_string($arr) ? $arr : '');
-    }
-
-    protected function getHttpMethod() : string
-    {
-      return in_array($_SERVER['REQUEST_METHOD'], array('GET', 'PUT', 'POST', 'DELETE')) ? $_SERVER['REQUEST_METHOD'] : 'GET';
-    }
-
-  	public function afterInit()
-    {
-
-    }
+  }
 
 }

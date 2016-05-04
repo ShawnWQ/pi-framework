@@ -1,10 +1,9 @@
 {
     "name": "guilhermegeek/pi-framework",
     "require": {
-        "phpunit/phpunit": "~4.5",
+        "guilhermegeek/communia": "dev-dev",
         "jeremeamia/superclosure": "~2.1",
-        "swiftmailer/swiftmailer": "^5.4",
-        "phpdocumentor/phpdocumentor": "2.*"
+        "swiftmailer/swiftmailer": "^5.4"
     },
     "autoload": {
         "psr-4": {
@@ -46,6 +45,8 @@
         }
     },
     "require-dev": {
-        "johnkary/phpunit-speedtrap": "^1.0"
+        "johnkary/phpunit-speedtrap": "^1.0",
+        "phpdocumentor/phpdocumentor": "^2.8",
+        "phpunit/phpunit": "~4.5"
     }
 }

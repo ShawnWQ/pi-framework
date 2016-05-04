@@ -92,27 +92,7 @@ abstract class AppHost extends PiHost {
       return $handler->processRequest($contextRequest, $response, get_class($dto));
     }
 
-    protected function removeTrailSlash(string $uri) : string
-    {
-        return substr($uri, -1) == '/' ? substr($uri, 0, -1) : $uri;
-    }
-
-    protected function removeQueryParameters(string $uri) : string
-    {
-      $arr = explode('?', $uri);
-      return is_array($arr) ? $arr[0] :
-        (is_string($arr) ? $arr : '');
-    }
-
-    protected function getUri()
-    {
-      return !isset($_SERVER['REQUEST_URI']) ? '/' : $_SERVER['REQUEST_URI'];
-    }
-
-    protected function getHttpMethod() : string
-    {
-      return isset($_SERVER['REQUEST_METHOD']) && in_array($_SERVER['REQUEST_METHOD'], array('GET', 'PUT', 'POST', 'DELETE')) ? $_SERVER['REQUEST_METHOD'] : 'GET';
-    }
+    
 
   	public function afterInit()
     {

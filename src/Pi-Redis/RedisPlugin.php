@@ -8,6 +8,7 @@ use Pi\AppSettings,
 	Pi\Interfaces\IPreInitPlugin,
 	Pi\Interfaces\IPiHost,
 	Pi\Interfaces\IContainer,
+	Pi\Interfaces\ISerializerService,
 	Pi\Redis\Interfaces\IRedisFactory,
 	Pi\Redis\Interfaces\IRedisClientsManager,
 	Pi\Interfaces\IHasGlobalAssertion,
@@ -25,12 +26,15 @@ class RedisPlugin implements IPreInitPlugin {
 	public function configure(IPiHost $host) : void
 	{
 		$host->container()->register(IRedisFactory::class, function(IContainer $ioc){
+
 			$hydrator = new RedisHydratorFactory(
 				$ioc->get('ClassMetadataFactory'),
 				'Mocks\\Hydrators',
 				sys_get_temp_dir()
        		);
-			return new RedisFactory($hydrator);
+
+       		$serializer = $ioc->get(ISerializerService::class);
+			return new RedisFactory($hydrator, $serializer);
 		});
 		$host->container()->registerAlias(IRedisFactory::class, 'IRedisFactory');
 		$host->container()->register(IRedisClientsManager::class, function(IContainer $ioc){
@@ -44,18 +48,14 @@ class RedisPlugin implements IPreInitPlugin {
 		});
 		$host->container()->registerAlias(IRedisClientsManager::class, 'IRedisClientsManager');
 
-		$redis = $host->container()->get('IRedisClientsManager');
-		
-		$host->registerCacheProvider(new RedisCacheProvider($redis));
-
 		$host->container()->register('AppSettingsProviderInterface', function(IContainer $ioc) {
 			$factory = $ioc->get(IRedisFactory::class);
+
 			return new RedisAppSettingsProvider($factory->createClient());
 		});
 
 		$host->container()->register('AppSettingsInterface', function(IContainer $ioc) {
 	      $provider = $ioc->get('AppSettingsProviderInterface');
-	      
 	      return new AppSettings($provider, HostProvider::instance()->config());
 	    });
 

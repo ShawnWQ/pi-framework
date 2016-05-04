@@ -1,6 +1,34 @@
 Developer README
 ====================
 
+## Overview
+
+A [PiHost](src/Pi/PiHost.php) instance is created per request.
+This class initializes the the most important Framework objects:
+ - [ServiceController](src/Pi/Host/ServiceController.php)
+ - [RoutesManager](src/Pi/Host/RoutesManager.php)
+ - [Routes](src/Pi/Host/Handlers)
+ - [Hydrators](src/Pi/Host/OperationHydratorFactory.php) and [Metadata Factories](src/Pi/Host/OperationMetaFactory.php)
+
+
+The configuration and registration of custom providers is done through methods.
+Each application is built once published and updated.
+
+### Build
+
+The Build phase consists on refactoring the most certenaly metadata information and cache it
+The [BuildInterface](src/Pi-Interfaces/BuildInterface.php) may be implemented, so a Class registered in IOC can execute code on registration
+The Configure method of PiHost is called only on Build phase
+
+- Services metadata
+- Routes existing for the application
+- Operations/Request DTO metadata
+
+### Init
+
+Each HTTP request creates and initialize the core objects.
+Initialization depends on configuration done during build 
+
 ## Order of Operations
 
 This list shows the order which any user-defined custom hooks are executed

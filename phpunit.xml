@@ -26,6 +26,9 @@
         <testsuite name="MarkdownView">
           <directory>tests/MarkdownView</directory>
         </testsuite>
+        <testsuite name="Memcached">
+          <directory>tests/Pi/Memcached</directory>
+        </testsuite>
         <testsuite name="Logging">
           <directory>tests/Pi/Logging</directory>
         </testsuite>
@@ -90,6 +93,17 @@
         <const name="PHPUNIT_PI_DEBUG" value="true"/>
     </php>
     <listeners>
-        <listener class="JohnKary\PHPUnit\Listener\SpeedTrapListener" />
+        <listener class="JohnKary\PHPUnit\Listener\SpeedTrapListener">
+           <arguments>
+                <array>
+                    <element key="slowThreshold">
+                        <integer>50</integer>
+                    </element>
+                    <element key="reportLength">
+                        <integer>500</integer>
+                    </element>
+                </array>
+            </arguments>
+        </listener>
     </listeners>
 </phpunit>

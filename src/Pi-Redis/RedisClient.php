@@ -5,6 +5,7 @@ namespace Pi\Redis;
 use Pi\Interfaces\IContainable,
     Pi\Interfaces\IContainer,
     Pi\Interfaces\HydratorFactoryInterface,
+    Pi\Interfaces\ISerializerService,
     Pi\Redis\Interfaces\IRedisClient;
 
 
@@ -18,6 +19,7 @@ class RedisClient extends \Redis implements IContainable, IRedisClient {
   public function ioc(IContainer $container){}
 
   public function __construct(
+    protected ISerializerService $serializer,
     protected HydratorFactoryInterface $hydratorFactory,
     protected string $hostname = 'localhost', int $port = 6067)
   {
@@ -47,25 +49,32 @@ class RedisClient extends \Redis implements IContainable, IRedisClient {
 
   public function getAs(string $key, string $className)
   {
-    $hydrated = $this->get($key);
-    if($hydrated == null)
+    if($className == 'array') {
+      return $this->serializer->unserialize($this->get($key));
+    }
+    $data = $this->get($key);
+    if($data == null)
       return null;
+    
+    $hydrated = $this->serializer->unserialize($data);
 
-    return $this->hydratorFactory->getInstanceOf($className, unserialize($hydrated));
+    return $this->hydratorFactory->getInstanceOf($className, $hydrated);
   }
 
   public function set($key, $value)
   {
-    if(is_object($value)) {
-      $hydrator = $this->hydratorFactory->getHydratorForClass($value);
-      $value = serialize($hydrator->extract($value));
+    if(is_scalar($value)) {
+      $this->client->set($key, $value); //ini_get('session.gc_maxlifetime')
+    } else {
+      $hydrator = $this->hydratorFactory->getHydrator(get_class($value));
+      $data = $hydrator->extract($value);
+      return $this->client->set($key, $this->serializer->serialize($data)); //ini_get('session.gc_maxlifetime')
     }
-    return $this->client->set($key, $value); //ini_get('session.gc_maxlifetime')
   }
 
-  public function sadd($set, $key)
+  public function sadd($set, $value)
   {
-    return $this->client->sadd($set, $key);
+    return $this->client->sadd($set, $this->serializer->serialize($value));
   }
 
   public function smembers($set)
@@ -75,7 +84,7 @@ class RedisClient extends \Redis implements IContainable, IRedisClient {
 
   public function hset(string $hash, string $field, $value)
   {
-    return $this->client->hset($hash, $field, $value);
+    return $this->client->hset($hash, $field, $this->serializer->serialize($value));
   }
 
   public function hgetAll(string $hash)
@@ -95,7 +104,7 @@ class RedisClient extends \Redis implements IContainable, IRedisClient {
 
   public function lpush(string $key, $value)
   {
-    return $this->client->lpush($key, $value);
+    return $this->client->lpush($key, $this->serializer->serialize($value));
   }
 
   public function lpop(string $key)
@@ -110,7 +119,7 @@ class RedisClient extends \Redis implements IContainable, IRedisClient {
 
   public function rpush(string $key, $value)
   {
-    return $this->client->rpush($key, $value);
+    return $this->client->rpush($key, $this->serializer->serialize($value));
   }
 
   public function lrange(string $key, int $start, int $stop)

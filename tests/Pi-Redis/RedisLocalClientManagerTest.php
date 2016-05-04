@@ -1,10 +1,11 @@
 <?hh
 
-use Pi\Redis\RedisLocalClientManager;
-use Pi\Redis\RedisFactory;
-use Pi\Redis\RedisCLient,
+use Pi\Redis\RedisLocalClientManager,
+	Pi\Redis\RedisFactory,
+	Pi\Redis\RedisCLient,
 	Pi\EventManager,
 	Pi\Cache\InMemoryCacheProvider,
+	Mocks\MockCnt
 	Mocks\MockMetadataFactory,
 	Mocks\MockHydratorFactory,
 	Mocks\MockMappingDriver;
@@ -21,19 +22,17 @@ class RedisLocalClientManagerTest extends \PHPUnit_Framework_TestCase{
 
 	public function setUp() 
 	{
-		$this->em = new EventManager();
-		$this->cache = new InMemoryCacheProvider();
-		$this->metadataFactory = new MockMetadataFactory($this->em, new MockMappingDriver(array(), $this->em, $this->cache));
-		$this->hydratorFactory = new MockHydratorFactory(
-		  $this->metadataFactory,
-		  'Mocks\\Hydrators',
-		   sys_get_temp_dir()
-		);
+		MockContainer::init();
+		$this->em = MockContainer::$eventManager;
+	    $this->cache = MockContainer::$cache;
+	    $this->metadataFactory = MockContainer::$metadataFactory;
+	    $this->hydratorFactory = MockContainer::$hydratorFactory;
+	    $this->serializer = MockContainer::$serializer;
 	}
 
 	public function testGetClient()
 	{
-		$factory = new RedisFactory($this->hydratorFactory);
+		$factory = new RedisFactory(self::$hydratorFactory);
 		$manager = new RedisLocalClientManager($factory);
 		$client = $manager->getClient();
 

@@ -1,12 +1,16 @@
 <?hh
 
-use Pi\Redis\RedisClient;
-use Pi\Redis\RedisFactory,
+use Pi\Redis\RedisClient,
+	Pi\Redis\RedisFactory,
 	Pi\EventManager,
 	Pi\Cache\InMemoryCacheProvider,
 	Mocks\MockMetadataFactory,
 	Mocks\MockHydratorFactory,
-	Mocks\MockMappingDriver;
+	Mocks\MockMappingDriver,
+	Mocks\MockContainer;
+
+
+
 
 class RedisFactoryTest extends \PHPUnit_Framework_TestCase{
 
@@ -20,19 +24,17 @@ class RedisFactoryTest extends \PHPUnit_Framework_TestCase{
 
 	public function setUp() 
 	{
-		$this->em = new EventManager();
-		$this->cache = new InMemoryCacheProvider();
-		$this->metadataFactory = new MockMetadataFactory($this->em, new MockMappingDriver(array(), $this->em, $this->cache));
-		$this->hydratorFactory = new MockHydratorFactory(
-		  $this->metadataFactory,
-		  'Mocks\\Hydrators',
-		   sys_get_temp_dir()
-		);
+		MockContainer::init();
+		$this->em = MockContainer::$eventManager;
+	    $this->cache = MockContainer::$cache;
+	    $this->metadataFactory = MockContainer::$metadataFactory;
+	    $this->hydratorFactory = MockContainer::$hydratorFactory;
+	    $this->serializer = MockContainer::$serializer;
 	}
 
 	public function testRedisFactoryCanCreateClient()
 	{
-		$factory = new RedisFactory($this->hydratorFactory);
+		$factory = new RedisFactory($this->hydratorFactory, $this->serializer);
 		$client = $factory->createClient(null);
 
 		$this->assertTrue($client instanceof RedisClient);

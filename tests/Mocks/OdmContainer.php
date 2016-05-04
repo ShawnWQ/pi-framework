@@ -9,6 +9,7 @@ use Mocks\MongoOdmConfiguration,
 	Pi\Odm\Hydrator\MongoDBHydratorFactory,
 	Pi\Odm\UnitWork,
 	Pi\Interfaces\IContainer,
+	Pi\Interfaces\IPiHost,
 	Pi\EventManager,
 	Pi\Odm\MongoConnection,
 	Pi\Odm\Mapping\Driver\AttributeDriver,
@@ -18,13 +19,24 @@ use Mocks\MongoOdmConfiguration,
 
 
 
+
 class OdmContainer {
   
+  static IPiHost $instance;
+
   public static function get()
   {
-    $host = new BibleHost();
-    $host->init();
-    $host->container()->registerRepository(MockEntity::class, EntityRepository::class);
-    return $host->container();
+  	if(is_null(self::$instance)) {
+  		self::$instance = new BibleHost();
+  		self::$instance->init();
+  	}
+
+    self::$instance->container()->registerRepository(MockEntity::class, EntityRepository::class);
+    return self::$instance->container();
+  }
+
+  public static function dispose()
+  {
+  	self::$instance->dispose();
   }
 }

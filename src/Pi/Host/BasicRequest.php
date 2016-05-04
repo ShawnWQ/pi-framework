@@ -177,7 +177,6 @@ class BasicRequest implements IRequest, HasSessionIdInterface {
         $this->cookies[$key] = $value;
       }
       // Set QueryString
-      $route = HostProvider::routesManager()->get($this->requestUri);
       $parts = parse_url($this->requestUri);
       $this->parameters = Map {};
       if(array_key_exists('query', $parts))
@@ -189,9 +188,8 @@ class BasicRequest implements IRequest, HasSessionIdInterface {
           }
         }
       }
-      if($route === null || $route->params() === null) {
-
-      } else {
+      $route = HostProvider::routesManager()->get($this->requestUri);
+      if($route != null && $route->params() != null) {
         foreach($route->params() as $k => $v)
         $this->parameters->add(Pair { $k, $v});
       }

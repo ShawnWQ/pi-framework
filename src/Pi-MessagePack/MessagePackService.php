@@ -7,7 +7,7 @@ use Pi\Interfaces\ISerializerService;
 use Pi\Interfaces\IContainable;
 use Pi\Interfaces\IContainer;
 
-class MessagePackService implements ISerializerService, IContainable{
+class MessagePackService implements ISerializerService {
 
 	public function ioc(IContainer $ioc)
 	{
@@ -20,7 +20,7 @@ class MessagePackService implements ISerializerService, IContainable{
 		return $result;
 	}
 
-	public function deserialize($request)
+	public function unserialize($request)
 	{
 		$result = \msgpack_unpack($request);
 		return $result;

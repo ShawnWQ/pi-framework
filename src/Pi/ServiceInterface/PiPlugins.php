@@ -90,11 +90,12 @@ use Pi\Interfaces\IPlugin,
 
 class PiPlugins implements IPlugin {
 
-    public function register(IPiHost $appHost) : void {
+    public function register(IPiHost $appHost) : void 
+    {
         $container = $appHost->container();
         $config = $appHost->config();
 
-
+        /*
         $container->register('Pi\ServiceInterface\AbstractMailProvider', function(IContainer $ioc) use($config) {
             $provider = new SmtpMailProvider($config, $ioc->get('ICacheProvider'));
             //if(!$provider->isCached::class) {
@@ -102,6 +103,8 @@ class PiPlugins implements IPlugin {
             //}
             return $provider;
         });
+        */
+        $container->registerAutoWired('Pi\ServiceInterface\AbstractMailProvider');
 
         $container->register('Pi\ServiceInterface\WordpressCrawler', function(IContainer $ioc) {
             $factory = $ioc->get('Pi\Interfaces\ILogFactory');
@@ -116,6 +119,13 @@ class PiPlugins implements IPlugin {
             $svc = new SocialStaticsService($logger);
             return $svc;
         });
+
+        $container->registerAutoWired('Pi\ServiceInterface\UserFriendBusiness');
+        $container->registerAutoWired('Pi\ServiceInterface\LikesProvider');
+        $container->registerAutoWired('Pi\ServiceInterface\UserFollowBusiness');
+        $container->registerAutoWired('Pi\ServiceInterface\UserFeedBusiness');
+        $container->registerAutoWired('Pi\ServiceInterface\OfferCreateBusiness');
+
         $appHost->registerService(PlaceService::class);
         $appHost->registerService(MetadataService::class);
         $appHost->registerService(FindUserService::class);
@@ -131,9 +141,7 @@ class PiPlugins implements IPlugin {
         $appHost->registerService(QAService::class);
         $appHost->registerService(LikesService::class);
 
-
-        $redis = $container->get('IRedisClientsManager');
-
+        $container->registerRepository(UserEntity::class, UserRepository::class);
         $container->registerRepository(Newsletter::class, NewsletterRepository::class);
         $container->registerRepository(NewsletterRepository::class, NewsletterSubscriptionRepository::class);
         $container->registerRepository(Answer::class, AnswerRepository::class);
@@ -152,11 +160,10 @@ class PiPlugins implements IPlugin {
         $container->registerRepository(Album::class, AlbumRepository::class);
         $container->registerRepository(JobCarrer::class, JobCarrerRepository::class);
         $container->registerRepository(Application::class, ApplicationRepository::class);
-
         $container->registerRepository(LikesBucket::class, LikesRepository::class);
         $container->registerRepository(AppFeed::class, AppFeedRepository::class);
-        $container->registerRepository('Pi\ServiceModel\Types\UserFeedItem', UserFeedItemRepository::class);
-        $container->registerRepository('Pi\ServiceModel\Types\FeedAction', FeedActionRepository::class);
+        $container->registerRepository(UserFeedItem::class, UserFeedItemRepository::class);
+        $container->registerRepository(FeedAction::class, FeedActionRepository::class);
         $container->registerRepository(UserFollowBucket::class, UserFollowRepository::class);
         $container->registerRepository(UserFollowersBucket::class, UserFollowersRepository::class);
         $container->registerRepository(UserFriendBucket::class, UserFriendRepository::class);

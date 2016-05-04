@@ -1,6 +1,4 @@
-# Pi Services -
-
-[![Build Status](http://codigo.ovh:8084/buildStatus/icon?job=f)](http://codigo.ovh:8084/job/f/)
+# Pi Framework
 
 This code is being actively developed. Feel free to join with me but dont open issues by now, as im writting on it everyday. It's unstable and simple not ready yet.
 
@@ -9,16 +7,81 @@ I'm doing this not only for learning purposes. I've a few small sites running wi
 
 The main goal is to provide a simple framework for micro services development.
 
+## Understanding the Framework
 
-ATM the chache mechanism is not working properly. When its ready, not only Services and Operations will be cached but also Validators, ODM mappings and other code using reflection to extract the entities mapping information.
+Pi isn't a lighweight super fast performance. Instead is a framework designed with OOO and following principles that easy the refactoring.
 
-### Writting a new application
+[PiHost](src/Pi/PiHost.php) is the application host responsible for handling all top level objects like Plugins, Hooks, Services.
+
+With HHVM, each request doesn't open a new process: instead the engine handles a process with N threads. Pi relies on dependency injection, metadata factories and heavy cached files. 
+
+Pi has 3 major life cycles: **configure**, **build** and **init**
+
+It's important to understand the framework life cycles if you inteand to help me developing it.
+
++ Register -registration of object in some factory who is responsible for making him. Register don't necessary envolve an object instance
++ Invoke - execute class method that depend on some life cycle/event. Invoke can be executed more than once.
++ Run - invoke class method. Differs from invoke where run executs an specific request/method, while invoke is related to the event/life cycle.
+
+### Configure
+
+The configuration of PiHost. 
++ Register Services
++ Register Plugin
++ Register Filters/Hooks
++ Register Providers implementations
+..+ ISerializerService
+..+ ClassMappingDriver
+..+ ClassMetadataFactory
++ Register Catch all handlers
++ Register Exception Handlers
++ Register AppSettingsProviderInterface
++ Run Pre Init Plugin Configuration IPlugin->configure(PiHost)
++ Run Plugin Registration IPlugin->register(PiHost)
++ Register Service Metadata
++ Register Hydrators autoloader
+
+To change a HTTP request header, use the CacheProvider or others high level dependencies the developer must use appropiated features like Plugins and Hooks. This allow to execute code on all application life cycles.
+
+Configuration is meant to instruct the framework how dependencies/configuration should be done, and not execute any code.
+
+When the application **configure** is invoked, the PiHost has already had construct some dependencies like the **CacheProvider** and **SerializerService**. It's why the application need the build phase, to know what final implementations are used to avoid unnecessary objects initialization.
+
+
+### Build
+
+Build is executed after the configuration of the application. 
+
+The build of PiHost:
++ Assert hydration requirements
++ Cache Container implementations
++ Cache registered Services
++ Cache Metadata Factories operations (ServiceMetada, OdmMetadata)
++ Cache Routes/Operations map
+
+Each Object in Container implementing [BuildInterface](https://github.com/guilhermegeek/communia/blob/master/src/Pi-Interfaces/BuildInterface.php) is then invoked with **->build(PiHost)** after the application is built.
+
+When the application is built successfully it generated the entry point for webservers (by default index.php).
+
+An example:
+```php
+$app = new YourApp();
+$app->init();
+```
+
+
+### Initialize
+
+The initialize phase is invoke per HTTP request. At this life cycle, the application trust that cache is up to date and the build was executed succefully.
+
+
+## Writting a new application
 
 Create a new AppHost class that extends an base AppHost (atm the only available is AppHost for http environments).
 
 In AppHost you'll register the filters, plugins, custom providers (Logger, ServiceRunner, etc), error handlers and so on.
 
-````
+```php
 use Pi\Service;
 use Pi\Odm\MongoDB\Repository;
 use Pi\AppHost;
@@ -86,11 +149,9 @@ class CustomPreRequestFilter extemds PreRequestFilter {
 
 $host = new TestAppHost();
 $host->init();
-````
+```
 
-
-
-#### Plugins
+## Plugins
 
 - **CORS** - Request filter to handle CORS HTTP requests. For tests porpuses it's working but it will be validated. Also the allowed domains wouldn't be all but retrieved from cache.
 - **FileSystem** - Services to upload files using the FileSystem. I also want to add a MongoDB provider with GridFS
@@ -98,41 +159,3 @@ $host->init();
 - **UML Generator** - With this plugin i want to retrieve a UML like schema, indicating references beteween objects in Pi framework. It's all done with reflection and just for developing porpuses
 - **Redis** - Redis Clients are created by managers. ATM i've only done the RedisLocalClientManager, the goal is to implement a pool size on clientes also
 -**Auth** - Registration, Authentication, Recover and Login services
-
-
-
-### New implementations
-
-The goal is to implement new features and components with plugins. The debug logger is created with a factory but others logs will be available in a plugin distributed with this package.
-
-The same example for OAuth providers, request/response serializers, application statics reporter, etc.
-
-### Tests
-
-Run the tests with phpunit.
-
-### Roadmap
-
-The current code i'm working on.
-
-0.0.1
-- AppHost - implementation of PiHost to HTTP requests
-- Plugins implementation
-- IdentityServices Basic Digest Authentication with email and password. Registration and password recovery by email
-- Host Request/Response for http requests extending BasicRequest/Response,
-- Service Meta with php cache on a json file. Cache is stored at ServiceMetadata, implementations in ServiceMeta with ServiceMetaValue keeped at ServiceController
-- Provide a global HostContext to access resolver, the current application, database factory, debug factory, etc. Accesses to this object always assert that the PiHost was already initialized.
-- Filters - access to request, response and DTO. can change both
-- Mongo Logging Plugin provider to store logs in mongodb. Types are saved as collections if otherwise defined in configuration
-- Event library with a manager, subscriber and default arguments. Available from top objects
-- Validation library aimed to validated not only requests but also dtos. Rules are defined with attributes.
-- ODM: COPY THE DOCTRINE ODM LICENSE! I'm writting the ODM looking up at Doctrine implementation. Same for Mono implementation of System.Data
-
-0.0.2
-- Redis implementation for IMessageFactory.
-- Service Discovery -  Services will discover and register with redis, also used for pub/sub for the services operations acting as a message broker.
-- Validation implement a mapper to define users. Until now only available with attributes
-- OAuth2 Plugin authentication
-
-0.1
-- RabbitMq implementation for IMessageFactory.

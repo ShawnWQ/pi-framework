@@ -22,4 +22,4 @@ script:
 
 notifications:
   email:
-    - reeze.xia@gmail.com
+    - email@guilhermecardoso.pt

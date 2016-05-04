@@ -25,7 +25,7 @@ class MessagePackPlugin implements IPlugin, IHasGlobalAssertion {
 	public function assertGlobalEnvironment()
 	{
 		if(!extension_loaded('msgpack')) {
-		    throw new \Exception('Extension not loaded msgpack.' . PHP_SHLIB_SUFFIX);
+		    //throw new \Exception('Extension not loaded msgpack.' . PHP_SHLIB_SUFFIX);
 		}
 	}
 }

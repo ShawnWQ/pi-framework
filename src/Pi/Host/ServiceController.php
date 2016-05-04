@@ -42,7 +42,6 @@ use Pi\Extensions,
  * The Service Controler is responsible for executing services
  * Services are registered in IOC container
  */
-
 class ServiceController {
 
   const CACHE_SERVICECONTROLLER_KEY = 'servicecontroller';
@@ -133,7 +132,7 @@ class ServiceController {
      //$this->doRegisterServices();
      $this->registerCache($this->appHost->restPaths, $this->servicesR);
   }
-
+  
   public function registerCache($routes, $services)
   {
     $obj = array(
@@ -357,7 +356,7 @@ class ServiceController {
 
     $this->servicesExecutors[$requestType] = Extensions::protectFn(function(IRequest $context) use($factory, $reflService, $method) {
       $factory->setRequest($context);      
-      $factory->setResolver(HostProvider::instance()->container());
+      //$factory->setResolver(HostProvider::instance()->container());
       HostProvider::instance()->container()->autoWire($factory);
       return call_user_func(array($factory, $method), $context->dto());
     });

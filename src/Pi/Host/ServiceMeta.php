@@ -2,61 +2,32 @@
 
 namespace Pi\Host;
 
+use Pi\Common\Mapping\AbstractMetadata;
+
+
+
+
 /**
  * Wrapper to store all services metadata
  *
+ * Metadata fields:
+ * - name: Service Name (not the class name), not unique
+ * - className: Service ClassName
+ * - route: Base API route for all Operations
+ * - auth: authentication filter for all Operations
+ *
  */
-class ServiceMeta implements \JsonSerializable  {
+class ServiceMeta extends AbstractMetadata {
 
-  public function jsonSerialize()
+  public function mapFieldArray(array $mapping) : void
   {
-    return get_object_vars($this);
-  }
-
-  protected $serviceType;
-
-  public function __construct($serviceType)
-  {
-    $this->serviceType = $serviceType;
-    $this->meta = Map{};
-    $this->roles = Map{};
-  }
-
-  /**
-   *
-   * @param requestType the request DTO class
-   * @param the method called, also know as operation
-   * @param apply to verbs
-   * @param string $version service version
-   */
-  public function add($requestType, $methodName, $attributes = null, $applyTo = 'get', $version = '0.0.1')
-  {
-    $value = new ServiceMetaValue($this->serviceType, $methodName);
-    $value->requestType($requestType);
-    $this->meta[$requestType] = array($applyTo => $value);
-    if($applyTo !== 'any' && !$this->meta->contains('any'))
-    {
-      $this->meta[$requestType]['any'] = $value;
+    $name = $mapping['name'];
+    if($this->reflClass->hasProperty($name)) {
+      $reflProp = $this->reflClass->getProperty($name);
+      $reflProp->setAccessible(true);
+      $this->reflFields[$name] = $reflProp;
     }
+
+    $this->fieldMappings[$name] = $mapping;
   }
-
-  public function get($requestType, $verb = 'any')
-  {
-    return $this->meta[$requestType][$verb];
-  }
-
-  public function map()
-  {
-    return $this->meta;
-  }
-
-  /**
-   * @var Map
-   */
-  protected $meta;
-
-  /**
-   * @var Map
-   */
-  protected $roles;
 }

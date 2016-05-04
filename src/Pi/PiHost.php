@@ -13,11 +13,12 @@ use Pi\Auth\UserRepository,
     Pi\Common\Mapping\ClassMetadataFactory,
     Pi\Redis\RedisPlugin,
     Pi\Auth\AuthPlugin,
-    Pi\ServerEvents\ServerEventsPlugin,
+    Pi\Interfaces\ILogFactory,
     Pi\Interfaces\IPiHost,
     Pi\Interfaces\IService,
     Pi\Interfaces\IContainer,
     Pi\Interfaces\AppSettingsInterface,
+    Pi\Interfaces\AppSettingsProviderInterface,
     Pi\Interfaces\IMessageFactory,
     Pi\Interfaces\IMessageService,
     Pi\Interfaces\ICacheProvider,
@@ -25,49 +26,42 @@ use Pi\Auth\UserRepository,
     Pi\Interfaces\IPlugin,
     Pi\Interfaces\IPreInitPlugin,
     Pi\Interfaces\IPostInitPlugin,
+    Pi\Interfaces\ISerializerService,
     Pi\Interfaces\IRequest,
     Pi\Interfaces\IResponse,
     Pi\Interfaces\IHasRequestFilter,
     Pi\Interfaces\IHasPreInitFilter,
     Pi\Interfaces\ILog,
     Pi\Interfaces\IFilter,
-    Pi\Cache\MemcachedProvider,
     Pi\Cache\InMemoryCacheProvider,
     Pi\Cache\RedisCacheProvider,
     Pi\Host\HostProvider,
     Pi\Host\OperationDriver,
-    Pi\Host\ServiceController,
+    Pi\Host\ServiceRegistry,
     Pi\Host\ServiceRunner,
     Pi\Host\ActionContext,
     Pi\Host\RoutesManager,
     Pi\Host\BasicRequest,
-    Pi\Host\PhpRequest,
+    Pi\Host\BasicResponse,
     Pi\Host\PhpResponse,
     Pi\Host\ServiceMetadata,
     Pi\Host\Handlers\AbstractPiHandler,
     Pi\Host\Handlers\RestHandler,
     Pi\Host\Handlers\FileSystemHandler,
     Pi\Host\Handlers\NotFoundHandler,
-    Pi\Logging\DebugLogFactory,
-    Pi\Logging\DebugLogger,
     Pi\Logging\LogManager,
     Pi\ServiceModel\DefaultCacheConfig,
     Pi\Message\InMemoryService,
-    Pi\Message\InMemoryFactory,
     Pi\FileSystem\FileGet,
-    Pi\Odm\OdmPlugin,
     Pi\ServiceModel\ApplicationCreateRequest,
     Pi\ServiceModel\NotFoundRequest,
     Pi\Validation\AbstractValidator,
-    Pi\Validation\ValidationPlugin,
-    Pi\FileSystem\FileSystemPlugin,
-    Pi\ServiceInterface\PiPlugins,
-    Pi\ServiceInterface\CorsPlugin,
     Pi\ServiceInterface\Validators\ApplicationCreateValidator,
-    Warez\WarezPlugin,
-    SpotEvents\SpotEventsPlugin,
     Pi\Queue\RedisPiQueue,
-    Pi\Queue\PiQueue;
+    Pi\Queue\PiQueue,
+    Pi\ServiceInterface\PiPlugins,
+    Warez\WarezPlugin,
+    SpotEvents\SpotEventsPlugin;
 
 
 
@@ -80,7 +74,67 @@ use Pi\Auth\UserRepository,
  */
 abstract class PiHost implements IPiHost{
 
-  const VERSION = '0.0.3-pi';
+  /**
+   * Pi Version
+   */
+  const VERSION = '0.0.6-pi';
+
+  /**
+   * Cache key for version
+   * The value is used to compare the build 
+   */
+  const CACHE_VERSION = 'pi::version';
+
+  /**
+   * Cache and hydrators folder
+   * Cleared at application build by default
+   */
+  const DYNAMIC_PATH = 'cache';
+
+  /**
+   * File name of application configuration file
+   */
+  const string WEBCONFIG_FILE = 'app.config';
+
+  const string WEBCONFIG_PATH = '';
+
+  /**
+   * Settings key for hydrator path
+   */
+  const string SETTINGS_HYDRATOR_PATH = 'hydrator::';
+
+  /**
+   * Settings key for hydrator namespace
+   */
+  const string SETTINGS_HYDRATOR_NAMESPACE = 'hydrator::namespace::';
+
+  /**
+   * Settings key for configuration path
+   */
+  const string SETTINGS_CONFIG_PATH = 'config::';
+
+  /**
+   * Settings key for default logge path
+   */
+  const string SETTINGS_LOGGER_PATH = 'logger::';
+
+  /**
+   * Settings key for default content type
+   */
+  const string SETTINGS_DEFAULT_CONTENTTYPE = 'ct::';
+
+  /**
+   * Settings key fo default protocol
+   */
+  const string SETTINGS_DEFAULT_PROTOCOL = 'protocol::';
+
+  public static PiHost $instance = null;
+
+  public ILogFactory $logFactory;
+
+  public ICacheProvider $cacheProvider;
+
+  public IMessageFactory $messageFactory;
 
   /**
    * An IOC container
@@ -92,25 +146,25 @@ abstract class PiHost implements IPiHost{
    * When the applicaton started
    * @var \DateTime $startedAt
    */
-  protected \DateTime $startedAt;
+  protected float $startedAt;
 
   /**
    * Logger
    * @var ILog $log
    */
-  protected $log;
+  public $log;
 
   /**
    * Manage registered routes
    * @var RoutesManager $routes
    */
-  protected RoutesManager $routes;
+  public RoutesManager $routes;
 
   /**
    * Service Register
    * @var ServiceController $serviceController
    */
-  protected ServiceController $serviceController;
+  public ServiceRegistry $serviceController;
 
   /**
    * Event provider for subscribe/publish
@@ -124,7 +178,10 @@ abstract class PiHost implements IPiHost{
    */
   public $restPaths;
 
-  protected $metadata;
+  /**
+   * The ServiceMetadata instance
+   */
+  public ServiceMetadata $serviceMetadata;
 
   /**
    * Plugins already loaded to the application
@@ -140,6 +197,8 @@ abstract class PiHost implements IPiHost{
    * Helper to know when to internally load the plugins
    */
   protected $delayLoadPlugin = false;
+
+  protected Vector<(function(IPiHost) : void)> $afterInitCallbacks;
 
   /**
    * Request callbacks
@@ -168,14 +227,21 @@ abstract class PiHost implements IPiHost{
 
   protected Vector<(function(IRequest, IResponse) : void)> $onEndRequestCallbacks;
 
-  protected Vector<(function(IRequest, IResponse) : void)> $afterInitCallbacks;
-
   protected Map<string, (function(IRequest, IResponse, Exception) : void)> $exceptionHandler;
 
   protected Map<string,mixed> $customErrorHandlers;
 
+  protected bool $initialized = false;
+
+  protected bool $built = false;
+
   public function __construct(protected HostConfig $config = null)
   {
+    if(!defined('WORK_DIR')) {
+      define('WORK_DIR', dirname(__DIR__.'/../../../'));
+    }
+    $this->startedAt = microtime(true);
+
     if(!Extensions::testingMode()) {
       ob_start();  
     }
@@ -185,26 +251,7 @@ abstract class PiHost implements IPiHost{
     if($this->config === null){
       $this->config = new HostConfig();
     }
-
-    $path = $this->config->hydratorDir();
-    if(!file_exists($path)) {
-      mkdir($path);
-    }
-
-    HostProvider::configure($this);
-    $dir = $dir = $this->config->getHydratorDir();
-
-    /*
-     * autoloader for generated files by core framework
-     */
-    spl_autoload_register(function($class) use($dir) {
-        $c = ClassUtils::getClassRealname($class);
-        $myclass = $dir . '/' . $c . '.php';
-        if (!is_file($myclass)) return false;
-        require_once ($myclass);
-    });
-
-    $this->restPaths = Map{};
+    
     $this->requestFilters = Vector{};
     $this->globalResponseFilters = Vector{};
     $this->globalRequestFilters = Vector{};
@@ -219,153 +266,117 @@ abstract class PiHost implements IPiHost{
     $this->afterInitCallbacks = Vector{};
     $this->onEndRequestCallbacks = Vector{};
     $this->customErrorHandlers = Map{};
-
-    $cacheDirty = true;
-    $this->cacheProvider = new MemcachedProvider(new Map(Pair{'localhost', 11211}));
-
-    $factory = new ContainerFactory($this->cacheProvider);
-    $this->container = $factory->createContainer();
-
-    if($cacheDirty) {
-      $this->registerCacheProvider($this->cacheProvider);  
-    }
-    
-    $this->startedAt = new \DateTime('now');
-    $this->createEventManager();
-
-    $this->serviceController = $this->createServiceController(Set{""});
-
-
     $this->pluginsLoaded = Set{};
     $this->plugins =  array();
     $this->exceptionHandler = Map {};
-   // $this->exceptionHandler->add(function(IRequest $request, $dto, \Exception $ex){
 
-    //});
-    //
-    $this->exceptionHandler->add(Pair {'Pi\Validation\ValidationException', function(IRequest $request, IResponse $response, $ex){    
-      $response->setStatusCode(HttpStatusCode::BadRequest);
-      $response->writeDto($request, $ex->getResult());
-      $response->endRequest();
-      //throw $ex;
-    }});
-    $this->exceptionHandler->add(Pair {'Pi\UnauthorizedException', function(IRequest $request, IResponse $response, $ex){
+    HostProvider::configure($this);
 
-      $response->write('Unauthorized Request: ' . get_class($request->dto()), 401);
-      $response->endRequest();
-      //throw $ex;
-    }});
-    $this->registerPlugin(new RedisPlugin());
-    $this->registerPlugin(new AuthPlugin());
-    
-    
-    $this->registerPlugin(new WarezPlugin());
-    $this->registerPlugin(new SpotEventsPlugin());
-    $this->registerPlugin(new ServerEventsPlugin());
+    $factory = new ContainerFactory();
+    $container = $this->container = $factory->createContainer();
+    $this->routes = new RoutesManager($this);
+    $this->serviceController = $this->createServiceController(Set{""});
+    $this->createEventManager();
+  }
 
-    
-    
-    if(!$this->hasPluginType('Pi\Odm\OdmPlugin')) {
-      $this->registerPlugin(new OdmPlugin());
+  /**
+   * Configure the current application from default
+   * Creates the default configuration file
+   * @param  AppSettingsProviderInterface
+   * @return void
+   */
+  protected function configureFromDefault(AppSettingsInterface $provider) : void
+  {
+    $dynamicPath = WORK_DIR.'/'.self::DYNAMIC_PATH;
+    $provider->set(self::SETTINGS_HYDRATOR_PATH, $dynamicPath);
+    $provider->set(self::SETTINGS_HYDRATOR_NAMESPACE, 'Hydrator');
+    $provider->set(self::SETTINGS_CONFIG_PATH, $dynamicPath);
+    $provider->set(self::SETTINGS_LOGGER_PATH, $dynamicPath);
+    $provider->set(self::SETTINGS_DEFAULT_CONTENTTYPE, "text/json");
+    $provider->set(self::SETTINGS_DEFAULT_PROTOCOL, "http");
+
+    $file = <<<EOF
+<xml>
+  <system.web compilation debug="true" strict="true">
+    <assemblies>
+      <add assembly="Pi, Version=0.1" />
+      <add assembly="Communia", Version="0.1" />
+      <add assembly="Pi.Tool, Version=0.1" />
+    </assemblies>
+  </system.web>
+  <customErrors defaultRedirect="url" mode="On">
+    <error statusCode="401" redirect="unauthorized"
+  </customErrors>
+  <httpHandlers>
+    <add verb="*" path="*.jpg" type="Pi.Host.Handlers.FileSystemHandler" />
+  </httpHandlers>
+  <appSettings>
+    <add key="Version" value="0.1" />
+  </appSettings>
+</xml>
+EOF;
+
+    file_put_contents(WORK_DIR.'/'.self::WEBCONFIG_PATH.'/'.self::WEBCONFIG_FILE, $file);
+  }
+
+  /**
+   * Returns the XML Element for the configuration or null if not found
+   * @return \SimpleXMLElement
+   */
+  protected function getConfigXml() : ?\SimpleXMLElement
+  {
+    try {
+      if($file = file_get_contents(self::WEBCONFIG_PATH.'/'.self::WEBCONFIG_FILE)) {
+        return new \SimpleXMLElement($file);
+      } 
     }
-    $this->registerPlugin(new ValidationPlugin());
-    $this->registerPlugin(new FileSystemPlugin());
-    $this->registerPlugin(new CorsPlugin());
-    $this->registerPlugin(new PiPlugins());
-    
-    $rm = $this->routes = new RoutesManager($this);
-    $this->routes = $rm;
-
-    HostProvider::catchAllHandlers()->add(function(string $httpMethod, string $pathInfo, string $filePath) use($rm){
-      $handler = new RestHandler();
-      //$httpResponse->headers()->add(Pair{'Content-Type', 'application/json'});
-      //$handler->processRequestAsync($httpRequest, $httpResponse, $route->requestType());
-      return $handler;
-    });
-
-    HostProvider::catchAllHandlers()->add(function(string $httpMethod, string $pathInfo, string $filePath) use($rm){
+    catch(\Exception $ex) {
       return null;
-      $this->routes()->get($uri, $method);
-      $handler = new FileSystemHandler();
-      //$handler->processRequestAsync($httpRequest, $httpResponse, $route->requestType());
-      return $handler;
-    });
+    }
+    
 
-    HostProvider::notFoundHandlers()->add(function(string $httpMethod, string $pathInfo, string $filePath) {
+    return null;
+  }
 
-    });
+  /**
+   * Build Cache, Hydrators and other temporary files
+   * 
+   * Application should be built and then published
+   * This method is supposed to be executed only on updates/maintenance
+   */
+  public function build($clear = true)
+  {
+    $started = microtime(true);
+    $settings = $this->appSettings();
 
-    //$this->registerValidator(new ApplicationCreateRequest(), new ApplicationCreateValidator());
-   
-    $this->container()->registerRepository(UserEntity::class, UserRepository::class);
+    if($clear) { // Clear all cache file
+      $files = glob(WORK_DIR.'/'.self::DYNAMIC_PATH.'/*', GLOB_BRACE); // GLOB_BRACE for hidden files
+      foreach ($files as $file) {
+        unlink($file);
+      }
+    }
 
+    // Default directories
+    $createDirs = function(array $paths) {
+      array_walk($paths, function($path) {
+        if(!file_exists(WORK_DIR.'/'.$path)) {
+          mkdir(WORK_DIR.'/'.$path);
+        }
+      });
+    };
 
-    $this->container()->register('Pi\ServiceInterface\OfferCreateBusiness', function(IContainer $ioc){
-        $instance = $ioc->make('Pi\ServiceInterface\OfferCreateBusiness');
-        return $instance;
-    });
+    $createDirs(array(self::DYNAMIC_PATH));
 
-    $this->container()->register('Pi\Interfaces\ILogFactory', function(IContainer $ioc){
-      return new DebugLogFactory();
-    });
+    // Default configuration
+    if(!$config = $this->getConfigXml()) {
+      $this->configureFromDefault($settings);
+    }
+    $this->serviceController->build();
+    $this->serviceMetadata->build();
+    $this->routes->build();
 
-    /**
-     * This implementation is used by all Mapping implementations that don't implement their own IMappingDriver instance
-     */
-    $this->container()->register('ClassMappingDriver', function(IContainer $container){
-      $instance = new ClassMappingDriver(array(), $container->get(EventManager::class), $container->get('ICacheProvider'));
-      $instance->ioc($container);
-      return $instance;
-    });
-
-    /**
-     * This implementation is used by all Mapping implementations that don't implement their own IEntityMetadataFactory instance
-     */
-    $this->container()->register(ClassMetadataFactory::class, function(IContainer $container){
-      $instance = new ClassMetadataFactory($container->get(EventManager::class), $container->get('ClassMappingDriver'));
-      $instance->ioc($container);
-      return $instance;
-    });
-    $this->container()->registerAlias(ClassMetadataFactory::class, 'ClassMetadataFactory');
-
-    $driver = OperationDriver::create(array('../'), $this->event, $this->cacheProvider());
-
-    $this->metadata = new ServiceMetadata($this->restPaths, $this->event, $driver, $this->cacheProvider());
-
-    $factory = $this->container()->get('Pi\Interfaces\ILogFactory');
-    $this->log = $factory->getLogger(get_class($this));
-
-    $this->container()->register('Pi\ServiceInterface\UserFriendBusiness', function(IContainer $ioc){
-        $instance = $ioc->make('Pi\ServiceInterface\UserFriendBusiness');
-        return $instance;
-    });
-
-    $this->container()->register('Pi\ServiceInterface\LikesProvider', function(IContainer $ioc){
-      $instance = $ioc->make('Pi\ServiceInterface\LikesProvider');
-      return $instance;
-    });
-
-    $this->container()->register('Pi\ServiceInterface\UserFollowBusiness', function(IContainer $ioc){
-        $instance = $ioc->make('Pi\ServiceInterface\UserFollowBusiness');
-        return $instance;
-    });
-    $this->container()->register('Pi\ServiceInterface\UserFeedBusiness', function(IContainer $ioc){
-        $instance = $ioc->make('Pi\ServiceInterface\UserFeedBusiness');
-        return $instance;
-    });
-
-    $this->container()->register('Pi\Queue\PiQueue', function(IContainer $ioc) {
-        $factory = $ioc->get('Pi\Interfaces\ILogFactory');
-        $redis = $ioc->get('IRedisClientsManager');
-        $logger = $factory->getLogger(PiQueue::NAME);
-        return new RedisPiQueue($logger, $redis);
-    });
-
-    $this->runPreInitPluginConfiguration();
-    $this->preConfigure($this->container);
-    $this->runPluginRegistration();
-    $this->configure($this->container);
-    $this->registerServices();
+    $elapsed = (microtime(true) - $started) / 1000; 
+    $this->log->debug("Built in $elapsed seconds");
   }
 
   public abstract function configure(IContainer $container);
@@ -374,8 +385,6 @@ abstract class PiHost implements IPiHost{
   {
 
   }
-
-  public abstract function afterInit();
 
   public async function registerServices() : Awaitable<void> {
     foreach ($this->plugins as $plugin) {
@@ -393,92 +402,221 @@ abstract class PiHost implements IPiHost{
     }
   }
 
-  public function build() : void {
+  public function init()
+  {
+    $this->exceptionHandler->add(Pair {'Pi\Validation\ValidationException', function(IRequest $request, IResponse $response, $ex){    
+      $response->setStatusCode(HttpStatusCode::BadRequest);
+      $response->writeDto($request, $ex->getResult());
+      $response->endRequest();
+    }});
+    
+    $this->exceptionHandler->add(Pair {'Pi\UnauthorizedException', function(IRequest $request, IResponse $response, $ex){
+      $response->write('Unauthorized Request: ' . get_class($request->dto()), 401);
+      $response->endRequest();
+      if(Extensions::testingMode()) {
+        throw $ex;
+      }
+    }});
 
-  }
+    $this->container->registerAlias(ICacheProvider::class, 'ICacheProvider');
 
-  public function init() : void {
-
-    //$this->routes = new RoutesManager($this);
-
-    $this->container->register('IRequest', function(IContainer $ioc) {
-      $req = new BasicRequest();
-      //$req->setResponse($ioc->get('IResponse'));
-      return $req;
-    });
-
-    $this->container->register('IResponse', function(IContainer $ioc) {
-      return $ioc->tryResolve('IRequest')->response();
-    });
-
-    if(!$this->container->hasRegistered('IServiceSerializer')) {
-      $this->container->register('IServiceSerializer', function(IContainer $ioc){
+    //if(!$this->container->hasRegistered(IServiceSerializer::class)) {
+      $this->container->register(ISerializerService::class, function(IContainer $ioc){
         return new PhpSerializerService();
       });
+    //}
+
+    /**
+     * This implementation is used by all Mapping implementations that don't implement their own IMappingDriver instance
+     */
+    $this->container->register('ClassMappingDriver', function(IContainer $container){
+      $instance = new ClassMappingDriver(
+        array(),
+        $container->get(EventManager::class),
+        $container->get('ICacheProvider'));
+      $instance->ioc($container);
+      return $instance;
+    });
+
+    /**
+     * This implementation is used by all Mapping implementations that don't implement their own IEntityMetadataFactory instance
+     */
+    $this->container->register(ClassMetadataFactory::class, function(IContainer $container){
+      $container->get(ICacheProvider::class);
+      $instance = new ClassMetadataFactory(
+        $container->get(ICacheProvider::class), 
+        $container->get(EventManager::class), 
+        $container->get('ClassMappingDriver'));
+      $instance->ioc($container);
+      return $instance;
+    });
+
+    $this->container->registerAlias(ClassMetadataFactory::class, 'ClassMetadataFactory');
+
+    HostProvider::catchAllHandlers()->add(function(string $httpMethod, string $pathInfo, string $filePath){
+      $handler = new RestHandler();
+      return $handler;
+    });
+
+    HostProvider::catchAllHandlers()->add(function(string $httpMethod, string $pathInfo, string $filePath) {
+      if(RandomString::endsWith($pathInfo, '.html') || RandomString::endsWith($filePath, '.html')) {
+        die($pathInfo.$filePath);
+      }
+    });
+
+    HostProvider::catchAllHandlers()->add(function(string $httpMethod, string $pathInfo, string $filePath){
+      return null;
+      $this->routes()->get($uri, $method);
+      $handler = new FileSystemHandler();
+      return $handler;
+    });
+
+    HostProvider::notFoundHandlers()->add(function(string $httpMethod, string $pathInfo, string $filePath) {
+
+    });
+
+    $this->registerPlugin(new PiPlugins());
+
+    
+    $this->container->registerAlias(ISerializerService::class, 'ISerializerService');
+
+    $this->configure($this->container);
+
+    if(!$this->container->hasRegistered(AppSettingsProviderInterface::class)) {
+      $this->container->register(AppSettingsProviderInterface::class, function(IContainer $ioc) {
+        return new ApcAppSettingsProvider();
+      });
+      $this->container->registerAlias(AppSettingsProviderInterface::class, 'AppSettingsProviderInterface');
     }
-
-    // Message Service
-    $messageFactory = $this->tryResolve(IMessageFactory::class);
-    if(is_null($messageFactory)){
-      $this->setMessageFactory(new InMemoryFactory());
-    }
-
-    // Logger
-
+  
+    $this->container->register(AppSettingsInterface::class, function(IContainer $ioc) {
+        $provider = $ioc->get(AppSettingsProviderInterface::class);     
+        return new AppSettings($provider, HostProvider::instance()->config());
+    });
+    $this->container->registerAlias(AppSettingsInterface::class, 'AppSettingsInterface');
+  
 
     if(empty($this->config->getConfigsPath())){
       $this->config->setConfigsPath($_SERVER["DOCUMENT_ROOT"]  . 'config.json');
     }
-    if(!file_exists($this->config->getConfigsPath())){
+        
+    
+    $this->log = $this->logFactory->getLogger(get_class($this));
 
-      $file = fopen($this->config->getConfigsPath(), 'w');
-      $config = new DefaultCacheConfig();
-      $config->setPath($this->config->getConfigsPath());
-      fwrite($file, json_encode($config->jsonSerialize()));
-      fclose($file);
+    $this->runPreInitPluginConfiguration();
+
+    //$this->preConfigure($this->container);
+    $this->runPluginRegistration();
+
+    //$this->registerServices();
+    $hydratorDir = $this->config->getHydratorDir();
+
+    $driver = OperationDriver::create(array('../'), $this->event, $this->cacheProvider());
+    $this->serviceMetadata = new ServiceMetadata(
+      $this->routes, 
+      $this->event, 
+      $driver, 
+      $this->cacheProvider(), 
+      $this->logFactory->getLogger(ServiceMetadata::class)
+    );
+    /*
+     * autoloader for generated files by core framework
+     */
+    spl_autoload_register(function($class) use($hydratorDir) {
+        $c = ClassUtils::getClassRealname($class);
+        $myclass = $hydratorDir . '/' . $c . '.php';
+        if (!is_file($myclass)) return false;
+        require_once ($myclass);
+    });
+
+    if(self::$instance != null) {
+      throw new \Exception('PiHost.$instance has already been set');
     }
+    Service::$globalResolver = self::$instance = $this;
 
-    // if not built
-    $cached = $this->cacheProvider()->get('sa');
-
- 
-    $this->build();
     $this->serviceController->init();
-    $this->serviceController->build();
-
-    // ServiceController initialization requires that dependencies are already configured
-    // by apphost and plugins
-
-
-    // default configs for core plugins (not developed yet)
+    $this->routes->init();
+    
     $this->delayLoadPlugin = true;
     $this->loadPluginsInternal($this->plugins);
-
     // plugins may change the specified content type
-    $specifiedContentType = 'text/json';
-    $this->afterPluginsLoaded($specifiedContentType);
-    $this->metadata->afterInit();
+    $this->afterPluginsLoaded('text/json');
 
-    try {
-      $this->afterInit();
+    foreach ($this->afterInitCallbacks as $callback) {
+      try {
+        $callback($this);
+      }
+      catch(\Exception $ex) {
+        $this->onStartupException($ex);
+      }
     }
-    catch(\Exception $ex) {
-      $this->handleException($ex);
+    $took = (microtime(true) - $this->startedAt) / 1000;
+    $this->log->debug("PiHost initialized in $took seconds");
+    $this->initialized = true;    
+    return $this->afterInit();
+  }
+
+  public function sanitizeUri() : string
+  {
+    $uri = $this->getUri();
+    $uri = $this->removeQueryParameters($uri);
+    $uri = $this->removeTrailSlash($uri); 
+    $restPath = explode('?', $uri);
+    if(is_array($restPath)) {
+      $a = explode($this->config->baseUri(), $restPath[0]);
+      if(is_array($a) && count($a) > 1) {
+        $uri = $a[1];
+      }
     }
-    $httpReq = $this->container->tryResolve('IRequest');
-    $httpResponse = $this->container->tryResolve('IResponse');
+    return $uri;
+  }
 
-    if($this->callGlobalRequestFilters($httpReq, $httpResponse)) {
-      return;
+  public function afterInit() : Awaitable<void>
+  {
+    $uri = $this->sanitizeUri();
+    
+    $method = $this->getHttpMethod();
+    $route = $this->routes()->get($uri, $method);
+
+    if(is_null($route)){
+      return $this->notFoundResponse();
     }
+    
+    $dto = $this->mapRouteDto($route);
+    $httpRequest = new BasicRequest();
+    $httpResponse = $httpRequest->response();
 
-    $dto = $httpReq->dto();
-    if($this->callPreInitRequestFiltersClasses($httpReq, $httpResponse, $dto)) {
-      return;
+    $handles = Vector{};
+    foreach (HostProvider::catchAllHandlers() as $key => $handlerFn) {
+      $handler = $handlerFn($method, $uri, $uri);
+      if($handler != null) {
+        $handles->add($handler);
+        break;
+      }
     }
+    return $this->executeHandlersAsync($handles);
+  }
 
+  protected async function executeHandlersAsync(
+    array<WaitHandle<mised>> $handles,
+  ): Awaitable<array<mixed>>
+  {
+    await AwaitAllWaitHandle::fromArray($handles);
+    return array_map($handle ==> $handle->result(), $handles);
+  }
 
+  protected function notFoundResponse()
+  {
+    $dto = new NotFoundRequest();
+    $action = new ActionContext();
+    $action->setServiceType('Pi\ServiceInterface\NotFoundService');
+    $action->setRequestType('Pi\ServiceModel\NotFoundRequest');
 
+    $contextRequest = new BasicRequest();
+    $contextRequest->setDto($dto);
+    $response = $contextRequest->response();
+    $handler = $this->getNotFoundHandler();
+    return $handler->processRequestAsync($contextRequest, $response, $action->getRequestType());
   }
 
   public function handleErrorResponse(IRequest $httpReq, IResponse $httpRes, $errorStatus = 200, ?string $errorStatusDescription = null)
@@ -537,8 +675,32 @@ abstract class PiHost implements IPiHost{
 
   }
 
+  protected function getUri()
+  {
+    return !isset($_SERVER['REQUEST_URI']) ? '/' : $_SERVER['REQUEST_URI'];
+  }
+
+  protected function removeTrailSlash(string $uri) : string
+  {
+      return substr($uri, -1) == '/' ? substr($uri, 0, -1) : $uri;
+  }
+
+  protected function removeQueryParameters(string $uri) : string
+  {
+    $arr = explode('?', $uri);
+    return is_array($arr) ? $arr[0] :
+      (is_string($arr) ? $arr : '');
+  }
+
+    
+  protected function getHttpMethod() : string
+  {
+    return isset($_SERVER['REQUEST_METHOD']) && in_array($_SERVER['REQUEST_METHOD'], array('GET', 'PUT', 'POST', 'DELETE')) ? $_SERVER['REQUEST_METHOD'] : 'GET';
+  }
+
   public function setMessageFactory(IMessageFactory $instance) : void
   {
+    $this->messageFactory = $instance;
     $this->container->register(IMessageFactory::class, function(IContainer $container) use($instance) {
       //$instance->ioc($this->container);
       return $instance;
@@ -585,7 +747,8 @@ abstract class PiHost implements IPiHost{
       throw new \Exception('Plugin is null');
     }
     HostProvider::plugins()->add($plugin);
-    $this->plugins[] = $plugin;  }
+    $this->plugins[] = $plugin;
+  }
 
   public function removePlugin(IPlugin $plugin) : bool
   {
@@ -793,23 +956,6 @@ abstract class PiHost implements IPiHost{
     return $response->isClosed();
   }
 
-  public function callAfterInitCallbacks(IRequest $request, IResponse $response)
-  {
-    if(count($this->afterInitCallbacks) === 0) {
-      return false;
-    }
-
-    foreach($this->afterInitCallbacks as $k => $fn) {
-      $fn($request, $response);
-
-      if($response->isClosed()){
-        break;
-      }
-    }
-
-    return $response->isClosed();
-  }
-
   public function callOnEndRequest(IRequest $request, IResponse $response)
   {
     if(count($this->onEndRequestCallbacks) === 0) {
@@ -857,7 +1003,7 @@ abstract class PiHost implements IPiHost{
 
     foreach($this->preInitRequestFiltersClasses as $key => $filter) {
       $filter->setAppHost($this);
-      $this->container()->autoWire($filter);
+      $this->container->autoWire($filter);
         $filter->execute($request, $response, $dto);
 
       if($response->isClosed()){
@@ -878,7 +1024,7 @@ abstract class PiHost implements IPiHost{
     }
     foreach($this->requestFiltersClasses as $key => $filter) {
       $filter->setAppHost($this);
-      $this->container()->autoWire($filter);
+      $this->container->autoWire($filter);
       $filter->execute($request, $response, $dto);
 
       if($response->isClosed()){
@@ -899,7 +1045,7 @@ abstract class PiHost implements IPiHost{
     }
     foreach($this->preRequestFiltersClasses as $key => $filter) {
       $filter->setAppHost($this);
-      $this->container()->autoWire($filter);
+      $this->container->autoWire($filter);
       $filter->execute($request, $response);
 
       if($response->isClosed()){
@@ -924,7 +1070,7 @@ abstract class PiHost implements IPiHost{
 
   protected function createServiceController(Set $paths)
   {
-    return new ServiceController($this);
+    return new ServiceRegistry($this);
   }
 
   public function execute($requestDto, IRequest $request)
@@ -947,27 +1093,28 @@ abstract class PiHost implements IPiHost{
    * Later i'll diagnose better what happened here
    * This exceptions are more 99% my fault.
    */
-  private function onStartupException(\Exception $ex){
+  private function onStartupException(\Exception $ex)
+  {
     throw $ex;
   }
 
   /**
    *
    */
-  public function registerCacheProvider(ICacheProvider $instance) : void
+  public function registerCacheProvider(string $className) : void
   {
-    $this->container->remove('ICacheProvider');
-    $this->container->register('ICacheProvider', function(IContainer $container) use($instance) {
-      $instance->ioc($this->container);
-      return $instance;
-    });
+    //$this->container->remove('ICacheProvider');
+    $this->container->registerAutoWiredAs($className, ICacheProvider::class);
+  }
 
-    $this->container->registerAlias('ICacheProvider', 'Pi\Interfaces\ICacheProvider');
+  public function registerCacheProviderInstance($obj)
+  {
+    $this->container->registerInstanceAs(ICacheProvider::class, $obj);
   }
 
   public function cacheProvider() : ?ICacheProvider
   {
-    return $this->container->get('ICacheProvider');
+    return $this->container->get(ICacheProvider::class);
   }
 
   /**
@@ -1073,9 +1220,14 @@ abstract class PiHost implements IPiHost{
   {
     return $this->log->debug(func_get_args()[0]);
   }
-   public function metadata()
+  
+  /**
+   * Get Service Metadata class
+   * @return ServiceMetadata
+   */
+  public function metadata() : ServiceMetadata
   {
-    return $this->metadata;
+    return $this->serviceMetadata;
   }
 
   private function createEventManager()
@@ -1196,6 +1348,15 @@ abstract class PiHost implements IPiHost{
       catch(\Exception $ex) {
         $this->onStartupException($ex);
       }
+    }
+  }
+
+  public function dispose() : void
+  {
+    self::$instance = null;
+
+    if($this->container != null) {
+      $this->container->dispose();
     }
   }
 }

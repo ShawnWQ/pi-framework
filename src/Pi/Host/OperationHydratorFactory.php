@@ -22,8 +22,7 @@ use Pi\Odm\Interfaces\IEntityMetaDataFactory;
  * Mongo Hydrator Factory
  * Similar to Doctrine ODM hydrators
  */
-class OperationHydratorFactory
-  implements IContainable {
+class OperationHydratorFactory implements IContainable {
 
   protected $hydrators = Map {};
 
@@ -40,28 +39,22 @@ class OperationHydratorFactory
     protected HostConfig $configuration,
     protected IEntityMetaDataFactory $entityMetaDataFactory,
     protected EventManager $eventManager,
-    protected ServiceController $serviceController)
+    protected $serviceController)
   {
     $this->hydratorDir = $configuration->hydratorDir();
 
     $this->hydratorNamespace = $configuration->getHydratorNamespace();
 
     if(empty($this->hydratorDir)){
-      throw new \Exception('The MongoHydratorFactory requires a valid $hydratorDir to save the hydrated files');
+      throw new \Exception('The OperationHydratorFactory requires a valid $hydratorDir to save the hydrated files');
     }
 
     if(empty($this->hydratorNamespace)){
-      throw new \Exception('The $hydratorNamespace cant be empty, its required for autoloader');
+      throw new \Exception('The hydrator namespace cant be empty, its required for autoloader');
     }
 
   }
 
-  /**
-   * Hydrate array of MongoDB document data into the given document object
-   * @param  [type] $document [description]
-   * @param  [type] $data     [description]
-   * @return [type]           [description]
-   */
   public function hydrate($document, $data)
   {
 
@@ -75,7 +68,10 @@ class OperationHydratorFactory
       $class->invokeLifecycleCallbacks(Events::PreLoad, $document, $args);
     }*/
 
-    $data = $this->getForEntity($document)->hydrate($data, $document);
+    //die('rfl::: '.print_r($class->reflClass));
+
+    $data = $this->getForEntity($document)
+                 ->hydrate($data, $document);
   }
 
   public function ioc(IContainer $container)
@@ -228,7 +224,7 @@ EOF
 
        if (array_key_exists('$name', \$data)) {
           \$r = \$data['$name'];
-          \$this->class->reflFields['$name']->setValue(\$document, \$r);
+          \$this->class->reflClass->getProperty('$name')->setValue(\$document, \$r);
           \$hydratedData['$name'] = \$data['$name'];
        }
 
@@ -244,7 +240,7 @@ EOF
 
 namespace $hydratorNamespace;
 
-use Pi\Host\ServiceController;
+use Pi\Host\ServiceRegistry;
 use Pi\Host\Operation;
 use Pi\Interfaces\IOperationHydrator;
 /**
@@ -253,17 +249,17 @@ use Pi\Interfaces\IOperationHydrator;
 class $hydratorClassName implements IOperationHydrator
 {
     /**
-     * @var ServiceController
+     * @var ServiceRegistry
      */
-    private \$dm;
+    private \$serviceController;
     /**
      * @var Operation
      */
     private \$class;
 
-    public function __construct(ServiceController \$dm, Operation \$class)
+    public function __construct(ServiceRegistry \$serviceController, Operation \$class)
     {
-        \$this->dm = \$dm;
+        \$this->serviceController = \$serviceController;
         \$this->class = \$class;
     }
 

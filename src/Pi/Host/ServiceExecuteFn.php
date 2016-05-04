@@ -8,6 +8,10 @@ use Pi\Interfaces\IRequest;
  */
 class ServiceExecuteFn {
 
+	protected $onBeginCallbacks;
+	
+	protected $onEndCallbacks;
+
 	/**
 	 * @param $callback a function receiving the current Request that execute the service method
 	 */
@@ -48,7 +52,4 @@ class ServiceExecuteFn {
 		$this->endInvoke();
 		return $response;
 	}
-
-	protected $onBeginCallbacks;
-	protected $onEndCallbacks;
 }
