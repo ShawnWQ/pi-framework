@@ -1,0 +1,540 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"Hos",
+				"HostProvider"
+			],
+			[
+				"cno",
+				"container"
+			],
+			[
+				"hydra",
+				"hydrator"
+			],
+			[
+				"seri",
+				"serializer"
+			],
+			[
+				"ser",
+				"serializer"
+			],
+			[
+				"Abs",
+				"AbstractMetadataFactoryTest"
+			],
+			[
+				"Abst",
+				"AbstractMetadataFactoryTestDto"
+			],
+			[
+				"meta",
+				"metadataFactory"
+			],
+			[
+				"MemC",
+				"MemcachedProviderTestDto"
+			],
+			[
+				"Mock",
+				"MockContainer"
+			],
+			[
+				"Memc",
+				"MemcachedProviderTestDto"
+			],
+			[
+				"Mem",
+				"MemcachedProviderTestDto"
+			],
+			[
+				"seria",
+				"serializeValue"
+			],
+			[
+				"rou",
+				"route"
+			],
+			[
+				"ca",
+				"cache"
+			],
+			[
+				"CAche",
+				"CACHE_METADATA_KEY"
+			],
+			[
+				"req",
+				"requestType"
+			],
+			[
+				"op",
+				"operation"
+			],
+			[
+				"opera",
+				"operationType"
+			],
+			[
+				"VerseCre",
+				"VerseCreateRequest"
+			],
+			[
+				"Ver",
+				"VerseCreateResponse"
+			],
+			[
+				"Vers",
+				"VerseCreateRequest"
+			],
+			[
+				"for",
+				"foreach	foreach …"
+			],
+			[
+				"init",
+				"initialized"
+			],
+			[
+				"IC",
+				"ICacheProvider"
+			],
+			[
+				"ILog",
+				"ILogFactory"
+			],
+			[
+				"log",
+				"logFactory"
+			],
+			[
+				"cache",
+				"cacheProvider"
+			],
+			[
+				"cach",
+				"cacheProvider"
+			],
+			[
+				"Val",
+				"Validation"
+			],
+			[
+				"Vali",
+				"ValidationPlugin"
+			],
+			[
+				"Wa",
+				"WarezPlugin"
+			],
+			[
+				"class",
+				"className"
+			],
+			[
+				"Operatio",
+				"OperationHydratorFactory"
+			],
+			[
+				"IMe",
+				"IMessageFactory"
+			]
+		]
+	},
+	"buffers":
+	[
+	],
+	"build_system": "",
+	"build_system_choices":
+	[
+	],
+	"build_varint": "",
+	"command_palette":
+	{
+		"height": 312.0,
+		"last_filter": "Package In",
+		"selected_items":
+		[
+			[
+				"Package In",
+				"Package Control: Install Package"
+			],
+			[
+				"Package",
+				"Package Control: Install Package"
+			]
+		],
+		"width": 449.0
+	},
+	"console":
+	{
+		"height": 126.0,
+		"history":
+		[
+			"import urllib.request,os,hashlib; h = '2915d1851351e5ee549c20394736b442' + '8bc59f460fa1548d1514676163dafc88'; pf = 'Package Control.sublime-package'; ipp = sublime.installed_packages_path(); urllib.request.install_opener( urllib.request.build_opener( urllib.request.ProxyHandler()) ); by = urllib.request.urlopen( 'http://packagecontrol.io/' + pf.replace(' ', '%20')).read(); dh = hashlib.sha256(by).hexdigest(); print('Error validating download (got %s instead of %s), please try manual install' % (dh, h)) if dh != h else open(os.path.join( ipp, pf), 'wb' ).write(by)"
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"expanded_folders":
+	[
+		"/home/pink/work/pi-framework"
+	],
+	"file_history":
+	[
+		"/home/pink/work/codigo/bower_components/pi-gulp-tasks/tasks/templates.js",
+		"/home/pink/work/codigo/bower_components/pi-gulp-tasks/tasks/sass.js",
+		"/home/pink/work/codigo/bower_components/pi-gulp-tasks/tasks/inject-dist.js",
+		"/home/pink/work/codigo/bower_components/pi-gulp-tasks/tasks/angular-base.js",
+		"/home/pink/work/pi-angular/bower.json",
+		"/home/pink/work/codigo/package.json",
+		"/home/pink/work/codigo/gulpfile.js",
+		"/home/pink/work/guilherme-blog/gulpfile.js",
+		"/home/pink/work/ionic-stuv/bower.json",
+		"/home/pink/work/viseu/gulpfile.js",
+		"/home/pink/work/viseu/bower.json",
+		"/home/pink/work/viseu/src/viseu.mdl.js",
+		"/home/pink/work/pi-gulp-tasks/tasks/sass.js",
+		"/home/pink/src/msgpack-hhvm/LICENSE",
+		"/home/pink/work/pi-framework/tests/Pi/Cache/RedisCacheProviderTest.php",
+		"/home/pink/work/pi-framework/tests/Mocks/BibleHost.php",
+		"/home/pink/work/pi-framework/src/Pi/Cache/InMemoryCacheProvider.php",
+		"/home/pink/work/pi-framework/src/Pi/PiHost.php",
+		"/home/pink/work/pi-framework/src/Pi-Redis/RedisPlugin.php",
+		"/home/pink/work/pi-framework/src/Pi/PiFileMapper.php",
+		"/home/pink/work/pi-framework/src/Pi/Cache/MemcachedProvider.php",
+		"/home/pink/work/pi-framework/src/Pi-Interfaces/ICacheProvider.php",
+		"/home/pink/work/pi-framework/tests/Pi-Redis/RedisClientTest.php",
+		"/home/pink/work/pi-framework/src/Pi-Redis/RedisClient.php",
+		"/home/pink/work/pi-framework/src/Pi/PhpSerializer.php",
+		"/home/pink/work/pi-framework/src/Pi-Common/Mapping/AbstractMetadataFactory.php",
+		"/home/pink/work/pi-framework/tests/Mocks/MockContainer.php",
+		"/home/pink/work/pi-framework/tests/Pi-Common/Mapping/AbstractMetadataFactoryTest.php",
+		"/home/pink/work/pi-framework/src/Pi-Common/Mapping/ClassMetadataFactory.php",
+		"/home/pink/work/pi-framework/src/Pi-Common/Mapping/Driver/AbstractMappingDriver.php",
+		"/home/pink/work/pi-framework/src/Pi/Host/HostProvider.php",
+		"/home/pink/work/pi-framework/src/SpotEvents/SpotEventsPlugin.php",
+		"/home/pink/work/pi-framework/src/Pi-Interfaces/ICachedClient.php",
+		"/home/pink/work/pi-framework/src/Pi/Cache/RedisCacheProvider.php",
+		"/home/pink/work/pi-framework/tests/Pi-MessagePack/MessagePackServiceTest.php",
+		"/home/pink/work/pi-framework/src/Pi/PhpSerializerService.php",
+		"/home/pink/work/pi-framework/src/Pi-Interfaces/ISerializerService.php",
+		"/home/pink/work/pi-framework/src/Pi-MessagePack/MessagePackService.php",
+		"/home/pink/work/pi-framework/tests/Pi-Redis/RedisLocalClientManagerTest.php",
+		"/home/pink/work/pi-framework/tests/Pi-Redis/RedisFactoryTest.php",
+		"/home/pink/work/pi-framework/src/Pi-Redis/RedisFactory.php",
+		"/home/pink/work/pi-framework/src/Pi-Interfaces/ISerialize.php",
+		"/home/pink/work/pi-framework/tests/README.md",
+		"/home/pink/Área de Trabalho/quinta.txt",
+		"/home/pink/work/pi-framework/src/Pi/Host/RoutesManager.php",
+		"/home/pink/work/pi-framework/tests/Pi/Host/RoutesManagerTest.php",
+		"/home/pink/work/pi-framework/tests/Pi/Cache/MemcachedProviderTest.php",
+		"/home/pink/work/pi-framework/src/Pi/Cache/LocalCacheProvider.php",
+		"/home/pink/work/pi-framework/tests/Mocks/MockHydratorFactory.php",
+		"/home/pink/work/pi-framework/src/Pi-Common/Mapping/AbstractHydratorFactory.php",
+		"/home/pink/work/pi-framework/src/Pi-Interfaces/InitializeInterface.php",
+		"/home/pink/work/pi-framework/src/Pi/Host/ServiceMetadata.php",
+		"/home/pink/work/pi-framework/phpunit.xml",
+		"/home/pink/work/pi-framework/src/Pi-Redis/Interfaces/IRedisClient.php",
+		"/home/pink/work/pi-framework/tests/Pi/Host/ServiceMetadataTest.php",
+		"/home/pink/work/pi-framework/src/Pi/Host/BasicRequest.php",
+		"/home/pink/work/pi-framework/tests/Pi-Redis/RedisAppSettingsProviderTest.php",
+		"/home/pink/work/pi-framework/tests/Pi-Queue/PiWorkerTest.php",
+		"/home/pink/work/pi-framework/tests/Pi-Common/RandomStringTest.php",
+		"/home/pink/work/pi-framework/tests/Mocks/MockHydratorContainer.php",
+		"/home/pink/work/pi-framework/src/Pi-Common/Mapping/Driver/ClassMappingDriver.php",
+		"/home/pink/work/pi-framework/src/Pi/Host/OperationMetaFactory.php",
+		"/home/pink/work/pi-framework/tests/Pi/Host/HostProviderTest.php",
+		"/home/pink/src/ServiceStack/src/ServiceStack/Testing/MockHttpRequest.cs",
+		"/home/pink/src/ServiceStack/src/ServiceStack/Formats/MarkdownFormat.cs",
+		"/home/pink/src/ServiceStack/src/ServiceStack/ServiceStackHost.Runtime.cs",
+		"/home/pink/work/pi-framework/src/Pi/ContainerFactory.php",
+		"/home/pink/work/pi-framework/src/Pi/ServiceInterface/PiPlugins.php",
+		"/home/pink/work/pi-framework/src/Pi-Interfaces/Host/BuildInterface.php"
+	],
+	"find":
+	{
+		"height": 23.0
+	},
+	"find_in_files":
+	{
+		"height": 90.0,
+		"where_history":
+		[
+			"/home/pink/work/pi-framework/src/Pi-Redis",
+			"/home/pink/src/ServiceStack/src/ServiceStack/Auth",
+			"/home/pink/src/ServiceStack/src/,/home/pink/src/ServiceStack/src/ServiceStack/Auth",
+			"/home/pink/src/ServiceStack/src/",
+			"/home/pink/src/ServiceStack/src/Auth",
+			"/home/pink/work/pi-framework/tests",
+			"/home/pink/work/pi-framework/src",
+			"/home/pink/work/pi-framework/tests",
+			"/home/pink/work/pi-framework/src",
+			"/home/pink/work/pi-framework/tests",
+			"/home/pink/work/pi-framework/src",
+			"/home/pink/work/pi-framework/tests",
+			"/home/pink/work/pi-framework/src",
+			"/home/pink/work/pi-framework/tests",
+			"/home/pink/work/pi-framework/src",
+			"/home/pink/src/ServiceStack/src",
+			"/home/pink/work/pi-framework/src"
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": true,
+		"find_history":
+		[
+			"public/",
+			"app/",
+			"tasks",
+			"gulp-inject",
+			"inject",
+			",",
+			"params",
+			",",
+			"inject",
+			"src",
+			"ui-router",
+			"app/",
+			"ionic",
+			"dynamic",
+			"app/",
+			"sass",
+			"m2",
+			"IRedisFactory",
+			"CachedClient",
+			"CacheClient",
+			"CacheProvider",
+			"init",
+			"Cache",
+			"CacheProvider",
+			"registerCache",
+			"RedisCacheProvider",
+			"new InMemoryCache",
+			"InMemo",
+			"redis",
+			"runPluginRegis",
+			"cacheProvider",
+			"registerCacheProvider",
+			"register",
+			"registerAut",
+			"die",
+			"afterPluginsLoaded",
+			"loadPluginsInternal",
+			"Plugins",
+			"IRedisClientsManager",
+			"getHydrator",
+			"deserialize",
+			"unserialize",
+			"$this->serializeValue(",
+			"serializeValue",
+			"RedisFactory",
+			"cache",
+			"hydratorFactory",
+			"new RedisFactory(",
+			"new RedisClient(",
+			"hydratorFactory",
+			"RandomClass",
+			"ISerializerService",
+			"ISerialize",
+			"Seriali",
+			"new ClassMetadata",
+			"loadMetadata",
+			"setMetadataFor",
+			"doLoadMetadata",
+			"loadMetadataForClass",
+			"mapBaseMappings",
+			"doLoadMetadata",
+			"newEntityMetadataInstance",
+			"newEntityMetadataInstance\n",
+			"getMetadataFor",
+			"100",
+			"new RedisClient",
+			"new RedisClient(",
+			"die",
+			"HydratorFactoryInterface",
+			"push",
+			"cache",
+			"set",
+			"getArr",
+			"die",
+			"get",
+			"set",
+			"PINK",
+			"InitializeInterface",
+			"set",
+			"self::serializeValue",
+			"addToList",
+			"routes->init();",
+			"cacheProvider",
+			"'/test'",
+			"serialize",
+			"load",
+			"add",
+			"getRequestTypes",
+			"getMetadataFor",
+			"getOperationMetadata",
+			"getMetadataFor",
+			"newEntityMetadataInstance",
+			"loadMetadata",
+			"doLoadMetadata",
+			"AbstractMetadataFactory",
+			"OperationMetaFactory",
+			"OperationDriver",
+			"OperationFactory",
+			"OerationFactory",
+			"PperationFactory",
+			"operationFactory",
+			"add",
+			"CACHE_METADATA_KEY",
+			"ServiceMetadata",
+			"meta",
+			"string ",
+			"HostContext",
+			"AppHost",
+			"GetCustomRequestFromBinder",
+			"DeserializeHttpRequest",
+			"CreateRequest",
+			"QueryString =",
+			"Headers",
+			"Message",
+			"Resolver",
+			"QueryString",
+			"QuerySt",
+			"operation",
+			"Route",
+			"Provider",
+			"Host",
+			"replyBindings",
+			"GetWsdlTemplate",
+			"ReplyEndpointUri =",
+			"ProcessRequest",
+			"Execute",
+			"ExecuteService",
+			"GetAction"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+			"www/",
+			"src/",
+			"$this->serializer->serialize(",
+			"$this->serializeValue",
+			"$r",
+			"$this->throwIfNotInitialized",
+			"throwIfNotInitialized",
+			"$container",
+			"host"
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"sheets":
+			[
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 23.0
+	},
+	"input":
+	{
+		"height": 31.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"pinned_build_system": "",
+	"project": "pi-framework.sublime-project",
+	"replace":
+	{
+		"height": 42.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_symbol":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"selected_group": 0,
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 291.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}

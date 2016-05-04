@@ -9,7 +9,7 @@ class PiUmlPlugin implements IPlugin {
 	
 	public function register(IPiHost $host)	
 	{
-		$host->registerService(new UmlGeneratorService());
+		$host->registerService(UmlGeneratorService::class);
 	}
 
 }

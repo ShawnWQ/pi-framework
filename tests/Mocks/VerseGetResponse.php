@@ -2,8 +2,12 @@
 
 namespace Mocks;
 
-class VerseGetResponse
-  implements \JsonSerializable{
+use Pi\Response;
+
+
+
+
+class VerseGetResponse extends Response {
 
   public function jsonSerialize()
   {

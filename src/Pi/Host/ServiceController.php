@@ -2,50 +2,53 @@
 
 namespace Pi\Host;
 
-use Pi\Extensions;
-use Pi\FileSystem\FileGet;
-use Pi\NotImplementedException;
-use Pi\Interfaces\IRoutesManager;
-use Pi\Interfaces\IRequest;
-use Pi\Interfaces\IService;
-use Pi\Interfaces\IMessage;
-use Pi\Interfaces\ILog;
-use Pi\Interfaces\IPiHost;
-use Pi\Host\RoutesManager;
-use Pi\Host\BasicRequest;
-use Pi\Route;
-use Pi\Service;
-use Pi\Interfaces\IServiceBase;
-use Pi\Host\ServiceMeta;
-use Pi\Interfaces\IHasFactory;
-use Pi\Logging\LogManager;
-use Pi\Interfaces\IRequiresRequest;
-use Pi\Interfaces\IMessageFactory;
-use Pi\Interfaces\IReturn;
-use Pi\Interfaces\IEventSubscriber;
-use Pi\ServiceModel\NotFoundRequest;
-use Pi\ServiceInterface\NotFoundService;
-use Pi\Host\Handlers\RestHandler;
-use Pi\Host\Handlers\HandlerAttribute;
-use Pi\Host\Handlers\NotFoundHandler;
-use Pi\Host\Handlers\AbstractPiHandler;
-use Pi\Host\Handlers\FileSystemHandler;
-use SuperClosure\Serializer;
-use SuperClosure\Analyzer\AstAnalyzer;
-use SuperClosure\Exception\ClosureAnalysisException;
+use Pi\Extensions,
+    Pi\EventManager,
+    Pi\FileSystem\FileGet,
+    Pi\NotImplementedException,
+    Pi\Interfaces\IRoutesManager,
+    Pi\Interfaces\IRequest,
+    Pi\Interfaces\IService,
+    Pi\Interfaces\IMessage,
+    Pi\Interfaces\ILog,
+    Pi\Interfaces\IPiHost,
+    Pi\Host\RoutesManager,
+    Pi\Host\BasicRequest,
+    Pi\Route,
+    Pi\Service,
+    Pi\Interfaces\IServiceBase,
+    Pi\Host\ServiceMeta,
+    Pi\Interfaces\IHasFactory,
+    Pi\Logging\LogManager,
+    Pi\Interfaces\IRequiresRequest,
+    Pi\Interfaces\IMessageFactory,
+    Pi\Interfaces\IReturn,
+    Pi\Interfaces\IEventSubscriber,
+    Pi\ServiceModel\NotFoundRequest,
+    Pi\ServiceInterface\NotFoundService,
+    Pi\Host\Handlers\RestHandler,
+    Pi\Host\Handlers\HandlerAttribute,
+    Pi\Host\Handlers\NotFoundHandler,
+    Pi\Host\Handlers\AbstractPiHandler,
+    Pi\Host\Handlers\FileSystemHandler,
+    SuperClosure\Serializer,
+    SuperClosure\Analyzer\AstAnalyzer,
+    SuperClosure\Exception\ClosureAnalysisException;
+
+
+
 
 /**
  * The Service Controler is responsible for executing services
  * Services are registered in IOC container
  */
+class ServiceController {
 
-class ServiceController
-{
+  const CACHE_SERVICECONTROLLER_KEY = 'servicecontroller';
 
+  const CACHE_SERVICECONTROLLER_SERVICES = 'services';
 
-  protected $reflRequests = Map{};
-
-  protected $reflServices = Map{};
+  const CACHE_SERVICECONTROLLER_ROUTES = 'routes';
 
     /**
    * @var Map
@@ -72,30 +75,18 @@ class ServiceController
 
   protected $servicesR;
 
-  /**
-   *<RequestType, HandlerFn>
-   */
-  protected $serviceMapper;
-
-  protected $servicesMeta = Map{};
-
-  /**
-   * methods names, temp solution
-   * @var [type]
-   */
-  protected $requests = Set{};
-
-  protected $operations = Map{};
+  protected $cacheProvider;
 
   public function __construct(&$appHost)
   {
       $this->appHost = $appHost;
-      $this->services = Map{};
+      $this->cacheProvider = $appHost->cacheProvider();
   }
 
   public function reset()
   {
-    
+     $this->servicesR = array();
+     $this->services = Map{};
   }  
 
   /**
@@ -104,8 +95,7 @@ class ServiceController
    */
   public function init()
   {
-
-    $eventManager = $this->appHost->container()->get('EventManager');
+    $eventManager = $this->appHost->container()->get(EventManager::class);
       $this->hydratorFactory = new OperationHydratorFactory(
         $this->appHost->config(),
         $this->appHost->metadata(),
@@ -113,7 +103,7 @@ class ServiceController
         $this
     );
 
-    $this->messageFactory = $this->appHost->resolve('IMessageFactory');
+    $this->messageFactory = $this->appHost->resolve(IMessageFactory::class);
     if(is_null($this->messageFactory)){
       throw new \Exception('A Message Factory should be registered before ServiceController init is called');
     }
@@ -133,63 +123,39 @@ class ServiceController
       );
     }
     $this->loadFromCache();
-    $this->registerService(new NotFoundService());
-    $this->doRegisterServices();
-
-    if(!$this->cacheNotPersisted)
-    {
-      /*$h = $this->appHost;
-      $r = $this->appHost->routes()->routes();
-      $e = $this->servicesExecutors;
-      $s = $this->servicesR;
-      $m = $this->servicesMeta;
-      $serialized = array(
-        'r' => $r,
-        'm' => $m,
-          'e' => $e,
-          's' => $s
-      );
-
-    $sr = serialize($serialized);
-      $provider->set('AppHost::Routes', $sr);
-*/    }
-
-    $this->appHost->log()->debug('Loading ServiceController routes from cache provider');
-
+    $this->registerService(NotFoundService::class);
     return $this;
   }
 
   public function build()
   {
-     $this->doRegisterServices();
+     //$this->doRegisterServices();
+     $this->registerCache($this->appHost->restPaths, $this->servicesR);
+  }
+  
+  public function registerCache($routes, $services)
+  {
+    $obj = array(
+      self::CACHE_SERVICECONTROLLER_ROUTES => $routes,
+      self::CACHE_SERVICECONTROLLER_SERVICES => $services
+    );
+    $this->cacheProvider->set(self::CACHE_SERVICECONTROLLER_KEY, $obj);
   }
 
-  public function registerCache(array $routes, array $services)
+
+  protected function loadFromCache()
   {
 
-  }
+      $obj = $this->cacheProvider->get(self::CACHE_SERVICECONTROLLER_KEY);
 
-  public function loadCache(array $data)
-  {
+      if($obj == null) {
+        $this->log->debug('Cache not loaded.');
+        return;
+      }
 
-  }
-
-  protected $cacheNotPersisted = false;
-
-  private function loadFromCache()
-  {
-
-    $data = $this->appHost->cacheProvider()->get('AppHost::Routes');
-
-    /*if(!is_null($data)){
-      $arr = unserialize($data);
-        //$this->appHost->routes()->setRoutes($arr['r']);
-        $this->servicesExecutors = $arr['e'];
-        $this->servicesR = $arr['s'];
-        $this->servicesMeta = $arr['m'];
-      //$this->cacheNotPersisted = true;
-
-    }*/
+      $this->servicesR = $obj[self::CACHE_SERVICECONTROLLER_SERVICES];
+      $this->appHost->routes()->setRoutes($obj[self::CACHE_SERVICECONTROLLER_ROUTES]);
+      $this->appHost->metadata()->afterInit();
   }
 
   public function servicesMap()
@@ -226,8 +192,11 @@ class ServiceController
   /**
    * Register a Service
    */
-  public function registerService(IService $instance)
+  public function registerService(string $className)
   {
+    $this->appHost->container->registerAutoWired($className);
+    $this->servicesR[] = $className;
+    /*
     if(!$instance instanceof Service) {
       return false;
     }
@@ -239,19 +208,25 @@ class ServiceController
     if($instance instanceof IEventSubscriber) {
       $this->appHost->eventManager()->add($instance->getEventsSubscribed(), $instance);
     }
+*/
+  }
 
+  public function registerServiceInstance(mixed $instance)
+  {
+    $this->appHost->container->registerInstance($instance);
   }
 
   private function doRegisterServices()
   {
 
-    foreach($this->servicesR as $serviceType => $instance){
-
+    foreach($this->servicesR as $serviceType) {
+      $instance = $this->appHost->container->get($serviceType);
+      $instance->setAppHost($this->appHost);
       if(!$instance instanceof IService) {
-        continue;
+        throw new \Exception("Invalid service registered $serviceType");
       }
 
-      $factory = $instance->createInstance();
+      //$factory = $instance->createInstance();
       $rc = new \ReflectionClass($serviceType);
       $this->reflServices[$serviceType] = $rc;
 
@@ -273,7 +248,7 @@ class ServiceController
 
         if(array_key_exists('Request', $attrs) || array_key_exists('Subscriber', $attrs)) {
           $this->mapRestFromMethod($serviceType, $requestType, $instance, $rc, $method);
-          $this->registerServiceInstance($requestType, $serviceType, $name, $instance);
+          $this->registerServiceInstanceFuck($requestType, $serviceType, $name, $instance);
         }
         if(array_key_exists('Subscriber', $attrs) && is_array($attrs['Subscriber']) && isset($attrs['Subscriber'][0])) {
           $this->appHost->registerSubscriber($attrs['Subscriber'][0], $requestType);
@@ -288,7 +263,7 @@ class ServiceController
     }
   }
 
-  protected function registerServiceInstance($requestType, $serviceType, $name, $instance)
+  protected function registerServiceInstanceFuck($requestType, $serviceType, $name, $instance)
   {
     $this->addRequestToMap($requestType, $serviceType, $name);
     $this->registerServiceMeta($serviceType, $requestType, $name);
@@ -380,13 +355,10 @@ class ServiceController
     $reflService = $this->reflServices[$serviceType];
 
     $this->servicesExecutors[$requestType] = Extensions::protectFn(function(IRequest $context) use($factory, $reflService, $method) {
-      $service = $factory->createInstance();
-      $service->setRequest($context);
-      
-      $service->setResolver(HostProvider::instance()->container());
-      
-      HostProvider::instance()->container()->autoWireService($service);
-      return call_user_func(array($service, $method), $context->dto());
+      $factory->setRequest($context);      
+      //$factory->setResolver(HostProvider::instance()->container());
+      HostProvider::instance()->container()->autoWire($factory);
+      return call_user_func(array($factory, $method), $context->dto());
     });
   }
   
@@ -414,7 +386,7 @@ class ServiceController
     $service = $this->appHost->container->get($serviceName);
     $service->setRequest($req);
     $service->setResolver(HostProvider::instance()->container());
-    HostProvider::instance()->container()->autoWireService($service);
+    //HostProvider::instance()->container()->autoWireService($service);
     return $service;
   }
 
@@ -443,6 +415,16 @@ class ServiceController
 
 	}
 
+  protected function registerExecutor(string $requestType)
+  {
+
+  }
+
+  protected function registerServices()
+  {
+
+  }
+
   /**
    *
    * @throws Pi\Validation\ValidationException
@@ -453,7 +435,7 @@ class ServiceController
     $requestType = get_class($requestDto);
 
     if(!isset($this->servicesExecutors[$requestType])) {
-      throw new \Exception('The request ' . get_class($requestDto) . ' isnt\'t mapped properly to any service.');
+      $this->registerExecutor($requestType);
     }
     $instance = $this->servicesExecutors[$requestType];
 

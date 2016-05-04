@@ -86,20 +86,25 @@ use Pi\Interfaces\IPlugin,
     Pi\Queue\RedisPiQueue;
 
 
-class PiPlugins  implements IPlugin {
 
-    public function register(IPiHost $appHost) : void {
+
+class PiPlugins implements IPlugin {
+
+    public function register(IPiHost $appHost) : void 
+    {
         $container = $appHost->container();
         $config = $appHost->config();
 
-
+        /*
         $container->register('Pi\ServiceInterface\AbstractMailProvider', function(IContainer $ioc) use($config) {
             $provider = new SmtpMailProvider($config, $ioc->get('ICacheProvider'));
-            //if(!$provider->isCached()) {
+            //if(!$provider->isCached::class) {
                 $provider->loadFromCache();
             //}
             return $provider;
         });
+        */
+        $container->registerAutoWired('Pi\ServiceInterface\AbstractMailProvider');
 
         $container->register('Pi\ServiceInterface\WordpressCrawler', function(IContainer $ioc) {
             $factory = $ioc->get('Pi\Interfaces\ILogFactory');
@@ -114,51 +119,55 @@ class PiPlugins  implements IPlugin {
             $svc = new SocialStaticsService($logger);
             return $svc;
         });
-        $appHost->registerService(new PlaceService());
-        $appHost->registerService(new MetadataService());
-        $appHost->registerService(new FindUserService());
-        $appHost->registerService(new UserService());
-        $appHost->registerService(new ApplicationService());
-        $appHost->registerService(new UserInboxService());
-        $appHost->registerService(new CarrersService());
-        $appHost->registerService(new AlbumService());
-        $appHost->registerService(new RunPlanService());
-        $appHost->registerService(new CommentService());
-        $appHost->registerService(new ArticleService());
-        $appHost->registerService(new ProductService());
-        $appHost->registerService(new QAService());
-        $appHost->registerService(new LikesService());
 
+        $container->registerAutoWired('Pi\ServiceInterface\UserFriendBusiness');
+        $container->registerAutoWired('Pi\ServiceInterface\LikesProvider');
+        $container->registerAutoWired('Pi\ServiceInterface\UserFollowBusiness');
+        $container->registerAutoWired('Pi\ServiceInterface\UserFeedBusiness');
+        $container->registerAutoWired('Pi\ServiceInterface\OfferCreateBusiness');
 
-        $redis = $container->get('IRedisClientsManager');
+        $appHost->registerService(PlaceService::class);
+        $appHost->registerService(MetadataService::class);
+        $appHost->registerService(FindUserService::class);
+        $appHost->registerService(UserService::class);
+        $appHost->registerService(ApplicationService::class);
+        $appHost->registerService(UserInboxService::class);
+        $appHost->registerService(CarrersService::class);
+        $appHost->registerService(AlbumService::class);
+        $appHost->registerService(RunPlanService::class);
+        $appHost->registerService(CommentService::class);
+        $appHost->registerService(ArticleService::class);
+        $appHost->registerService(ProductService::class);
+        $appHost->registerService(QAService::class);
+        $appHost->registerService(LikesService::class);
 
-        $container->registerRepository(new Newsletter(), new NewsletterRepository());
-        $container->registerRepository(new NewsletterRepository(), new NewsletterSubscriptionRepository($redis));
-        $container->registerRepository(new Answer(), new AnswerRepository());
-        $container->registerRepository(new AppMessage(), new AppMessageRepository());
-        $container->registerRepository(new Question(), new QuestionRepository());
-        $container->registerRepository(new QuestionCategory(), new QuestionCategoryRepository());
-        $container->registerRepository(new Offer(), new OfferRepository());
-        $container->registerRepository(new Article(), new ArticleRepository());
-        $container->registerRepository(new ArticleSerie(), new ArticleSerieRepository());
-        $container->registerRepository(new ArticleCategory(), new ArticleCategoryRepository());
-        $container->registerRepository(new Place(), new PlaceRepository());
-        $container->registerRepository(new CommentBucket(), new CommentRepository());
-        $container->registerRepository(new RunPlan(), new RunPlanRepository());
-        $container->registerRepository(new AlbumImage(), new AlbumImageRepository());
-        $container->registerRepository(new Product(), new ProductRepository());
-        $container->registerRepository(new Album(), new AlbumRepository());
-        $container->registerRepository(new JobCarrer(), new JobCarrerRepository());
-        $container->registerRepository(new Application(), new ApplicationRepository());
-
-        $container->registerRepository(new LikesBucket(), new LikesRepository($redis));
-        $container->registerRepository(new AppFeed(), new AppFeedRepository($redis));
-        $container->registerRepository('Pi\ServiceModel\Types\UserFeedItem', new UserFeedItemRepository($redis));
-        $container->registerRepository('Pi\ServiceModel\Types\FeedAction', new FeedActionRepository($redis));
-        $container->registerRepository(new UserFollowBucket(), new UserFollowRepository($redis));
-        $container->registerRepository(new UserFollowersBucket(), new UserFollowersRepository($redis));
-        $container->registerRepository(new UserFriendBucket(), new UserFriendRepository($redis));
-        $container->registerRepository(new UserFriendRequestBucket(), new UserFriendRequestRepository($redis));
-        $container->registerRepository(new MessageBucket(), new UserInboxRepository($redis));
+        $container->registerRepository(UserEntity::class, UserRepository::class);
+        $container->registerRepository(Newsletter::class, NewsletterRepository::class);
+        $container->registerRepository(NewsletterRepository::class, NewsletterSubscriptionRepository::class);
+        $container->registerRepository(Answer::class, AnswerRepository::class);
+        $container->registerRepository(AppMessage::class, AppMessageRepository::class);
+        $container->registerRepository(Question::class, QuestionRepository::class);
+        $container->registerRepository(QuestionCategory::class, QuestionCategoryRepository::class);
+        $container->registerRepository(Offer::class, OfferRepository::class);
+        $container->registerRepository(Article::class, ArticleRepository::class);
+        $container->registerRepository(ArticleSerie::class, ArticleSerieRepository::class);
+        $container->registerRepository(ArticleCategory::class, ArticleCategoryRepository::class);
+        $container->registerRepository(Place::class, PlaceRepository::class);
+        $container->registerRepository(CommentBucket::class, CommentRepository::class);
+        $container->registerRepository(RunPlan::class, RunPlanRepository::class);
+        $container->registerRepository(AlbumImage::class, AlbumImageRepository::class);
+        $container->registerRepository(Product::class, ProductRepository::class);
+        $container->registerRepository(Album::class, AlbumRepository::class);
+        $container->registerRepository(JobCarrer::class, JobCarrerRepository::class);
+        $container->registerRepository(Application::class, ApplicationRepository::class);
+        $container->registerRepository(LikesBucket::class, LikesRepository::class);
+        $container->registerRepository(AppFeed::class, AppFeedRepository::class);
+        $container->registerRepository(UserFeedItem::class, UserFeedItemRepository::class);
+        $container->registerRepository(FeedAction::class, FeedActionRepository::class);
+        $container->registerRepository(UserFollowBucket::class, UserFollowRepository::class);
+        $container->registerRepository(UserFollowersBucket::class, UserFollowersRepository::class);
+        $container->registerRepository(UserFriendBucket::class, UserFriendRepository::class);
+        $container->registerRepository(UserFriendRequestBucket::class, UserFriendRequestRepository::class);
+        $container->registerRepository(MessageBucket::class, UserInboxRepository::class);
     }
   }

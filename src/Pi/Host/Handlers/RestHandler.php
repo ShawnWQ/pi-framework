@@ -165,7 +165,7 @@ class RestHandler extends AbstractPiHandler {
 		return self::executeService($request, $httpReq);
 	}
 
-	public function processRequestAsync(IRequest $httpReq, IResponse $httpRes, string $operationName)
+	public async function processRequestAsync(IRequest $httpReq, IResponse $httpRes, string $operationName) : Awaitable<mixed>
 	{
 		return $this->processRequest($httpReq, $httpRes, $operationName);
 	}

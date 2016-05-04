@@ -34,6 +34,7 @@ class ServiceControllerTest extends \PHPUnit_Framework_TestCase {
     $c = $host->serviceController();
     $c::injectRequestContext($service, $context);
     $this->assertEquals($service->request(), $context);
+    $host->dispose();
   }
 
   public function testServiceControllerasd()
@@ -46,7 +47,7 @@ class ServiceControllerTest extends \PHPUnit_Framework_TestCase {
 
     $routes = json_decode($host->cacheProvider()->get('ServiceController'));
     $this->assertTrue(is_array($routes));
-
+    $host->dispose();
   }
 
   public function testServicesAreRegisteredBeforeBuild()
@@ -62,7 +63,7 @@ class ServiceControllerTest extends \PHPUnit_Framework_TestCase {
     $this->assertTrue(is_array($map));
     //$this->assertTrue(count($map) == 1);
     $this->assertArrayHasKey('Mocks\BibleTestService', $map);
-
+    $host->dispose();
   }
 
   public function testServicesExecutorFnAreRegisteredOnInit()
@@ -94,6 +95,7 @@ class ServiceControllerTest extends \PHPUnit_Framework_TestCase {
 
 
     $this->assertTrue($called);
+    $host->dispose();
   }
 
   public function testCanExecuteRequest()
@@ -107,6 +109,7 @@ class ServiceControllerTest extends \PHPUnit_Framework_TestCase {
     $response = $host->serviceController()->execute($req, $context);
     $this->assertNotNull($response);
     $this->assertInstanceOf('\Mocks\VerseCreateResponse', $response);
+    $host->dispose();
   }
 
   public function testCanGetOperationMetadata()
@@ -117,6 +120,7 @@ class ServiceControllerTest extends \PHPUnit_Framework_TestCase {
     $meta = $host->serviceController()->getClassMetadata(get_class($op));
     $this->assertTrue(array_key_exists('book', $meta->mappings()));
     $this->assertEquals($meta->mappings()['book']->getFieldName(), 'book');
+    $host->dispose();
   }
 
   private function createAppHost()

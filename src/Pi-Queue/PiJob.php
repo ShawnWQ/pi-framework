@@ -41,17 +41,16 @@ class PiJob {
 		
 	}
 
-	public function perform()
+	public function perform() : Awaitable<void>
 	{
 		try {
 			$svc = $this->getService();
-			die('call svc request');
+			//die('call svc request');
 		}
 		catch(PiJobDontPerformException $ex) {
 					// beforePerform/setUp have said don't perform this job. Return.
 			return false;
 		}
-		return true;
 	}
 
 	public function getService()

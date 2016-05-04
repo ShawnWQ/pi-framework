@@ -1,21 +1,26 @@
 <?hh
 
 namespace Pi\Redis;
-use Pi\Interfaces\IContainer;
-use Pi\Interfaces\IContainable;
-use Pi\Redis\Interfaces\IRedisFactory;
-use Pi\Redis\Interfaces\IRedisClient,
-    Pi\Interfaces\HydratorFactoryInterface;
 
-class RedisFactory implements IContainable, IRedisFactory{
+use Pi\Host\HostProvider,
+    Pi\Interfaces\IContainer,
+    Pi\Interfaces\IContainable,
+    Pi\Redis\Interfaces\IRedisFactory,
+    Pi\Redis\Interfaces\IRedisClient,
+    Pi\Interfaces\HydratorFactoryInterface,
+    Pi\Interfaces\ISerializerService;
+
+
+
+
+class RedisFactory implements IRedisFactory{
 
     public  function __construct(
-        protected HydratorFactoryInterface $hydratorFactory)
+        protected HydratorFactoryInterface $hydratorFactory,
+        protected ISerializerService $serializer)
     {
 
     }
-
-    public function ioc(IContainer $ioc){}
 
     public function createClient(?RedisConfiguration $config = null) : IRedisClient
     {
@@ -24,7 +29,8 @@ class RedisFactory implements IContainable, IRedisFactory{
 
     protected function createDefaultClient()
     {
-      return new RedisClient($this->hydratorFactory);
+        $factory = HostProvider::tryResolve(HydratorFactoryInterface::class);
+        return new RedisClient($this->serializer, $this->hydratorFactory);
     }
 
 }

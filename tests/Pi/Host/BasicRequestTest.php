@@ -13,27 +13,32 @@ use Pi\Host\BasicRequest,
 
 class BasicRequestTest extends \PHPUnit_Framework_TestCase {
 
+	protected BibleHost $host;
+
 	public function setUp()
 	{
-		$_REQUEST['REQUEST_URI'] = '/test';
+		$this->host = new BibleHost();
+		$this->host->init();
+	}
+
+	public function tearDown()
+	{
+		$this->host->dispose();
 	}
 
 	public function testHeadersAreSet()
 	{
 		$host = new BibleHost();
-		$host->init();
-		$httpReq = $host->container()->get('IRequest');
+		$httpReq = new BasicRequest();
 
 		$this->assertTrue($httpReq instanceof IRequest);
-
-		$this->assertTrue($httpReq->headers()['REQUEST_URI'] === '/test');
+		$this->assertTrue($httpReq->headers()['REQUEST_URI'] === '/testi');
 	}
 
 	public function testSessionIsCreated()
 	{
-		$host = new BibleHost();
-		$host->init();
-		$httpReq = $host->container()->get('IRequest');
+		$httpReq = new BasicRequest();
+
 		$session = $httpReq->getSession();
 		$this->assertTrue($session instanceof IAuthSession);
 	}

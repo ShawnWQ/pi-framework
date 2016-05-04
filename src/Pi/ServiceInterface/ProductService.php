@@ -65,7 +65,7 @@ class ProductService extends Service {
 	public function postProductOffer(PostOfferRequest $request)
 	{
 		if(!$this->productRepo->exists($request->getProductId())) {
-			return HttpResult::notFound(self::productNotFoundError, _(self::productNotFoundError));
+			return HttpResult::notFound(self::productNotFoundError, gettext(self::productNotFoundError));
 		}
 
 		$entity = new Offer();
@@ -85,7 +85,7 @@ class ProductService extends Service {
 		$dto = $this->productRepo->getAs($request->getId(), 'Pi\ServiceModel\ProductDto');
 
 		if(is_null($dto)) {
-			return HttpResult::notFound(self::productNotFoundError, _(self::productNotFoundError));
+			return HttpResult::notFound(self::productNotFoundError, gettext(self::productNotFoundError));
 		}
 
 		$response->setProduct($dto);

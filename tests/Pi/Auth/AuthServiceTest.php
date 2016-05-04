@@ -29,7 +29,7 @@ class AuthServiceTest extends \PHPUnit_Framework_TestCase {
 
   public function testServiceIsRegistered()
   {
-    $service = $this->host->container->tryGet(get_class(new AuthService()));
+    $service = $this->host->container->get(get_class(new AuthService()));
     $this->assertTrue($service instanceof AuthService);
   }
 
@@ -62,7 +62,7 @@ class AuthServiceTest extends \PHPUnit_Framework_TestCase {
 
   public function testSessionFactoryIsRegistered()
   {
-    $service = $this->host->container->getService(new AuthService());
+    $service = $this->host->container->get(new AuthService());
     $this->assertTrue($service::getCurrentSessionFactory() instanceof SessionFactory);
   }
 
@@ -96,7 +96,7 @@ class AuthServiceTest extends \PHPUnit_Framework_TestCase {
     $request->email('email@guilhermecardoso.pt' . RandomString::generate(4));
     $request->password('123_123123');
 
-    $service = $this->host->container->getService(new RegisterService());
+    $service = $this->host->container->get(new RegisterService());
     $response = $service->register($request);
     return $request;
   }

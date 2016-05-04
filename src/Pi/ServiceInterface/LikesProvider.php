@@ -11,7 +11,7 @@ class LikesProvider implements IContainable {
     public LikesRepository $likesRepo;
 
 
-    public function __construct(protected string $name)
+    public function __construct()
     {
 
     }

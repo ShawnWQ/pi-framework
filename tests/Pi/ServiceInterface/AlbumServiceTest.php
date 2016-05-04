@@ -32,6 +32,11 @@ class AlbumServiceTest extends \PHPUnit_Framework_TestCase {
 		$this->imageRepo = $container->get('Pi\ServiceInterface\Data\AlbumImageRepository');
 	}
 
+	public function tearDown()
+	{
+		OdmContainer::dispose();
+	}
+
 	public function testCanGetAlbuns()
 	{
 		$this->createAlbum();

@@ -13,7 +13,7 @@ use Pi\Extensions,
 /**
  * Operation Metadata class
  */
-class Operation extends AbstractMetadata{
+class Operation extends AbstractMetadata {
 
   protected $multiTenantEnabled = false;
   
@@ -99,5 +99,17 @@ class Operation extends AbstractMetadata{
   public function getMultiTenantMode()
   {
     return $this->multiTenantEnabled;
+  }
+
+  public function mapFieldArray(array $mapping) : void
+  {
+    $name = $mapping['name'];
+    if($this->reflClass->hasProperty($name)) {
+      $reflProp = $this->reflClass->getProperty($name);
+      $reflProp->setAccessible(true);
+      $this->reflFields[$name] = $reflProp;
+    }
+
+    $this->fieldMappings[$name] = $mapping;
   }
 }

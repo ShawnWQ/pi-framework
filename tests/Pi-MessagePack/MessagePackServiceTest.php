@@ -21,8 +21,7 @@ class MessagePackServiceTest extends \PHPUnit_Framework_TestCase {
 
   public function setUp()
   {
-    $this->container = OdmContainer::get();
-    $this->service = $this->container->get('IServiceSerializer');
+    $this->service = new MessagePackService();
   }
 
   public function testServiceCanSerializeArray()
@@ -30,7 +29,16 @@ class MessagePackServiceTest extends \PHPUnit_Framework_TestCase {
     $a = array(1, 2, 3);
     $res = $this->service->serialize($a);
 
-    $des = $this->service->deserialize($res);
+    $des = $this->service->unserialize($res);
     $this->assertTrue(is_array($des));
+  }
+
+  public function testCanSerializeClass()
+  {
+    $dto = new RandomClass();
+    $res = $this->service->serialize($dto);
+    $des = $this->service->unserialize($res);
+    $this->assertTrue($res instanceof RandomClass);
+    die(print_r($res));
   }
 }

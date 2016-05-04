@@ -9,7 +9,7 @@ class CHost extends BibleHost {
 	public function configure(IContainer $container) : void
 	{
 		parent::configure($container);
-		$this->registerValidator(new VerseCreateRequest(), new VerseCreateValidator());
+		//$this->registerValidator(new VerseCreateRequest(), new VerseCreateValidator());
 	}
 }
 class ValidationPluginTest extends \PHPUnit_Framework_TestCase {

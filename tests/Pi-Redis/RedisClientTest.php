@@ -8,18 +8,18 @@ use Pi\Redis\RedisClient,
     Mocks\MockHydratorFactory,
     Mocks\MockMetadataFactory,
     Mocks\MockMappingDriver,
+    Mocks\MockContainer,
     Pi\PhpUnitUtils,
     Pi\Cache\InMemoryCacheProvider,
     Pi\Redis\RedisHydratorFactory,
     Pi\Odm\UnitWork,
-    Pi\PiContainer,
     Pi\Interfaces\IContainer,
     Pi\Interfaces\IEntityMetaDataFactory,
     Pi\Common\ClassUtils,
     Pi\EventManager,
     Pi\MongoConnection,
     Pi\Odm\Mapping\Driver\AttributeDriver,
-    Pi\Odm\EntityMetaDataFactory;;
+    Pi\Odm\EntityMetaDataFactory;
 
 class RedisClientTest extends \PHPUnit_Framework_TestCase {
 
@@ -27,23 +27,17 @@ class RedisClientTest extends \PHPUnit_Framework_TestCase {
 
   protected EventManager $em;
 
-  protected InMemoryCacheProvider $cache;
-
   protected MockMetadataFactory $metadataFactory;
 
   protected MockHydratorFactory $hydratorFactory;
 
 	public function setUp()
 	{
-    $this->em = new EventManager();
-    $this->cache = new InMemoryCacheProvider();
-    $this->metadataFactory = new MockMetadataFactory($this->em, new MockMappingDriver(array(), $this->em, $this->cache));
-    $this->hydratorFactory = new MockHydratorFactory(
-      $this->metadataFactory,
-      'Mocks\\Hydrators',
-       sys_get_temp_dir()
-    );
-		$this->client = new RedisClient($this->hydratorFactory);
+    MockContainer::init();
+    $this->em = MockContainer::$eventManager;
+    $this->metadataFactory = MockContainer::$metadataFactory;
+    $this->hydratorFactory = MockContainer::$hydratorFactory;
+		$this->client = new RedisClient(MockContainer::$serializer, $this->hydratorFactory);
     $this->client->connect();
 	}
 
@@ -80,6 +74,17 @@ class RedisClientTest extends \PHPUnit_Framework_TestCase {
   	$key = RandomString::generate();
   	$this->client->set($key, 'abc');
   	$this->assertEquals('abc', $this->client->get($key));
+  }
+
+  public function testCanCountList()
+  {
+    $key = RandomString::generate();
+    $count = $this->client->llen($key);
+    $this->assertEquals($count, 0);
+    $this->client->rpush($key, 'now');
+    $this->client->rpush($key, 'before');
+    $count = $this->client->llen($key);
+    $this->assertEquals($count, 2);
   }
 
   public function testPushListAndGetRange()

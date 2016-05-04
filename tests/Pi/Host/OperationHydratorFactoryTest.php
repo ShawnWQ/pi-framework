@@ -5,7 +5,6 @@ use Mocks\MockOdmConfiguration;
 use Mocks\OdmContainer;
 use Mocks\MockEntity;
 use Pi\Odm\UnitWork;
-use Pi\PiContainer;
 use Pi\Interfaces\IContainer;
 use Pi\EventManager;
 use Pi\Host\HostEvents;
@@ -19,6 +18,19 @@ use Mocks\MockHostProvider;
 use Mocks\VerseCreateRequest;
 
 class OperationHydratorFactoryTest extends \PHPUnit_Framework_TestCase {
+
+	protected $host;
+
+	public function setUp()
+	{
+		$this->host = new \Mocks\BibleHost();
+	    $this->host->init();
+	}
+
+	public function tearDown()
+	{
+		$this->host->dispose();
+	}
 
 	public function testCanGetHydratorForClassAndHydrate()
 	{
@@ -53,17 +65,15 @@ class OperationHydratorFactoryTest extends \PHPUnit_Framework_TestCase {
 
 	protected function createFactory()
 	{
-		$host = new \Mocks\BibleHost();
-	    $host->init();
 	    $em = MockHostProvider::instance()->container()->get('EventManager');
-	    $driver = OperationDriver::create(array('../'), $host->container->get('EventManager'), $host->cacheProvider());
+	    $driver = OperationDriver::create(array('../'), $this->host->container->get('EventManager'), $this->host->cacheProvider());
 	    $factory = new OperationMetaFactory($em, $driver);
 	    
 	    return new OperationHydratorFactory(
-	    	$host->config(),
+	    	$this->host->config(),
 		 	$factory,
-		 	$host->container()->get('EventManager'),
-		 	$host->ServiceController()
+		 	$this->host->container()->get('EventManager'),
+		 	$this->host->ServiceController()
 		);
 	}
 }

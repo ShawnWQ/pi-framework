@@ -30,7 +30,7 @@ class AuthenticateFilter extends RequestFilter {
     if($operation === null) { 
       throw new \InvalidArgumentException('Service isnt registered in ServiceMetadata' . get_class($requestDto));}
 
-    $reflMethod = $this->appHost->serviceController()->getReflRequest($requestType);
+    //$reflMethod = $this->appHost->serviceController()->getReflRequest($requestType);
     
     //if($reflMethod->getAttribute('Auth') == null)
     //  return;
@@ -56,13 +56,19 @@ class AuthenticateFilter extends RequestFilter {
 //      throw AuthExtensions::throwUnauthorizedRequest();
       $name = isset($_SERVER['HTTP_AUTHORIZATION']) ? $_SERVER['HTTP_AUTHORIZATION'] : 'John Doe';
       $user = array('id' => null, 'name' => $name, 'roles' => array());
+      $user = null;
     }
     if(is_null($user)) {
       return;
     }
 
-    $account = new AuthUserAccount(new \MongoId($user['id']), $user['name'], $user['roles']);
-    $req->setUserAccount($account);
+    try {
+      $account = new AuthUserAccount(new \MongoId($user['id']), $user['name'], $user['roles']);
+      $req->setUserAccount($account);
+    }
+    catch(\Exception $ex) {
+      
+    }
   }
 
   protected function assertToken($token)

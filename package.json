@@ -1,7 +1,7 @@
 {
   "name": "pi-framework",
   "version": "0.0.1",
-  "description": "A PHP-Hacklang framework for micro services development inspired by ServiceStack. The main goal is to provide a simple framework for micro services development.",
+  "description": "A PHP-Hacklang framework for micro services development.",
   "main": "index.js",
   "directories": {
     "test": "tests"
@@ -11,12 +11,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/guilhermegeek/pi-services"
+    "url": "https://github.com/guilhermegeek/pi-framework"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/guilhermegeek/pi-services/issues"
+    "url": "https://github.com/guilhermegeek/pi-framework/issues"
   },
-  "homepage": "https://github.com/guilhermegeek/pi-services"
+  "homepage": "https://github.com/guilhermegeek/pi-framework"
 }

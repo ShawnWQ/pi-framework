@@ -1,4 +1,4 @@
-<?
+<?hh
 
 namespace Pi;
 
@@ -71,6 +71,15 @@ class Route implements \JsonSerializable{
   public function setPattern($pattern)
   {
       $this->pattern = $pattern;
+  }
+
+  /**
+   * The Route pattern
+   * @return string|null The Route pattern
+   */
+  public function pattern() : ?string
+  {
+    return $this->pattern;
   }
 
   public function serviceType()

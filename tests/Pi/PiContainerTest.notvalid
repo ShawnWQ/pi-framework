@@ -1,0 +1,97 @@
+<?notvalid
+
+use Pi\PiContainer;
+use Pi\ContainerFactory;
+use Mocks\DumbDependency;
+use Mocks\DumbRequest;
+use Pi\Host\BasicRequest;
+use Mocks\VerseService;
+use Mocks\ObjectWired;
+use Pi\Interfaces\IContainer;
+use Mocks\BibleHost;
+
+class D1 {
+
+  public $a = 'b';
+}
+class NonContainable {
+
+  <<Inject('D1')>>
+  public function set(D1 $dependency)
+  {
+    $this->dependency = $dependency;
+  }
+
+  public $dependency;
+}
+class PiContainerTest extends \PHPUnit_Framework_TestCase {
+
+  private $container;
+
+  protected $factory;
+
+  public function __construct()
+  {
+    $this->factory = new ContainerFactory();
+  }
+
+  public function setUp()
+  {
+    $this->container = $this->factory->createContainer();
+  }
+
+  public function testFactoryCanCreateNewContainer()
+  {
+
+    $this->assertInstanceOf('\Pi\Interfaces\IContainer', $this->container);
+    $newContainer = $this->factory->createContainer();
+    $this->assertNotSame($this->container, $newContainer);
+  }
+
+  public function testCanRegisterAndResolveDependency()
+  {
+    $dep = new DumbDependency();
+    $this->container->register(get_class($dep), function(IContainer $container) {
+      $dumb = new DumbDependency();
+      return $dumb;
+    });
+
+    $resolved = $this->container->get(get_class($dep));
+    $this->assertTrue($resolved->msg() === 'constructed');
+  }
+
+  public function testCanAutoWireDependenciesByAttributeValue()
+  {
+    $object = new ObjectWired();
+    $this->container->register('DumbDependency', function(IContainer $container){
+      $d = new DumbDependency();
+      return $d;
+    });
+
+    $this->container->autoWire($object);
+    $this->assertTrue($object->dep() instanceof DumbDependency);
+  }
+
+  public function testCanAutoWireDependenciesByArgument()
+  {
+    $object = new NonContainable();
+    $this->container->registerNonContainable('D1', function(){
+      $d = new D1();
+      return $d;
+    });
+
+    $this->container->autoWire($object);
+    $this->assertTrue($object->dependency instanceof D1);
+  }
+
+
+  public function testInjectDependenciesFromConstructorForService()
+  {
+    $host = new BibleHost();
+    $host->registerService(new VerseService());
+    $host->init();
+    $req = new DumbRequest();
+    $request = new BasicRequest($req);
+    $response = $host->serviceController()->execute($req,$request);
+  }
+}

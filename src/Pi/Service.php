@@ -72,10 +72,12 @@ abstract class Service extends EventSubscriber  implements
 
 	protected $session;
 
+	public static $globalResolver;
+
 	public function __construct()
 	{
 		$this->serviceType = get_class($this);
-		$this->meta = new \Pi\Host\ServiceMeta($this->serviceType);
+		//$this->meta = new \Pi\Host\ServiceMeta($this->serviceType);
 	/*	$rc = new \ReflectionClass(get_class($this));
 
 		$methods = $rc->getMethods();
@@ -130,7 +132,7 @@ abstract class Service extends EventSubscriber  implements
 
 	public function meta()
 	{
-	 return $this->meta;
+		return HostProvider::metadata();
 	}
 
 

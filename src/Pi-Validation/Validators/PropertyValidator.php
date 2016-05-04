@@ -15,7 +15,7 @@ use Pi\Validation\ValidationFailure;
 abstract class PropertyValidator implements IValidationProperty{
 
     protected string $errorMessage = 'Invalid input.';
-    public static function use()
+    public static function instance()
     {
         return new static;
     }

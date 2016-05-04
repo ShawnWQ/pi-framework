@@ -94,7 +94,7 @@ class PiWorker {
 		return $pids;
 	}
 
-	public function workingOn(WorkerJob $job)
+	public function workingOn(PiJob $job)
 	{
 		$job->setWorker($this);
 		$this->currentJob = $job;
@@ -129,10 +129,14 @@ class PiWorker {
 		$this->registerWorker();
 	}
 
-	public function work($interval = PiQueue::DEFAULT_INTERVAL, $blocking = false)
+	public async function work($interval = PiQueue::DEFAULT_INTERVAL, $blocking = false) : Awaitable<void>
 	{
 		$this->startup();
+		$any = false;
+		$jobs = Set{};
+
 		while(true) {
+			$counter = $jobs->count();
 			if($this->shutdown) {
 				break;
 			}
@@ -142,20 +146,36 @@ class PiWorker {
 
 			if(!$this->paused) {
 				if($blocking === true) {
-					$this->logger->info('Starting blocking with interval of $interval');
+					$this->logger->debug('Starting blocking with interval of $interval');
 				}
 
 				$job = $this->reserve($blocking, $interval);
 			}
 
+			if($job) {
+				$jobs->add($job);
+				$any = true;
+				//$this->logger->info('starting work on $job');
+				//$this->workingOn($job);
+				//$this->perform($job);
+				continue;
+			} else if(!$job && ($any || $counter = 5)) {
+				$handles = $jobs->map($job ==>perform());
+				await \HH\Asio\v($handles);
+				$counter = $jobs->count();
+				$this->logger->debug("Executed $counter jobs");
+				$counter = 0;
+				$any = false;
+				$jobs = Set{};
+			}
+
 			if(!$job) {
-				
 				if($interval == 0) { // For an interval of 0, break now - helps with unit testing etc
 					break;
 				}
 
 				if($blocking === false) {
-					$this->logger->info('Sleeping for $interval');
+					$this->logger->debug('Sleeping for $interval');
 					if($this->paused) {
 						// set updated
 					} else {
@@ -163,14 +183,8 @@ class PiWorker {
 					}
 					usleep($interval * 1000000);
 				}
-
 				continue;
 			}
-
-			$this->logger->info('starting work on $job');
-			$this->workingOn($job);
-			$this->perform($job);
-
 		}
 
 	}
@@ -187,7 +201,7 @@ class PiWorker {
 		}
 
 		$job->updateStatus(JobStatus::StatusComplete);
-		$this->logger->info('$job has finished');
+		$this->logger->debug('$job has finished');
 	}
 
 	public function reserve($blocking = false, $timeout = null)
@@ -198,14 +212,14 @@ class PiWorker {
 		}
 
 		foreach ($queues as $queue) {
-			$this->logger->info('Checking $queues for jobs');
+			$this->logger->debug("Checking $queue for jobs");
 			$payload = $this->piQueue->pop($queue);
 			
 			if(!is_array($payload)) {
 				continue;
 			}
-			$job = new PibJob($this->piQueue, $queue, $payload);
-			$this->logger->info('Found job $job');
+			$job = new PiJob($this->piQueue, $queue, $payload);
+			$this->logger->debug('Found job $job');
 			return $job;
 		}
 
@@ -225,7 +239,7 @@ class PiWorker {
 	public function shutdown()
 	{
 		$this->shutdown = true;
-		$this->logger->info('Shutting down');
+		$this->logger->debug('Shutting down');
 	}
 
 	public function __toString()

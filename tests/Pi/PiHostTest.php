@@ -8,7 +8,7 @@ use Mocks\MockEntityValidator;
 use Pi\Host\HostProvider;
 use Pi\IContainer;
 use Pi\Container;
-use Pi\Cache\LocalCacheProvider;
+use Pi\Cache\InMemoryCacheProvider;
 use Pi\Interfaces\ICacheProvider,
     Pi\Interfaces\AppSettingsInterface;
 use Pi\Interfaces\IRequest;
@@ -16,8 +16,7 @@ use Pi\Interfaces\IResponse;
 use Pi\Validation\AbstractValidator;
 use Pi\Validation\InlineValidator;
 
-class PiHostTest
-  extends \PHPUnit_Framework_TestCase{
+class PiHostTest extends \PHPUnit_Framework_TestCase{
 
   protected $host;
 
@@ -27,34 +26,51 @@ class PiHostTest
     $_SERVER['REQUEST_URI'] = '/test';
   }
 
-  public function testAssertHostProviderInstanceIsSet()
+  public function tearDown()
   {
-    $this->host->init();
-    $this->assertTrue($this->host === HostProvider::instance());
+    $this->host->dispose();
   }
 
+  public function testCanConfigureAndBuildApplication()
+  {
+    // configuration is done with BibleHost->configure implementation
+    $this->host->init();
+    //$this->assertTrue($this->host->)
+  }
+
+  /**
+   * @slowThreshold 5
+   */
   public function testCreatesContainer()
   {
     $this->host->init();
     $this->assertNotNull($this->host->container());
   }
 
-  public function testEndRequestAndOutputResponse()
+  /**
+   * @slowThreshold 5
+   */
+  public function testAssertHostProviderInstanceIsSet()
   {
-    //$this->assertFalse($this->host->container->get('IResponse')->wasOutputed());
     $this->host->init();
-    $this->assertTrue($this->host->container->get('IResponse')->isClosed());
+    $this->assertTrue($this->host === HostProvider::instance());
   }
 
+  /**
+   * @slowThreshold 5
+   */
   public function testSetAndGetCacheProvider()
   {
     $this->host->init();
-    $this->host->registerCacheProvider(new LocalCacheProvider('/tmp/pi-cache.txt'));
+    $this->host->registerCacheProvider(InMemoryCacheProvider::class);
     $provider = $this->host->cacheProvider();
     $this->assertNotNull($provider);
-    $this->assertTrue($provider instanceof LocalCacheProvider);
+    $this->assertTrue($provider instanceof InMemoryCacheProvider);
   }
 
+  /**
+   * @slowThreshold 5
+   */
   public function testMessageFactoryIsSet()
   {
     $this->host->init();
@@ -64,54 +80,44 @@ class PiHostTest
     $this->assertNotNull($producer);
   }
 
+  /**
+   * @slowThreshold 5
+   */
   public function testExecuteRequestAndWriteResponse()
   {
     $response = $this->host->init();
   }
 
+  /**
+   * @slowThreshold 5
+   */
   public function testEventManagerIsCreated()
   {
     $this->assertInstanceOf('Pi\EventManager', $this->host->eventManager());
   }
 
+  /**
+   * @slowThreshold 5
+   */
   public function testCanRegisterPlugin()
   {
     $this->host->registerPlugin(new MockPlugin());
     $this->host->init();
     $loaded = $this->host->getPluginsLoaded();
-    $this->assertTrue(in_array(get_class(new MockPlugin()), $loaded));
+    $this->assertTrue(in_array(MockPlugin::class, $loaded));
   }
 
-  public function testRegisterPreInitRequestFilters()
-  {
-    $a = false;
-    $this->host->preRequestFilters()->add(function(IRequest $req, IResponse $res) use(&$a){
-      $a = true;
-    });
-    $this->assertFalse($a);
-    $this->host->init();
-    $this->assertTrue($a);
-  }
-
-  public function testRegisterPostInitResponseFilters()
-  {
-   $a = false;
-    $this->host->postRequestFilters()->add(function(IRequest $req, IResponse $res) use(&$a){
-      $a = true;
-    });
-    $this->assertFalse($a);
-    $this->host->init();
-    $this->assertTrue($a);
-  }
-
+  /**
+   * @slowThreshold 5
+   */
   public function testAppSettingsIsRegistered()
   {
     $this->host->init();
-    $provider = $this->host->container()->get('AppSettingsInterface');
+    $provider = $this->host->container()->get(AppSettingsInterface::class);
     $this->assertTrue($provider != null && $provider instanceof AppSettingsInterface);
   }
 
-  public function testRegisterAbstractValidator()
+  public function notimplementedRegisterAbstractValidator()
   {
     $validator = new MockEntityValidator();
     $entity = new MockEntity();

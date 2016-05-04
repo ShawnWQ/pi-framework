@@ -2,7 +2,7 @@
 use Pi\Redis\RedisWorker;
 use Pi\Common\RandomString;
 
-class RedisWorkerTest extends \PHPUnit_Framework_TestCase {
+class RedisWodrkerTest extends \PHPUnit_Framework_TestCase {
 
 	protected $client;
 
@@ -11,8 +11,9 @@ class RedisWorkerTest extends \PHPUnit_Framework_TestCase {
 		$this->worker = new RedisWorker();
     
 	}
-  public function testCanStart()
-  {
-    	
-  }
+	
+	public function testCanStart()
+	{
+		
+	}
 }

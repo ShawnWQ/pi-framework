@@ -46,10 +46,11 @@ class PiContainer implements IContainer, IResolver{
 
   private Map<string,string> $repositoriesAlias = Map {};
 
-    public function isRegistered(string $key) : bool
-    {
-      return $this->registered->contains($key);
-    }
+  public function isRegistered(string $key) : bool
+  {
+    return $this->registered->contains($key);
+  }
+  
   public function getService($serviceInstance)
   {
     return $this->get(get_class($serviceInstance));

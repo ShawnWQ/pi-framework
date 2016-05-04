@@ -18,12 +18,12 @@ class FileSystemPlugin implements IPlugin {
   public function register(IPiHost $host) : void
   {
     $config = $this->config;
-    $host->container()->register('FileSystemConfiguration', function() use($config){
+    $host->container()->register(FileSystemConfiguration::class, function() use($config){
       return $config;
     });
-    $host->container()->registerAlias('Pi\FileSystem\FileSystemConfiguration', 'FileSystemConfiguration');
-    $host->registerService(new FileSystemService());
+    $host->container()->registerAlias(FileSystemConfiguration::class, 'FileSystemConfiguration');
+    $host->registerService(FileSystemService::class);
 
-    $host->container()->registerRepository(new FileEntity(), new FileEntityRepository());
+    $host->container()->registerRepository(FileEntity::class, FileEntityRepository::class);
   }
 }
